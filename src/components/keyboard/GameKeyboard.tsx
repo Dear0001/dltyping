@@ -13,8 +13,6 @@ type Props = {
   onBackspace?: () => void;
 };
 
-const keyBase = "relative flex h-10 min-w-0 flex-1 select-none items-center justify-center rounded-lg border-b-[3px] border-slate-300 bg-white text-sm font-semibold text-navy transition-colors sm:h-11 focus-visible:outline-2 focus-visible:outline-brand";
-
 /** On-screen English QWERTY / Khmer NiDA keyboard for the games. Works with touch and mirrors physical key presses. */
 export default function GameKeyboard({ language, expected, disabled, onChar, onBackspace }: Props) {
   const [shift, setShift] = useState(false);
@@ -39,13 +37,13 @@ export default function GameKeyboard({ language, expected, disabled, onChar, onB
     if (char) onChar(char);
   }
 
-  return <div className="rounded-2xl border border-slate-200 bg-slate-100 p-2 sm:p-3" role="group" aria-label={khmer ? "Khmer NiDA keyboard" : "English QWERTY keyboard"}>
-    <div className="mb-1.5 flex items-center justify-between px-1 text-[11px] font-semibold text-mute">
+  return <div className={`keyboard-card game-keyboard-card ${khmer ? "khmer-keyboard-card" : ""}`} role="group" aria-label={khmer ? "Khmer NiDA keyboard" : "English QWERTY keyboard"}>
+    <div className="keyboard-topline">
       <span>{khmer ? "ក្តារចុច Khmer NiDA" : "QWERTY keyboard"}</span>
-      <span>{khmer ? "Shift = hold or tap ⇧" : "Tap keys on touch devices"}</span>
+      <span className="layout-chip">{khmer ? "NiDA" : "QWERTY"}</span>
     </div>
-    <div className="space-y-1.5">
-      {KEY_ROWS.map((row, r) => <div key={r} className="flex gap-1 sm:gap-1.5" style={{ paddingLeft: r === 1 ? "2%" : r === 2 ? "4%" : r === 3 ? "7%" : 0, paddingRight: r === 3 ? "7%" : 0 }}>
+    <div className="keyboard">
+      {KEY_ROWS.map((row, r) => <div key={r} className={`key-row row-${r}`}>
         {row.map((key) => {
           const [base, shifted] = khmer ? key.km : key.en;
           const label = shift ? shifted : base;
@@ -59,17 +57,17 @@ export default function GameKeyboard({ language, expected, disabled, onChar, onB
             aria-label={label}
             onMouseDown={(e) => e.preventDefault()}
             onClick={() => tap(key.code)}
-            className={`${keyBase} ${isTarget ? "!border-blue-700 !bg-brand !text-white ring-2 ring-accent" : ""} ${isDown ? "translate-y-0.5 !bg-sky-100" : ""} ${khmer ? "font-khmer text-base" : ""}`}
+            className={`key ${khmer ? "font-khmer" : ""} ${isTarget ? "next-key" : ""} ${isDown ? "pressed-key" : ""}`}
           >
             {label}
             {(khmer || /\d/.test(base)) && !shift && <span className="absolute right-1 top-0.5 text-[9px] font-normal opacity-50">{shifted}</span>}
           </button>;
         })}
       </div>)}
-      <div className="flex gap-1 sm:gap-1.5">
-        <button type="button" tabIndex={-1} disabled={disabled} aria-pressed={shift} onMouseDown={(e) => e.preventDefault()} onClick={() => setShift((s) => !s)} className={`${keyBase} !flex-[1.6] ${shift || target?.shift ? "!border-blue-700 !bg-brand !text-white" : ""} ${target?.shift && !shift ? "ring-2 ring-accent" : ""}`}>⇧ Shift</button>
-        <button type="button" tabIndex={-1} disabled={disabled} onMouseDown={(e) => e.preventDefault()} onClick={() => tap("Space")} className={`${keyBase} !flex-[6] ${target?.code === "Space" ? "!border-blue-700 !bg-brand !text-white ring-2 ring-accent" : ""} ${down === "Space" ? "!bg-sky-100" : ""}`}>space</button>
-        {onBackspace && <button type="button" tabIndex={-1} disabled={disabled} aria-label="Backspace" onMouseDown={(e) => e.preventDefault()} onClick={onBackspace} className={`${keyBase} !flex-[1.6]`}>⌫</button>}
+      <div className="key-row modifier-row">
+        <button type="button" tabIndex={-1} disabled={disabled} aria-pressed={shift} onMouseDown={(e) => e.preventDefault()} onClick={() => setShift((s) => !s)} className={`key special-key shift-key ${shift ? "pressed-key" : ""} ${target?.shift && !shift ? "next-key" : ""}`}>⇧ Shift</button>
+        <button type="button" tabIndex={-1} disabled={disabled} onMouseDown={(e) => e.preventDefault()} onClick={() => tap("Space")} className={`key space-key ${target?.code === "Space" ? "next-key" : ""} ${down === "Space" ? "pressed-key" : ""}`}>space</button>
+        {onBackspace && <button type="button" tabIndex={-1} disabled={disabled} aria-label="Backspace" onMouseDown={(e) => e.preventDefault()} onClick={onBackspace} className="key special-key shift-key">⌫</button>}
       </div>
     </div>
   </div>;

@@ -78,3 +78,14 @@
 .brand-mark{background:#2563eb}.brand-dot{color:#38bdf8}
 
 @layer base{a{color:inherit;text-decoration:none}}
+
+/* Reuse the practice keyboard's compact key style in games and keyboard previews. */
+.game-keyboard-card .keyboard { max-width: 475px; }
+.game-keyboard-card .modifier-row .shift-key { flex: 1.6; min-width: 82px; white-space: nowrap; font-size: 10px; }
+.game-keyboard-card .modifier-row .space-key { flex: 6; max-width: 220px; }
+.keyboard-preview .keyboard { max-width: 475px; }
+.keyboard-preview .modifier-row .special-key { flex: 1.6; min-width: 58px; }
+.keyboard-preview .modifier-row .space-key { flex: 6; max-width: 220px; }
+.preview-key { cursor: default; }
+.key { position: relative; }
+.key:focus-visible { outline: 2px solid #2563eb; outline-offset: 2px; }
