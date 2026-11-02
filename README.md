@@ -1,36 +1,27 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# Keyflow — English & Khmer typing practice and games
 
-## Getting Started
+Next.js (App Router) + TypeScript + Tailwind. No backend, database or login: progress is stored in `localStorage` on the current device.
 
-First, run the development server:
+## Routes
+| Route | What it is |
+| --- | --- |
+| `/` | Landing page |
+| `/setup`, `/learn/english`, `/learn/khmer` | Guided practice (lessons, live WPM/accuracy, pause/finish, completion summary) |
+| `/games` | Game hub with language / difficulty / category filters |
+| `/games/letter-jump` | Hop between platforms by typing targets (EN + KM, timed or endless) |
+| `/games/word-sprint` | Timed word race with WPM, accuracy and combos (EN + KM, 30/60/120 s) |
+| `/games/mario-khmer-quest` | Five-level Khmer platform adventure with original art |
 
-```bash
-npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
-```
+## Structure
+- `src/lib/khmer-unicode.ts` – normalization and grapheme-cluster splitting (Intl.Segmenter + fallback, COENG merge)
+- `src/lib/typing-engine.ts` – WPM / accuracy / per-cluster character states
+- `src/lib/keyboard-layouts.ts` – QWERTY + Khmer NiDA key maps (`event.code` → character)
+- `src/lib/game-engine.ts` – difficulty rules, combo/score, pure seeded RNG
+- `src/lib/local-progress.ts` + `src/hooks/use-stored-value.ts` – hydration-safe, validated storage
+- `src/components/games/shared/*` – reusable game UI; each game is a reducer + one component
+- `src/data/games.ts`, `src/data/game-content.ts` – game catalog and content banks
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+Adding a game: add an entry to `typingGames`, a page under `src/app/games/<slug>/`, and reuse the shared components and hooks.
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
-
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
-
-## Learn More
-
-To learn more about Next.js, take a look at the following resources:
-
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
-
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
-
-## Deploy on Vercel
-
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
-
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+## Scripts
+`npm run dev`, `npm run build`, `npm run lint`. Deploys to Vercel with no environment variables.

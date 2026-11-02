@@ -1,3 +1,7 @@
+"use client";
+
+import { useLocale } from "@/components/shared/LocaleProvider";
+
 const rows = [
   ["Q", "W", "E", "R", "T", "Y", "U", "I", "O", "P"],
   ["A", "S", "D", "F", "G", "H", "J", "K", "L"],
@@ -5,14 +9,15 @@ const rows = [
 ];
 
 export default function WindowsKeyboardLayout() {
+  const { t } = useLocale();
   return (
-    <div className="rounded-2xl border border-[#e8e9e2] bg-white p-5 shadow-sm" aria-label="Windows keyboard layout preview">
-      <div className="mb-4 flex items-center justify-between text-xs font-semibold uppercase tracking-[0.16em] text-[#858b80]">
-        <span>Windows keyboard</span><span className="rounded-full bg-[#f0f3ec] px-3 py-1 text-[10px] tracking-normal text-[#59745b]">QWERTY</span>
+    <div className="rounded-2xl border border-[#e2e8f0] bg-white p-5 shadow-sm" aria-label={`${t("keyboard.windows")} · ${t("keyboard.preview")}`}>
+      <div className="mb-4 flex items-center justify-between text-xs font-semibold uppercase tracking-[0.16em] text-[#64748b]">
+        <span>{t("keyboard.windows")}</span><span className="rounded-full bg-[#ebeff4] px-3 py-1 text-[10px] tracking-normal text-[#576376]">QWERTY</span>
       </div>
       <div className="mx-auto max-w-[390px] space-y-2">
-        {rows.map((row, index) => <div key={index} className="flex justify-center gap-1.5">{row.map((key) => <span key={key} className="grid h-9 min-w-8 flex-1 place-items-center rounded-md border border-[#e5e7df] bg-[#fafbf8] text-xs text-[#626a5f] shadow-[0_2px_0_#e6e8e1]">{key}</span>)}</div>)}
-        <div className="flex justify-center gap-1.5 pt-1"><span className="grid h-8 min-w-16 place-items-center rounded-md border border-[#e5e7df] bg-[#f4f5f1] px-2 text-[10px] text-[#72796f]">Ctrl</span><span className="grid h-8 min-w-16 place-items-center rounded-md border border-[#e5e7df] bg-white px-2 text-[10px] text-[#72796f]">Alt</span><span className="grid h-8 min-w-20 place-items-center rounded-md border border-[#dce5d7] bg-[#f2f6ef] px-2 text-[10px] text-[#55745a]">⊞ Win</span><span className="h-8 flex-1 rounded-md border border-[#e5e7df] bg-white" aria-label="Space bar" /></div>
+        {rows.map((row, index) => <div key={index} className="flex justify-center gap-1.5">{row.map((key) => <span key={key} className="grid h-9 min-w-8 flex-1 place-items-center rounded-md border border-[#dee2e8] bg-[#eff6ff] text-xs text-[#5e636b] shadow-[0_2px_0_#e0e4e9]">{key}</span>)}</div>)}
+        <div className="flex justify-center gap-1.5 pt-1"><span className="grid h-8 min-w-16 place-items-center rounded-md border border-[#dee2e8] bg-[#f1f2f5] px-2 text-[10px] text-[#6e737a]">Ctrl</span><span className="grid h-8 min-w-16 place-items-center rounded-md border border-[#dee2e8] bg-white px-2 text-[10px] text-[#6e737a]">Alt</span><span className="grid h-8 min-w-20 place-items-center rounded-md border border-[#d6dce6] bg-[#eef2f7] px-2 text-[10px] text-[#536076]">⊞ Win</span><span className="h-8 flex-1 rounded-md border border-[#dee2e8] bg-white" aria-label={t("practice.keyboardSpace")} /></div>
       </div>
     </div>
   );

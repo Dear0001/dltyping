@@ -1,11 +1,15 @@
 "use client";
 
 import Link from "next/link";
+import GamesMenu from "@/components/shared/GamesMenu";
 import { useEffect, useMemo, useRef, useState } from "react";
 import { getTypingStats } from "@/lib/typing-engine";
 import { normalizeKhmer } from "@/lib/khmer-unicode";
 import { lessons } from "@/data/lessons";
 import type { Language, OSPlatform } from "@/types";
+import { useLocale } from "@/components/shared/LocaleProvider";
+import LocaleToggle from "@/components/shared/LocaleToggle";
+import { recordPractice } from "@/lib/local-progress";
 
 const keyboardRows = [
   ["1", "2", "3", "4", "5", "6", "7", "8", "9", "0"],
@@ -40,12 +44,15 @@ type TypingPracticeProps = {
 };
 
 export default function TypingPractice({ language, platform = "Unknown", initialLessonId, timeLimit = 60 }: TypingPracticeProps) {
+  const { locale, setLocale, t } = useLocale();
   const list = lessons[language];
   const [lessonId, setLessonId] = useState(() => list.find((item) => item.id === initialLessonId)?.id ?? list[0].id);
   const [input, setInput] = useState("");
   const [seconds, setSeconds] = useState(0);
   const [running, setRunning] = useState(false);
   const [soundEnabled, setSoundEnabled] = useState(true);
+  const [paused, setPaused] = useState(false);
+  const [forcedDone, setForcedDone] = useState(false);
   const [shifted, setShifted] = useState(false);
   const [pressedKey, setPressedKey] = useState("");
   const [wrongKey, setWrongKey] = useState("");
@@ -56,10 +63,16 @@ export default function TypingPractice({ language, platform = "Unknown", initial
   const isComposingRef = useRef(false);
   const compositionStartRef = useRef("");
   const lesson = list.find((item) => item.id === lessonId) ?? list[0];
+  const lessonLevel = lesson.level === "Beginner" ? t("practice.beginner") : t("practice.intermediate");
+  const lessonMinutes = Number.parseInt(lesson.duration, 10) || 1;
   const target = lesson.text;
   const normalizedInput = language === "khmer" ? normalizeKhmer(input) : input;
   const normalizedTarget = language === "khmer" ? normalizeKhmer(target) : target;
   const stats = useMemo(() => getTypingStats(normalizedTarget, normalizedInput, seconds), [normalizedTarget, normalizedInput, seconds]);
+  const typedLength = Array.from(normalizedInput).length;
+  const done = forcedDone || (!running && !paused && typedLength > 0 && (seconds >= timeLimit || typedLength >= Array.from(normalizedTarget).length));
+  const lessonIndex = list.findIndex((item) => item.id === lessonId);
+  const nextLesson = list[lessonIndex + 1];
   const nextCharacter = Array.from(normalizedTarget)[Array.from(normalizedInput).length] ?? "";
   const currentKhmerRows = shifted ? khmerShiftRows : khmerKeyboardRows;
   const modifierRow = platform === "macOS" ? macModifierRow : platform === "Windows" ? windowsModifierRow : unknownModifierRow;
@@ -97,8 +110,16 @@ export default function TypingPractice({ language, platform = "Unknown", initial
     inputRef.current?.focus();
   }, []);
 
+  useEffect(() => {
+    if (done) recordPractice(language, stats.wpm, stats.accuracy);
+    // Save once per finished session.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [done]);
+
   function reset(nextId = lessonId) {
     setLessonId(nextId);
+    setPaused(false);
+    setForcedDone(false);
     setInput("");
     setSeconds(0);
     setRunning(false);
@@ -109,6 +130,7 @@ export default function TypingPractice({ language, platform = "Unknown", initial
   }
 
   function handleInput(value: string, previousValue = input) {
+    if (paused || done) return;
     if (isComposingRef.current) {
       setInput(value);
       if (!running && value.length) setRunning(true);
@@ -215,20 +237,20 @@ export default function TypingPractice({ language, platform = "Unknown", initial
     <main className="practice-page">
       <header className="topbar">
         <Link className="brand" href="/"><span className="brand-mark">d</span><span>keyflow<span className="brand-dot">.</span></span></Link>
-        <nav className="topnav"><Link href="/">Overview</Link><a className="active" href="#practice">Practice</a><a href="#progress">My progress</a></nav>
-        <div className="user-pill"><span className="avatar">S</span><span>Guest learner</span><span className="chevron">⌄</span></div>
+        <nav className="topnav"><Link href="/">{t("nav.overview")}</Link><a className="active" href="#practice">{t("nav.practice")}</a><GamesMenu/><a href="#progress">{t("nav.progress")}</a></nav>
+        <LocaleToggle/><div className="user-pill"><span className="avatar">S</span><span>{t("nav.guest")}</span><span className="chevron">⌄</span></div>
       </header>
       <section className="practice-shell" id="practice">
-        <div className="breadcrumb"><Link href="/">Practice</Link><span>/</span><span>{language === "english" ? "English" : "ភាសាខ្មែរ"}</span></div>
+        <div className="breadcrumb"><Link href="/">{t("nav.practice")}</Link><span>/</span><span>{language === "english" ? t("practice.english") : t("practice.khmer")}</span></div>
         <div className="practice-heading">
-          <div><div className="eyebrow"><span className="live-dot" /> YOUR DAILY PRACTICE</div><h1>{language === "english" ? "Find your flow." : "ហាត់វាយអក្សរ"}</h1><p>A few focused minutes can make a big difference.</p></div>
-          <div className="language-toggle"><Link href="/learn/english" className={language === "english" ? "selected" : ""}>EN <span>English</span></Link><Link href="/learn/khmer" className={language === "khmer" ? "selected" : ""}>ខ្មែរ <span>Khmer</span></Link></div>
+          <div><div className="eyebrow"><span className="live-dot" /> {t("practice.daily")}</div><h1>{t(language === "english" ? "practice.titleEnglish" : "practice.titleKhmer")}</h1><p>{t("practice.subtitle")}</p></div>
+          <div className="language-toggle"><Link href="/learn/english" onClick={() => setLocale("en")} className={language === "english" ? "selected" : ""}>EN <span>{t("practice.english")}</span></Link><Link href="/learn/khmer" onClick={() => setLocale("km")} className={language === "khmer" ? "selected" : ""}>ខ្មែរ <span>{t("practice.khmer")}</span></Link></div>
         </div>
         <div className="practice-grid">
           <section className="practice-main">
-            <div className="lesson-bar"><div className="lesson-name"><span className="lesson-icon">✳</span><div><span className="small-label">CURRENT LESSON</span><strong>{lesson.title}</strong></div></div><select value={lessonId} onChange={(event) => reset(event.target.value)} aria-label="Choose lesson">{list.map((item) => <option key={item.id} value={item.id}>{item.title}</option>)}</select></div>
+            <div className="lesson-bar"><div className="lesson-name"><span className="lesson-icon">✳</span><div><span className="small-label">{t("practice.currentLesson")}</span><strong>{lesson.title}</strong></div></div><select value={lessonId} onChange={(event) => reset(event.target.value)} aria-label={locale === "km" ? "ជ្រើសរើសមេរៀន" : "Choose lesson"}>{list.map((item) => <option key={item.id} value={item.id}>{item.title}</option>)}</select></div>
             <div className="typing-card">
-              <div className="text-meta"><span>TYPE THE TEXT BELOW</span><span>{lesson.level} <i>·</i> {lesson.duration}</span></div>
+              <div className="text-meta"><span>{t("practice.typeBelow")}</span><span>{lessonLevel} <i>·</i> {lessonMinutes} {t("setup.min")}</span></div>
               <div className={`prompt ${language === "khmer" ? "khmer-prompt" : ""}`} onClick={() => inputRef.current?.focus()}>
                 {Array.from(target).map((char, index) => {
                   const typed = Array.from(normalizedInput)[index];
@@ -236,22 +258,32 @@ export default function TypingPractice({ language, platform = "Unknown", initial
                   return <span key={`${index}-${char}`} className={`char ${state} ${index === normalizedInput.length ? "cursor" : ""}`}>{char}</span>;
                 })}
               </div>
-              <textarea ref={inputRef} value={input} onChange={(event) => handleInput(event.target.value)} onKeyDown={(event) => { if (event.key === "Shift") handlePhysicalShift(true); }} onKeyUp={(event) => { if (event.key === "Shift") handlePhysicalShift(false); }} onCompositionStart={handleCompositionStart} onCompositionEnd={(event) => handleCompositionEnd(event.currentTarget.value)} onPaste={(event) => event.preventDefault()} className="typing-input" aria-label="Type the lesson text" lang={language === "khmer" ? "km" : "en"} autoCapitalize="off" autoCorrect="off" spellCheck={false} />
-              <div className="typing-footer"><span><kbd>tab</kbd> + <kbd>enter</kbd> to restart</span><div className="typing-actions"><button className={`sound-toggle ${soundEnabled ? "sound-on" : ""}`} onClick={() => setSoundEnabled((enabled) => !enabled)} aria-pressed={soundEnabled} title={soundEnabled ? "Mute typing sounds" : "Enable typing sounds"}>{soundEnabled ? "◖))" : "◖×"}<span>Sound {soundEnabled ? "on" : "off"}</span></button><button className="restart-button" onClick={() => reset()}>↻ <span>Restart</span></button></div></div>
+              <textarea ref={inputRef} value={input} onChange={(event) => handleInput(event.target.value)} onKeyDown={(event) => { if (event.key === "Shift") handlePhysicalShift(true); }} onKeyUp={(event) => { if (event.key === "Shift") handlePhysicalShift(false); }} onCompositionStart={handleCompositionStart} onCompositionEnd={(event) => handleCompositionEnd(event.currentTarget.value)} onPaste={(event) => event.preventDefault()} className="typing-input" aria-label={locale === "km" ? "វាយអត្ថបទមេរៀន" : "Type the lesson text"} lang={language === "khmer" ? "km" : "en"} autoCapitalize="off" autoCorrect="off" spellCheck={false} />
+              {paused && <p className="mx-auto my-2 w-fit rounded-lg bg-blue-50 px-4 py-2 text-sm font-semibold text-brand" role="status">⏸ Paused — press Resume to continue.</p>}
+              {done && <div className="mx-auto my-4 max-w-xl rounded-2xl border border-blue-100 bg-white p-5 text-center shadow-sm" role="status" aria-live="polite">
+                <h2 className="text-xl font-extrabold text-navy">🎉 Lesson complete</h2>
+                <dl className="my-4 grid grid-cols-4 gap-2 text-center">{[["WPM", stats.wpm], ["Accuracy", `${stats.accuracy}%`], ["Errors", stats.errors], ["Time", `${seconds}s`]].map(([label, value]) => <div key={String(label)} className="rounded-xl bg-slate-50 p-2"><dt className="text-[10px] font-bold uppercase text-mute">{label}</dt><dd className="text-xl font-extrabold text-navy">{value}</dd></div>)}</dl>
+                <div className="flex flex-wrap justify-center gap-2">
+                  <button type="button" className="rounded-xl border border-slate-300 bg-white px-4 py-2 text-sm font-bold text-navy" onClick={() => reset()}>↻ Retry</button>
+                  {nextLesson && <button type="button" className="rounded-xl bg-brand px-4 py-2 text-sm font-bold text-white" onClick={() => reset(nextLesson.id)}>Next lesson →</button>}
+                  <Link href="/games" className="rounded-xl border border-slate-300 bg-white px-4 py-2 text-sm font-bold text-navy">🎮 Play a game</Link>
+                </div>
+              </div>}
+              <div className="typing-footer"><span><kbd>tab</kbd> + <kbd>enter</kbd> {t("practice.restartHint")}</span><div className="typing-actions"><button className={`sound-toggle ${soundEnabled ? "sound-on" : ""}`} onClick={() => setSoundEnabled((enabled) => !enabled)} aria-pressed={soundEnabled} title={soundEnabled ? t("practice.mute") : t("practice.enableSound")}>{soundEnabled ? "◖))" : "◖×"}<span>{t(soundEnabled ? "practice.soundOn" : "practice.soundOff")}</span></button>{!done && <button className="restart-button" onClick={() => { if (paused) { setPaused(false); if (typedLength > 0) setRunning(true); inputRef.current?.focus(); } else { setPaused(true); setRunning(false); } }} disabled={typedLength === 0 && !paused}>{paused ? "▶ Resume" : "⏸ Pause"}</button>}{!done && typedLength > 0 && <button className="restart-button" onClick={() => { setRunning(false); setPaused(false); setForcedDone(true); }}>🏁 Finish</button>}<button className="restart-button" onClick={() => reset()}>↻ <span>{t("practice.restart")}</span></button></div></div>
             </div>
-            <div className={`keyboard-card ${language === "khmer" ? "khmer-keyboard-card" : ""}`}><div className="keyboard-topline"><span>ON-SCREEN KEYBOARD</span><span className="layout-chip">{language === "english" ? `${platformLabel} · QWERTY` : `NiDA · ${platformLabel}${shifted ? " · SHIFT" : ""}`}</span></div>{needsKhmerInputSwitch && language === "khmer" && <div className="input-switch-hint" role="alert"><span className="feedback-icon">!</span><span><strong>Your device is still typing Latin letters.</strong><br />{platform === "Windows" ? <>Press <kbd>⊞ Win</kbd> + <kbd>Space</kbd>, then choose Khmer (NiDA).</> : platform === "macOS" ? <>Press <kbd>Control</kbd> + <kbd>Space</kbd> to switch input sources. If needed, press <kbd>Control</kbd> + <kbd>Option</kbd> + <kbd>Space</kbd> to cycle forward.</> : <>Switch your system input source to Khmer (NiDA), then continue.</>}</span></div>}{wrongKey && <div className="key-feedback" role="alert"><span className="feedback-icon">!</span><span>Wrong key. Check the red letter in the passage and try again.</span></div>}<div className="keyboard">{shownRows.map((row, rowIndex) => <div className={`key-row row-${rowIndex}`} key={rowIndex}>{row.map((key, keyIndex) => {
+            <div className={`keyboard-card ${language === "khmer" ? "khmer-keyboard-card" : ""}`}><div className="keyboard-topline"><span>{t("practice.keyboard")}</span><span className="layout-chip">{language === "english" ? `${platformLabel} · QWERTY` : `NiDA · ${platformLabel}${shifted ? " · SHIFT" : ""}`}</span></div>{needsKhmerInputSwitch && language === "khmer" && <div className="input-switch-hint" role="alert"><span className="feedback-icon">!</span><span><strong>{t("practice.switchTitle")}</strong><br />{t(platform === "Windows" ? "practice.switchWindows" : platform === "macOS" ? "practice.switchMac" : "practice.switchUnknown")}</span></div>}{wrongKey && <div className="key-feedback" role="alert"><span className="feedback-icon">!</span><span>{t("practice.wrong")}</span></div>}<div className="keyboard">{shownRows.map((row, rowIndex) => <div className={`key-row row-${rowIndex}`} key={rowIndex}>{row.map((key, keyIndex) => {
               const normalizedKey = key === "space" ? "space" : key.toLowerCase();
               const targetKey = nextCharacter === " " ? "space" : language === "khmer" ? nextCharacter : nextCharacter.toLowerCase();
               const isPressed = pressedKey === normalizedKey;
               const isWrong = language === "khmer" ? normalizedKey.includes(wrongKey) && wrongKey !== "" : wrongKey === normalizedKey;
               const isNext = language === "khmer" ? (key === "⇧" && shiftedHasNext) || normalizedKey.includes(targetKey) : normalizedKey === targetKey;
               const isDisabled = ["English (US)", "⌘", "Ctrl", "Alt", "AltGr", "Enter", "fn", "⌃", "⌥", "⊞"].includes(key);
-              return <button type="button" key={`${rowIndex}-${keyIndex}-${key}`} onMouseDown={(event) => event.preventDefault()} onClick={() => handleVirtualKey(key)} disabled={isDisabled} className={`key ${key === "space" ? "space-key" : ""} ${key.length > 1 && key !== "space" ? "special-key" : ""} ${isNext ? "next-key" : ""} ${isPressed ? "pressed-key" : ""} ${isWrong ? "wrong-key" : ""}`} aria-label={key === "space" ? "space" : key === "↵" ? "restart lesson" : `Type ${key}`}>{key === "space" ? "space" : key}</button>;
-            })}</div>)}</div>{language === "khmer" && <p className="keyboard-note">NiDA key legends shown. Use your device’s Khmer NiDA input source to type.</p>}</div>
+              return <button type="button" key={`${rowIndex}-${keyIndex}-${key}`} onMouseDown={(event) => event.preventDefault()} onClick={() => handleVirtualKey(key)} disabled={isDisabled} className={`key ${key === "space" ? "space-key" : ""} ${key.length > 1 && key !== "space" ? "special-key" : ""} ${isNext ? "next-key" : ""} ${isPressed ? "pressed-key" : ""} ${isWrong ? "wrong-key" : ""}`} aria-label={key === "space" ? t("practice.keyboardSpace") : key === "↵" ? t("practice.restart") : locale === "km" ? `វាយ ${key}` : `Type ${key}`}>{key === "space" ? "space" : key}</button>;
+            })}</div>)}</div>{language === "khmer" && <p className="keyboard-note">{t("practice.khmerKeyboardHint")}</p>}</div>
           </section>
-          <aside className="stats-column"><div className="stats-card"><div className="stats-title"><span>SESSION STATS</span><span className="info">i</span></div><div className="wpm-stat"><strong>{stats.wpm}</strong><span>WPM</span></div><div className="stat-divider"/><div className="mini-stat"><span>Accuracy</span><strong>{stats.accuracy}<small>%</small></strong></div><div className="mini-stat"><span>Errors</span><strong>{stats.errors.toString().padStart(2, "0")}</strong></div><div className="mini-stat"><span>Time</span><strong>{Math.floor(seconds / 60).toString().padStart(2, "0")}:{(seconds % 60).toString().padStart(2, "0")}</strong></div><div className="progress-label"><span>LESSON PROGRESS</span><strong>{stats.progress}%</strong></div><div className="progress-track"><span style={{ width: `${stats.progress}%` }}/></div></div><div className="tip-card"><span className="tip-icon">✦</span><div><strong>A little tip</strong><p>Focus on accuracy first. Speed will follow naturally as your fingers find their rhythm.</p></div></div><div className="next-lesson"><span className="small-label">UP NEXT</span><strong>{list[(list.findIndex((item) => item.id === lessonId) + 1) % list.length].title}</strong><button onClick={() => reset(list[(list.findIndex((item) => item.id === lessonId) + 1) % list.length].id)}>Preview lesson <span>→</span></button></div></aside>
+          <aside className="stats-column"><div className="stats-card"><div className="stats-title"><span>{t("practice.sessionStats")}</span><span className="info">i</span></div><div className="wpm-stat"><strong>{stats.wpm}</strong><span>{t("practice.wpm")}</span></div><div className="stat-divider"/><div className="mini-stat"><span>{t("practice.accuracy")}</span><strong>{stats.accuracy}<small>%</small></strong></div><div className="mini-stat"><span>{t("practice.errors")}</span><strong>{stats.errors.toString().padStart(2, "0")}</strong></div><div className="mini-stat"><span>{t("practice.time")}</span><strong>{Math.floor(seconds / 60).toString().padStart(2, "0")}:{(seconds % 60).toString().padStart(2, "0")}</strong></div><div className="progress-label"><span>{t("practice.lessonProgress")}</span><strong>{stats.progress}%</strong></div><div className="progress-track"><span style={{ width: `${stats.progress}%` }}/></div></div><div className="tip-card"><span className="tip-icon">✦</span><div><strong>{t("practice.tipTitle")}</strong><p>{t("practice.tipText")}</p></div></div><div className="next-lesson"><span className="small-label">{t("practice.upNext")}</span><strong>{list[(list.findIndex((item) => item.id === lessonId) + 1) % list.length].title}</strong><button onClick={() => reset(list[(list.findIndex((item) => item.id === lessonId) + 1) % list.length].id)}>{t("practice.preview")} <span>→</span></button></div></aside>
         </div>
-        <footer className="practice-footer" id="progress"><span>Made for steady progress <span className="footer-heart">♥</span></span><span>Guest practice · no account needed</span></footer>
+        <footer className="practice-footer" id="progress"><span>{t("common.footer")} <span className="footer-heart">♥</span></span><span>{t("practice.guestFooter")}</span></footer>
       </section>
     </main>
   );

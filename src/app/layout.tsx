@@ -1,4 +1,5 @@
 import type { Metadata } from "next";
+import { LocaleProvider } from "@/components/shared/LocaleProvider";
 import "./globals.css";
 
 export const metadata: Metadata = {
@@ -9,7 +10,7 @@ export const metadata: Metadata = {
 export default function RootLayout({ children }: LayoutProps<"/">) {
   return (
     <html lang="en">
-      <body suppressHydrationWarning>{children}</body>
+      <body suppressHydrationWarning><LocaleProvider>{children}</LocaleProvider></body>
     </html>
   );
 }
