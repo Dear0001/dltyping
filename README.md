@@ -25,3 +25,10 @@ Adding a game: add an entry to `typingGames`, a page under `src/app/games/<slug>
 
 ## Scripts
 `npm run dev`, `npm run build`, `npm run lint`. Deploys to Vercel with no environment variables.
+
+## Database & sync (optional)
+Neon Postgres via Prisma 7 (`@prisma/adapter-neon`). Copy `.env.example` to `.env.local`.
+- Schema is applied with `npm run db:migrate` (SQL in `db/migrations`); `prisma/schema.prisma` is introspected from it (`npm run db:pull`, then `npm run db:generate`). The generated client in `src/generated/` is git-ignored and built by `postinstall`.
+- `POST /api/sync` merges a device's local progress (keeps the higher score/stars/WPM/accuracy) and returns the merged result. `ProgressSync` calls it in the background; the UI keeps reading `localStorage`, so everything works offline or without a database.
+- Accounts are optional (email + password, scrypt-hashed; HttpOnly session cookie, only a token hash stored; sign-in attempts are rate-limited). Without an account, progress syncs per browser (`dlt.device` id). Signing in merges that device's progress into the account (higher value wins), and signing out clears local progress so shared browsers stay separate.
+- Auth routes: `/api/auth/{signup,login,logout,me}`. Deploy Vercel functions in `iad1` to sit next to this Neon region.

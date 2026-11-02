@@ -2,6 +2,7 @@
 
 import Link from "next/link";
 import GamesMenu from "@/components/shared/GamesMenu";
+import AccountMenu from "@/components/shared/AccountMenu";
 import LocaleToggle from "@/components/shared/LocaleToggle";
 import { useLocale } from "@/components/shared/LocaleProvider";
 
@@ -17,5 +18,6 @@ export default function SiteHeader() {
       <Link href="/#progress">{t("nav.progress")}</Link>
     </nav>
     <LocaleToggle/>
+    <AccountMenu />
   </header>;
 }

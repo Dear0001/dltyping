@@ -8,9 +8,8 @@ import GameInstructions from "@/components/games/shared/GameInstructions";
 import GameLayout from "@/components/games/shared/GameLayout";
 import GameResults from "@/components/games/shared/GameResults";
 import GameScene from "@/components/games/shared/GameScene";
-import { ComboBadge, GameProgress, GameScore, GameTimer, Hearts, HudStat } from "@/components/games/shared/GameHUD";
+import { ComboBadge, GameScore, GameTimer, Hearts, HudStat } from "@/components/games/shared/GameHUD";
 import { DifficultySelector, LanguageSelector, Segmented } from "@/components/games/shared/Selectors";
-import TargetCard from "@/components/games/shared/TargetCard";
 import { letterPools } from "@/data/game-content";
 import { useScores, useSeen, useSettings } from "@/hooks/use-stored-value";
 import { useKeyInput } from "@/hooks/use-key-input";
@@ -151,13 +150,12 @@ export default function LetterJumpGame() {
   const units = state.queue.length ? state.queue : DEMO;
   const unit = units[state.index] ?? "";
   const expected = playing || state.status === "paused" ? codepoints(unit)[state.cp] : null;
-  const limit = targetLimitMs(state.difficulty, state.completed);
   const stage = Math.floor(state.completed / 10) + 1;
   const timeLeft = TIMED_MS - state.elapsedMs;
   const bestNow = Math.max(state.bestAtStart, state.score);
   const newBest = state.score > 0 && state.score > state.bestAtStart;
 
-  return <GameLayout title="Letter Jump" tagline="Type the target, hop to the next platform. How far can you go?">
+  return <GameLayout>
     <div className="space-y-4">
       <div className="grid grid-cols-2 gap-2 sm:grid-cols-5">
         <GameScore score={state.score} />
@@ -166,9 +164,6 @@ export default function LetterJumpGame() {
         {state.mode === "timed" ? <GameTimer ms={active ? timeLeft : TIMED_MS} /> : <HudStat label="Stage" value={stage} />}
         <HudStat label="Accuracy" value={`${accuracy}%`} tone={accuracy >= 90 ? "good" : "default"} />
       </div>
-      <GameProgress label={state.mode === "timed" ? "Time elapsed" : `Stage ${stage} progress`} value={state.mode === "timed" ? (state.elapsedMs / TIMED_MS) * 100 : (state.completed % 10) * 10} />
-      {active && unit && <TargetCard unit={unit} typed={state.cp} language={state.language} label={playing || state.status === "paused" ? "Type this" : "Run over"} />}
-      {active && <div className="h-1.5 overflow-hidden rounded-full bg-slate-200" aria-hidden="true"><div className={`h-full rounded-full ${state.unitMs / limit > 0.7 ? "bg-bad" : "bg-accent"}`} style={{ width: `${Math.max(0, 100 - (state.unitMs / limit) * 100)}%` }} /></div>}
       <GameScene theme="sky" hero="blob" units={units} index={state.index} typed={state.cp} jumpKey={state.jumpKey} errorKey={state.errorKey} language={state.language} />
       <GameControls status={state.status} onPause={() => dispatch({ type: "pause" })} onResume={() => dispatch({ type: "resume" })} onRestart={start} onMenu={() => dispatch({ type: "menu" })} />
       <GameKeyboard language={state.status === "idle" ? language : state.language} expected={expected} disabled={!playing} onChar={handleChar} />

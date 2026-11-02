@@ -26,6 +26,16 @@ export function writeRaw(key: string, value: string) {
   listeners.forEach((listener) => listener());
 }
 
+export function removeRaw(key: string) {
+  memory.delete(key);
+  try {
+    window.localStorage.removeItem(key);
+  } catch {
+    // Storage unavailable: nothing persisted to remove.
+  }
+  listeners.forEach((listener) => listener());
+}
+
 export function subscribeStorage(listener: () => void) {
   listeners.add(listener);
   if (!storageHooked && typeof window !== "undefined") {

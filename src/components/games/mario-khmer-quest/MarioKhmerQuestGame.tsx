@@ -8,9 +8,8 @@ import GameInstructions from "@/components/games/shared/GameInstructions";
 import GameLayout from "@/components/games/shared/GameLayout";
 import GameResults from "@/components/games/shared/GameResults";
 import GameScene from "@/components/games/shared/GameScene";
-import { ComboBadge, GameProgress, GameScore, GameTimer, Hearts, HudStat } from "@/components/games/shared/GameHUD";
+import { ComboBadge, GameScore, GameTimer, Hearts, HudStat } from "@/components/games/shared/GameHUD";
 import { DifficultySelector } from "@/components/games/shared/Selectors";
-import TargetCard from "@/components/games/shared/TargetCard";
 import { marioLevels } from "@/data/game-content";
 import { useLevelBook, useScores, useSeen, useSettings } from "@/hooks/use-stored-value";
 import { useKeyInput } from "@/hooks/use-key-input";
@@ -142,7 +141,7 @@ export default function MarioKhmerQuestGame() {
   const newBest = state.score > 0 && state.score > state.bestAtStart;
   const title = won ? "Level complete!" : state.outcome === "timeout" ? "Out of time" : state.outcome === "lives" ? "The explorer tumbled" : "Level ended";
 
-  return <GameLayout title="Mario Khmer Quest" tagline="Type Khmer letters, clusters and words to guide the explorer to the temple gate.">
+  return <GameLayout>
     <div className="space-y-4">
       <div className="grid grid-cols-2 gap-2 sm:grid-cols-5">
         <GameScore score={state.score} />
@@ -151,8 +150,6 @@ export default function MarioKhmerQuestGame() {
         <GameTimer ms={state.status === "idle" ? levelLimit(state.level, difficulty) : state.limitMs - state.elapsedMs} />
         <HudStat label="Coins" value={`🪙 ${coins}`} />
       </div>
-      <GameProgress label={`Level ${info.number} · ${info.name} · ${Math.min(state.index, total)}/${total} platforms`} value={(state.index / total) * 100} />
-      {state.status !== "idle" && <TargetCard unit={unit} typed={state.cp} language="khmer" label="Type this Khmer" />}
       <GameScene theme="temple" hero="explorer" units={state.units} index={state.index} typed={state.cp} total={total} jumpKey={state.jumpKey} errorKey={state.errorKey} language="khmer" />
       <GameControls status={state.status} onPause={() => dispatch({ type: "pause" })} onResume={() => dispatch({ type: "resume" })} onRestart={() => startLevel(state.level)} onMenu={() => dispatch({ type: "menu" })} />
       <GameKeyboard language="khmer" expected={expected} disabled={!playing} onChar={handleChar} />

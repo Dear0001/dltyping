@@ -145,7 +145,7 @@ export default function WordSprintGame() {
   const nextCp = state.status === "playing" || state.status === "paused" ? goal[state.typed.length] ?? null : null;
   const newBest = state.score > 0 && state.score > state.bestAtStart;
 
-  return <GameLayout title="Word Sprint" tagline="Type as many words as you can before the timer hits zero.">
+  return <GameLayout>
     <div className="space-y-4">
       <div className="grid grid-cols-3 gap-2 lg:grid-cols-6">
         <GameTimer ms={state.status === "idle" ? duration * 1000 : timeLeft} />

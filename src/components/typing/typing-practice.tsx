@@ -44,7 +44,7 @@ type TypingPracticeProps = {
 };
 
 export default function TypingPractice({ language, platform = "Unknown", initialLessonId, timeLimit = 60 }: TypingPracticeProps) {
-  const { locale, setLocale, t } = useLocale();
+  const { locale, t } = useLocale();
   const list = lessons[language];
   const [lessonId, setLessonId] = useState(() => list.find((item) => item.id === initialLessonId)?.id ?? list[0].id);
   const [input, setInput] = useState("");
@@ -241,11 +241,6 @@ export default function TypingPractice({ language, platform = "Unknown", initial
         <LocaleToggle/><div className="user-pill"><span className="avatar">S</span><span>{t("nav.guest")}</span><span className="chevron">⌄</span></div>
       </header>
       <section className="practice-shell" id="practice">
-        <div className="breadcrumb"><Link href="/">{t("nav.practice")}</Link><span>/</span><span>{language === "english" ? t("practice.english") : t("practice.khmer")}</span></div>
-        <div className="practice-heading">
-          <div><div className="eyebrow"><span className="live-dot" /> {t("practice.daily")}</div><h1>{t(language === "english" ? "practice.titleEnglish" : "practice.titleKhmer")}</h1><p>{t("practice.subtitle")}</p></div>
-          <div className="language-toggle"><Link href="/learn/english" onClick={() => setLocale("en")} className={language === "english" ? "selected" : ""}>EN <span>{t("practice.english")}</span></Link><Link href="/learn/khmer" onClick={() => setLocale("km")} className={language === "khmer" ? "selected" : ""}>ខ្មែរ <span>{t("practice.khmer")}</span></Link></div>
-        </div>
         <div className="practice-grid">
           <section className="practice-main">
             <div className="lesson-bar"><div className="lesson-name"><span className="lesson-icon">✳</span><div><span className="small-label">{t("practice.currentLesson")}</span><strong>{lesson.title}</strong></div></div><select value={lessonId} onChange={(event) => reset(event.target.value)} aria-label={locale === "km" ? "ជ្រើសរើសមេរៀន" : "Choose lesson"}>{list.map((item) => <option key={item.id} value={item.id}>{item.title}</option>)}</select></div>

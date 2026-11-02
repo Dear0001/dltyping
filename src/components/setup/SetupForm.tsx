@@ -44,7 +44,7 @@ export default function SetupForm() {
         </div>
         <div className="mb-7">
           <label htmlFor="lesson" className="text-[10px] font-bold tracking-[0.16em] text-[#64748b]">{t("setup.stepLesson")}</label>
-          <select id="lesson" value={config.activeSectionId} onChange={(event) => setConfig((current) => ({ ...current, activeSectionId: event.target.value }))} className="mt-3 block w-full rounded-lg border border-[#dee2e8] bg-white px-3 py-3 text-sm text-[#33373d] outline-none focus:border-[#717e94] focus:ring-2 focus:ring-[#717e94]/15">
+          <select id="lesson" value={config.activeSectionId} onChange={(event) => { const picked = category.sections.find((item) => item.id === event.target.value); const minutes = Number.parseInt(picked?.duration ?? "1", 10) || 1; setConfig((current) => ({ ...current, activeSectionId: event.target.value, timeLimit: minutes <= 1 ? 60 : minutes <= 2 ? 120 : 300 })); }} className="mt-3 block w-full rounded-lg border border-[#dee2e8] bg-white px-3 py-3 text-sm text-[#33373d] outline-none focus:border-[#717e94] focus:ring-2 focus:ring-[#717e94]/15">
             {category.sections.map((section) => <option key={section.id} value={section.id}>{section.title} · {section.level === "Beginner" ? t("setup.beginner") : t("setup.intermediate")}</option>)}
           </select>
         </div>
