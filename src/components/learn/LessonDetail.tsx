@@ -67,7 +67,7 @@ export default function LessonDetail({ language, lessonId }: Props) {
         <main className="mx-auto max-w-3xl px-4 py-16 text-center">
           <p className="text-4xl" aria-hidden="true">🔍</p>
           <h1 className="mt-4 text-2xl font-extrabold">Lesson not found</h1>
-          <p className="mt-2 text-mute">This lesson doesn't exist in the {language} curriculum.</p>
+          <p className="mt-2 text-mute">This lesson doesn&apos;t exist in the {language} curriculum.</p>
           <Link href="/learn" className={`${primaryBtn} mt-6 inline-flex`}>Back to Learn</Link>
         </main>
       </div>

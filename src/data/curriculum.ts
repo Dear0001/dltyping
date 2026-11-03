@@ -754,6 +754,18 @@ export function prevLesson(curriculum: LanguageCurriculum, lessonId: string): Cu
   return idx > 0 ? all[idx - 1] : undefined;
 }
 
+/** First lesson in path order the learner has not completed yet, or undefined when all are done. */
+export function firstIncompleteLesson(curriculum: LanguageCurriculum, completedLessons: Record<string, boolean>) {
+  for (const course of curriculum.courses) {
+    for (const mod of course.modules) {
+      for (const lesson of mod.lessons) {
+        if (!completedLessons[`${curriculum.language}:${lesson.id}`]) return { lesson, course, module: mod };
+      }
+    }
+  }
+  return undefined;
+}
+
 export function courseProgress(course: CurriculumCourse, completedLessons: Record<string, boolean>, language: string) {
   const lessons = course.modules.flatMap((m) => m.lessons);
   const done = lessons.filter((l) => completedLessons[`${language}:${l.id}`]).length;

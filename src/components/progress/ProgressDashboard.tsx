@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import SiteHeader from "@/components/shared/SiteHeader";
-import { primaryBtn, secondaryBtn } from "@/components/games/shared/GameDialog";
+import { secondaryBtn } from "@/components/games/shared/GameDialog";
 import { curricula, getAllLessons, levelLabels, levelColors, courseProgress } from "@/data/curriculum";
 import { useUserProgress, useScores, usePracticeBest } from "@/hooks/use-stored-value";
 import { levelFromXp, xpForLevel, LEVEL_TITLES } from "@/lib/local-progress";
@@ -42,11 +42,6 @@ export default function ProgressDashboard() {
   const nextMin = xpForLevel(level + 1);
   const levelPct = nextMin > currentMin ? Math.min(100, Math.round(((progress.xp - currentMin) / (nextMin - currentMin)) * 100)) : 100;
   const totalPlays = Object.values(scores).reduce((sum, s) => sum + s.plays, 0);
-  const topScore = Math.max(0, ...typingGames.map((g) => bestForGame(scores, g.id)));
-
-  const unlockedAchievements = ACHIEVEMENTS.filter((a) =>
-    a.condition(progress.xp, progress.streak, progress.completedLessons)
-  );
 
   return (
     <div className="min-h-screen bg-surface text-navy">

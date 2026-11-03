@@ -3,7 +3,8 @@
 import Link from "next/link";
 import { useState } from "react";
 import SiteHeader from "@/components/shared/SiteHeader";
-import { primaryBtn, secondaryBtn } from "@/components/games/shared/GameDialog";
+import ContinueCard from "@/components/learn/ContinueCard";
+import { secondaryBtn } from "@/components/games/shared/GameDialog";
 import { curricula, levelLabels, levelColors, courseProgress, getAllLessons } from "@/data/curriculum";
 import { useUserProgress } from "@/hooks/use-stored-value";
 import { levelFromXp, xpForLevel, LEVEL_TITLES } from "@/lib/local-progress";
@@ -87,6 +88,8 @@ export default function CurriculumHub() {
             <StreakBadge streak={progress.streak} />
           </div>
         )}
+
+        <ContinueCard />
 
         {/* Language tabs */}
         <div className="mb-6 flex gap-2">

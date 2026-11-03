@@ -3,6 +3,7 @@
 import Link from "next/link";
 import { useMemo, useState } from "react";
 import SiteHeader from "@/components/shared/SiteHeader";
+import ContinueCard from "@/components/learn/ContinueCard";
 import { curricula, levelLabels, levelColors } from "@/data/curriculum";
 import { useUserProgress } from "@/hooks/use-stored-value";
 import type { CurriculumLevel, Language } from "@/types";
@@ -104,6 +105,8 @@ export default function LessonLibrary() {
             Every English and Khmer lesson in one list. Search by title or key, filter by level and status, and jump straight in.
           </p>
         </div>
+
+        <ContinueCard />
 
         <div className="mb-6 space-y-4 rounded-2xl border border-slate-200 bg-white p-4 shadow-sm">
           <div className="flex flex-wrap gap-3">
