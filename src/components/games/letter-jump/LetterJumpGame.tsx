@@ -13,6 +13,7 @@ import { DifficultySelector, LanguageSelector, Segmented } from "@/components/ga
 import { letterPools } from "@/data/game-content";
 import { useScores, useSeen, useSettings } from "@/hooks/use-stored-value";
 import { useKeyInput } from "@/hooks/use-key-input";
+import { useActivityRecorder } from "@/hooks/useActivityRecorder";
 import { useAutoPause, useTicker } from "@/hooks/use-ticker";
 import { DIFFICULTY_RULES, LIVES, applyMistake, comboMultiplier, pick, unitScore, type Difficulty, type GameStatus } from "@/lib/game-engine";
 import { codepoints } from "@/lib/khmer-unicode";
@@ -36,20 +37,20 @@ type State = {
   queue: string[]; index: number; cp: number; score: number; combo: number; bestCombo: number;
   lives: number; mistakeCounter: number; mistakes: number; correctKeys: number; totalKeys: number;
   completed: number; skipped: number; elapsedMs: number; unitMs: number; jumpKey: number; errorKey: number;
-  reason: "time" | "lives" | "quit" | null; bestAtStart: number;
+  reason: "time" | "lives" | "quit" | null; bestAtStart: number; focus: string[];
 };
 type Action =
-  | { type: "start"; language: Language; difficulty: Difficulty; mode: Mode; seed: number; bestAtStart: number }
+  | { type: "start"; language: Language; difficulty: Difficulty; mode: Mode; seed: number; bestAtStart: number; focus: string[] }
   | { type: "key"; char: string } | { type: "tick"; delta: number }
   | { type: "pause" } | { type: "resume" } | { type: "finish" } | { type: "menu" };
 
-const initial: State = { status: "idle", language: "english", difficulty: "easy", mode: "timed", seed: 1, queue: [], index: 0, cp: 0, score: 0, combo: 0, bestCombo: 0, lives: LIVES, mistakeCounter: 0, mistakes: 0, correctKeys: 0, totalKeys: 0, completed: 0, skipped: 0, elapsedMs: 0, unitMs: 0, jumpKey: 0, errorKey: 0, reason: null, bestAtStart: 0 };
+const initial: State = { status: "idle", language: "english", difficulty: "easy", mode: "timed", seed: 1, queue: [], index: 0, cp: 0, score: 0, combo: 0, bestCombo: 0, lives: LIVES, mistakeCounter: 0, mistakes: 0, correctKeys: 0, totalKeys: 0, completed: 0, skipped: 0, elapsedMs: 0, unitMs: 0, jumpKey: 0, errorKey: 0, reason: null, bestAtStart: 0, focus: [] };
 
 function fill(s: State, upto: number): State {
   let { seed } = s;
   const queue = [...s.queue];
   while (queue.length < upto) {
-    const r = pick(letterPools[s.language][s.difficulty], seed, queue[queue.length - 1]);
+    const r = pick(s.focus.length ? s.focus : letterPools[s.language][s.difficulty], seed, queue[queue.length - 1]);
     queue.push(r.value);
     seed = r.seed;
   }
@@ -69,7 +70,7 @@ function miss(s: State): State {
 function reducer(s: State, a: Action): State {
   switch (a.type) {
     case "start":
-      return fill({ ...initial, status: "playing", language: a.language, difficulty: a.difficulty, mode: a.mode, seed: a.seed, bestAtStart: a.bestAtStart }, 10);
+      return fill({ ...initial, status: "playing", language: a.language, difficulty: a.difficulty, mode: a.mode, seed: a.seed, bestAtStart: a.bestAtStart, focus: a.focus }, 10);
     case "pause": return s.status === "playing" ? { ...s, status: "paused" } : s;
     case "resume": return s.status === "paused" ? { ...s, status: "playing" } : s;
     case "finish": return s.status === "playing" || s.status === "paused" ? { ...s, status: "finished", reason: "quit" } : s;
@@ -100,13 +101,17 @@ function reducer(s: State, a: Action): State {
   }
 }
 
-export default function LetterJumpGame() {
+export default function LetterJumpGame({ focusKeys = [], focusLanguage }: { focusKeys?: string[]; focusLanguage?: Language }) {
   const [settings, updateSettings] = useSettings();
   const scores = useScores();
   const seen = useSeen();
   const [state, dispatch] = useReducer(reducer, initial);
   const [mode, setMode] = useState<Mode>("timed");
-  const { language, difficulty } = settings;
+  const recorder = useActivityRecorder();
+  // A dashboard link can limit the run to the learner's weak keys; those runs keep their own high-score slot.
+  const focus = focusKeys.length >= 2 && focusLanguage ? { keys: focusKeys, language: focusLanguage } : null;
+  const { difficulty } = settings;
+  const language = focus?.language ?? settings.language;
   const playing = state.status === "playing";
   const stateRef = useRef(state);
   useEffect(() => {
@@ -116,13 +121,14 @@ export default function LetterJumpGame() {
   useTicker(playing, (delta) => dispatch({ type: "tick", delta }));
   useAutoPause(playing, () => dispatch({ type: "pause" }));
 
-  const variant = `letter-jump:${state.language}:${state.difficulty}:${state.mode}`;
+  const variant = `letter-jump:${state.language}:${state.difficulty}:${state.mode}${state.focus.length ? ":focus" : ""}`;
   const accuracy = calcAccuracy(state.correctKeys, state.totalKeys);
   const wpm = calcWpm(state.correctKeys, state.elapsedMs);
 
   useEffect(() => {
     if (state.status === "finished") {
       recordScore(variant, { score: state.score, wpm, accuracy });
+      recorder.finish({ activity: "letter-jump", language: state.language, durationSec: state.elapsedMs / 1000, correct: state.correctKeys, incorrect: state.totalKeys - state.correctKeys, score: state.score, difficulty: state.difficulty, detail: state.focus.length ? "Weak-key focus" : undefined });
       playSound(state.reason === "lives" ? "lose" : "win", stateRef.current.status === "finished" && settings.sound);
     }
     // Only when a run ends.
@@ -130,9 +136,10 @@ export default function LetterJumpGame() {
   }, [state.status]);
 
   function start() {
+    recorder.flush();
     markSeen("letter-jump");
-    const best = scores[`letter-jump:${language}:${difficulty}:${mode}`]?.best ?? 0;
-    dispatch({ type: "start", language, difficulty, mode, seed: (Date.now() ^ 0x9e3779b9) >>> 0, bestAtStart: best });
+    const best = scores[`letter-jump:${language}:${difficulty}:${mode}${focus ? ":focus" : ""}`]?.best ?? 0;
+    dispatch({ type: "start", language, difficulty, mode, seed: (Date.now() ^ 0x9e3779b9) >>> 0, bestAtStart: best, focus: focus?.keys ?? [] });
   }
 
   function handleChar(char: string) {
@@ -140,6 +147,7 @@ export default function LetterJumpGame() {
     if (s.status !== "playing") return;
     const cps = codepoints(s.queue[s.index]);
     const ok = char === cps[s.cp];
+    if (cps[s.cp]) recorder.keystroke(s.language, cps[s.cp], ok, false);
     playSound(!ok ? "wrong" : s.cp + 1 === cps.length ? "jump" : "key", settings.sound);
     dispatch({ type: "key", char });
   }
@@ -170,11 +178,13 @@ export default function LetterJumpGame() {
 
     {state.status === "idle" && <GameStartDialog title="Letter Jump" subtitle="Type each target to leap across the sky." icon="🦘" onStart={start}>
       <div className="grid gap-3 sm:grid-cols-2">
-        <LanguageSelector value={language} onChange={(v) => updateSettings({ language: v })} />
+        {focus
+          ? <div className="rounded-xl border border-blue-100 bg-blue-50 px-3 py-2 text-xs text-navy"><strong>Weak-key focus</strong> ({language === "khmer" ? "Khmer" : "English"}): <span className={language === "khmer" ? "font-khmer" : ""}>{focus.keys.join(" ")}</span></div>
+          : <LanguageSelector value={language} onChange={(v) => updateSettings({ language: v })} />}
         <DifficultySelector value={difficulty} onChange={(v) => updateSettings({ difficulty: v })} />
       </div>
       <Segmented label="Mode" value={mode} onChange={setMode} options={[{ value: "timed", label: "Timed · 60s" }, { value: "endless", label: "Endless" }]} />
-      <p className="text-xs text-mute">Best on this setup: <strong className="text-navy">{(scores[`letter-jump:${language}:${difficulty}:${mode}`]?.best ?? 0).toLocaleString("en-US")}</strong></p>
+      <p className="text-xs text-mute">Best on this setup: <strong className="text-navy">{(scores[`letter-jump:${language}:${difficulty}:${mode}${focus ? ":focus" : ""}`]?.best ?? 0).toLocaleString("en-US")}</strong></p>
       <GameInstructions steps={STEPS} firstTime={!seen["letter-jump"]} />
     </GameStartDialog>}
     {state.status === "paused" && <GamePauseDialog onResume={() => dispatch({ type: "resume" })} onRestart={start} />}

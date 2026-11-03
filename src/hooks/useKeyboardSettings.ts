@@ -3,6 +3,7 @@
 import { useCallback } from "react";
 import { useStoredValue } from "@/hooks/use-stored-value";
 import { parseStored, readRaw, writeRaw } from "@/lib/local-progress";
+import type { GuidanceMode } from "@/lib/keyboard/typing-guidance";
 
 export type OSChoice = "auto" | "mac" | "windows";
 export type KeyboardSize = "sm" | "md" | "lg";
@@ -15,10 +16,14 @@ export type KeyboardSettings = {
   hints: boolean;
   /** Highlight the next expected key. */
   showNext: boolean;
+  /** Show the two-hand finger guide under the keyboard. */
+  guide: boolean;
+  /** Learning (full help), Practice (compact) or Challenge (hints on request). */
+  mode: GuidanceMode;
 };
 
 export const KEYBOARD_SETTINGS_KEY = "dlt.keyboard";
-export const DEFAULT_KEYBOARD_SETTINGS: KeyboardSettings = { os: "auto", visible: true, size: "md", hints: true, showNext: true };
+export const DEFAULT_KEYBOARD_SETTINGS: KeyboardSettings = { os: "auto", visible: true, size: "md", hints: true, showNext: true, guide: true, mode: "learning" };
 
 function validate(value: unknown): KeyboardSettings | null {
   if (typeof value !== "object" || value === null) return null;
@@ -30,6 +35,8 @@ function validate(value: unknown): KeyboardSettings | null {
     size: v.size === "sm" || v.size === "md" || v.size === "lg" ? v.size : d.size,
     hints: typeof v.hints === "boolean" ? v.hints : d.hints,
     showNext: typeof v.showNext === "boolean" ? v.showNext : d.showNext,
+    guide: typeof v.guide === "boolean" ? v.guide : d.guide,
+    mode: v.mode === "learning" || v.mode === "practice" || v.mode === "challenge" ? v.mode : d.mode,
   };
 }
 

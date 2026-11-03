@@ -16,6 +16,7 @@ import type { SceneTheme } from "@/components/games/shared/GameScene";
 import type { Language } from "@/types";
 import { useLevelBook, useScores, useSeen, useSettings } from "@/hooks/use-stored-value";
 import { useKeyInput } from "@/hooks/use-key-input";
+import { useActivityRecorder } from "@/hooks/useActivityRecorder";
 import { useAutoPause, useTicker } from "@/hooks/use-ticker";
 import { DIFFICULTY_RULES, LIVES, applyMistake, comboMultiplier, starsFor, unitScore, type Difficulty, type GameStatus } from "@/lib/game-engine";
 import { codepoints } from "@/lib/khmer-unicode";
@@ -88,6 +89,7 @@ export default function QuestGame({ config }: { config: QuestConfig }) {
   const { gameId, language, levels: marioLevels } = config;
   const reducer = useMemo(() => makeReducer(marioLevels), [marioLevels]);
   const [settings, updateSettings] = useSettings();
+  const recorder = useActivityRecorder();
   const scores = useScores();
   const levelBook = useLevelBook(gameId);
   const seen = useSeen();
@@ -111,6 +113,7 @@ export default function QuestGame({ config }: { config: QuestConfig }) {
     if (state.status !== "finished") return;
     const s = stateRef.current;
     recordScore(`${gameId}:${s.level}:${s.difficulty}`, { score: s.score, accuracy: calcAccuracy(s.correctKeys, s.totalKeys) });
+    recorder.finish({ activity: gameId === "english-quest" ? "english-quest" : "mario-khmer-quest", language, durationSec: s.elapsedMs / 1000, correct: s.correctKeys, incorrect: s.totalKeys - s.correctKeys, score: s.score, difficulty: s.difficulty, detail: `Level ${s.level}${s.outcome === "win" ? " cleared" : ""}` });
     if (s.outcome === "win") recordLevel(s.level, { stars: starsFor(calcAccuracy(s.correctKeys, s.totalKeys), s.lives), score: s.score }, gameId);
     playSound(s.outcome === "win" ? "win" : "lose", settings.sound);
     // Only when a run ends.
@@ -118,6 +121,7 @@ export default function QuestGame({ config }: { config: QuestConfig }) {
   }, [state.status]);
 
   function startLevel(level: number) {
+    recorder.flush();
     markSeen(gameId);
     setSelected(level);
     dispatch({ type: "start", level, difficulty, bestAtStart: scores[`${gameId}:${level}:${difficulty}`]?.best ?? 0 });
@@ -128,6 +132,7 @@ export default function QuestGame({ config }: { config: QuestConfig }) {
     if (s.status !== "playing") return;
     const cps = codepoints(s.units[s.index]);
     const ok = char === cps[s.cp];
+    if (cps[s.cp]) recorder.keystroke(language, cps[s.cp], ok, false);
     playSound(!ok ? "wrong" : s.cp + 1 === cps.length ? "jump" : "key", settings.sound);
     dispatch({ type: "key", char });
   }

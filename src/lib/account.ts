@@ -4,7 +4,7 @@
 import { useSyncExternalStore } from "react";
 import { clearLocalProgress, getDeviceId, setSyncAccount, syncProgress } from "@/lib/sync";
 
-export type Account = { status: "loading" | "anon" | "user"; email?: string };
+export type Account = { status: "loading" | "anon" | "user"; email?: string; /** Granted by the server for this email (see src/lib/perks.ts). */ perks?: { allPets?: boolean } };
 let account: Account = { status: "loading" };
 const listeners = new Set<() => void>();
 const LOADING: Account = { status: "loading" };
@@ -22,8 +22,8 @@ export function useAccount(): Account {
 export async function refreshAccount() {
   try {
     const res = await fetch("/api/auth/me", { cache: "no-store" });
-    const data = (await res.json()) as { user: { email: string } | null };
-    set(data.user ? { status: "user", email: data.user.email } : { status: "anon" });
+    const data = (await res.json()) as { user: { email: string; perks?: { allPets?: boolean } } | null };
+    set(data.user ? { status: "user", email: data.user.email, perks: data.user.perks } : { status: "anon" });
   } catch {
     if (account.status === "loading") set({ status: "anon" });
   }
@@ -36,6 +36,7 @@ export async function authenticate(mode: "login" | "signup", email: string, pass
     const data = (await res.json().catch(() => ({}))) as { error?: string; user?: { email: string } };
     if (!res.ok || !data.user) return data.error ?? "Something went wrong. Please try again.";
     set({ status: "user", email: data.user.email });
+    void refreshAccount(); // pick up account perks (login/signup responses carry only the email)
     await syncProgress(true); // merge account progress into this device
     return null;
   } catch {

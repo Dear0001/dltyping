@@ -1,27 +1,31 @@
 "use client";
 
 import Link from "next/link";
+import { usePathname } from "next/navigation";
 import GamesMenu from "@/components/shared/GamesMenu";
 import AccountMenu from "@/components/shared/AccountMenu";
-import Logo from "@/components/shared/Logo";
 import LocaleToggle from "@/components/shared/LocaleToggle";
 import ThemeSwitcher from "@/components/shared/ThemeSwitcher";
+import Logo from "@/components/shared/Logo";
 import { useLocale } from "@/components/shared/LocaleProvider";
 
 /** Top navigation shared by the landing page, the games hub and game pages. */
 export default function SiteHeader() {
   const { t } = useLocale();
+  const pathname = usePathname();
+  const links: [string, string][] = [["/", "nav.overview"], ["/learn", "nav.learn"], ["/library", "nav.library"], ["/setup", "nav.practice"]];
+  const isActive = (href: string) => (href === "/" ? pathname === "/" : pathname.startsWith(href));
   return <header className="topbar">
-    <Link className="brand" href="/"><Logo/></Link>
+    <Link className="brand" href="/" aria-label="DL Typing"><Logo/></Link>
     <nav className="topnav" aria-label="Primary">
-      <Link href="/">{t("nav.overview")}</Link>
-      <Link href="/learn">{t("nav.learn")}</Link>
-      <Link href="/library">{t("nav.library")}</Link>
-      <Link href="/setup">{t("nav.practice")}</Link>
+      {links.map(([href, key]) => <Link key={href} href={href} className={isActive(href) ? "active" : undefined} aria-current={isActive(href) ? "page" : undefined}>{t(key)}</Link>)}
       <GamesMenu/>
-      <Link href="/progress">{t("nav.progress")}</Link>
+      <Link href="/dashboard" className={isActive("/dashboard") ? "active" : undefined} aria-current={isActive("/dashboard") ? "page" : undefined}>{t("nav.dashboard")}</Link>
+      <Link href="/pets" className={isActive("/pets") ? "active" : undefined} aria-current={isActive("/pets") ? "page" : undefined}>{t("nav.pets")}</Link>
+      <Link href="/progress" className={isActive("/progress") ? "active" : undefined} aria-current={isActive("/progress") ? "page" : undefined}>{t("nav.progress")}</Link>
     </nav>
-    <ThemeSwitcher/><LocaleToggle/>
+    <ThemeSwitcher/>
+    <LocaleToggle/>
     <AccountMenu />
   </header>;
 }

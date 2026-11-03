@@ -10,7 +10,8 @@
     "db:migrate": "node --env-file=.env.local scripts/migrate.mjs",
     "postinstall": "prisma generate",
     "db:pull": "prisma db pull",
-    "db:generate": "prisma generate"
+    "db:generate": "prisma generate",
+    "test": "node --import ./tests/register.mjs --test --test-reporter=spec tests/*.test.mts"
   },
   "dependencies": {
     "@neondatabase/serverless": "^1.2.0",

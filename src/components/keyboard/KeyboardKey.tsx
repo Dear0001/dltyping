@@ -4,7 +4,16 @@ import { memo } from "react";
 import type { KeySpec } from "./layouts/types";
 
 export type KeyLegend = { main: string; alt?: string; hint?: string; upper?: boolean };
-export type KeyState = { pressed?: boolean; next?: boolean; correct?: boolean; wrong?: boolean; active?: boolean; heat?: number };
+/** Mastery colouring for the dashboard heatmap. */
+export type KeyMastery = "excellent" | "good" | "weak" | "learning" | "none";
+export type KeyState = {
+  pressed?: boolean; next?: boolean; correct?: boolean; wrong?: boolean; active?: boolean; heat?: number;
+  mastery?: KeyMastery; selected?: boolean; tip?: string;
+  /** Colour of the finger that presses this key (CSS colour). */
+  finger?: string;
+  /** Draw the finger colour on the key even when it is not the target (Learning mode). */
+  zone?: boolean;
+};
 
 type Props = {
   spec: KeySpec;
@@ -21,6 +30,7 @@ function KeyboardKeyBase({ spec, legend, state, khmer, interactive, onTap }: Pro
     legend && khmer ? "vk-khmer" : "", spec.code === "CapsLock" ? "vk-caps" : "",
     state.pressed ? "is-pressed" : "", state.next ? "is-next" : "", state.correct ? "is-correct" : "",
     state.wrong ? "is-wrong" : "", state.active ? "is-active" : "", state.heat ? "has-heat" : "",
+    state.mastery ? `m-${state.mastery}` : "", state.selected ? "is-selected" : "", state.finger ? "has-finger" : "", state.finger && state.zone ? "is-zone" : "",
   ].filter(Boolean).join(" ");
 
   const content = legend ? (
@@ -41,9 +51,10 @@ function KeyboardKeyBase({ spec, legend, state, khmer, interactive, onTap }: Pro
     <Tag
       className={cls}
       data-code={spec.code}
-      style={state.heat ? ({ "--heat": state.heat } as React.CSSProperties) : undefined}
+      title={state.tip}
+      style={state.heat || state.finger ? ({ ...(state.heat ? { "--heat": state.heat } : {}), ...(state.finger ? { "--finger": state.finger } : {}) } as React.CSSProperties) : undefined}
       {...(interactive
-        ? { type: "button" as const, tabIndex: -1, onMouseDown: (e: React.MouseEvent) => e.preventDefault(), onClick: () => onTap?.(spec.code), "aria-label": legend?.main ?? spec.label?.[1] ?? spec.label?.[0] ?? spec.code }
+        ? { type: "button" as const, tabIndex: state.mastery ? 0 : -1, onMouseDown: (e: React.MouseEvent) => e.preventDefault(), onClick: () => onTap?.(spec.code), "aria-label": state.tip ?? legend?.main ?? spec.label?.[1] ?? spec.label?.[0] ?? spec.code, ...(state.mastery ? { "aria-pressed": Boolean(state.selected) } : {}) }
         : { "aria-hidden": true })}
     >
       {content}

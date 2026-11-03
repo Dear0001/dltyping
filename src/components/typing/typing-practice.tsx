@@ -1,16 +1,13 @@
 "use client";
 
 import Link from "next/link";
-import GamesMenu from "@/components/shared/GamesMenu";
 import { useEffect, useMemo, useRef, useState } from "react";
 import { getTypingStats } from "@/lib/typing-engine";
 import { normalizeKhmer } from "@/lib/khmer-unicode";
 import { lessons } from "@/data/lessons";
 import type { Language, OSPlatform } from "@/types";
 import { useLocale } from "@/components/shared/LocaleProvider";
-import Logo from "@/components/shared/Logo";
-import LocaleToggle from "@/components/shared/LocaleToggle";
-import ThemeSwitcher from "@/components/shared/ThemeSwitcher";
+import SiteHeader from "@/components/shared/SiteHeader";
 import { recordPractice } from "@/lib/local-progress";
 import { GameDialog } from "@/components/games/shared/GameDialog";
 import { pickRandomLesson } from "@/lib/lesson-picker";
@@ -20,15 +17,18 @@ import WeakKeysReport from "@/components/typing/WeakKeysReport";
 import { useKeyStatBook } from "@/hooks/useKeyStatBook";
 import { flushSession, recordKeystrokes, weakKeys, type KeyStats } from "@/lib/keyboard/key-stats";
 import { findKeyFor } from "@/lib/keyboard/keyboard-mapping";
+import { useActivityRecorder } from "@/hooks/useActivityRecorder";
 
 type TypingPracticeProps = {
   language: Language;
   platform?: OSPlatform;
   initialLessonId?: string;
   timeLimit?: number;
+  /** Drill text built from a dashboard recommendation (weak keys, combinations or words). */
+  initialDrill?: string | null;
 };
 
-export default function TypingPractice({ language, platform = "Unknown", initialLessonId, timeLimit = 60 }: TypingPracticeProps) {
+export default function TypingPractice({ language, platform = "Unknown", initialLessonId, timeLimit = 60, initialDrill = null }: TypingPracticeProps) {
   const { locale, t } = useLocale();
   const list = lessons[language];
   const [lessonId, setLessonId] = useState(() => list.find((item) => item.id === initialLessonId)?.id ?? list[0].id);
@@ -40,7 +40,7 @@ export default function TypingPractice({ language, platform = "Unknown", initial
   const [forcedDone, setForcedDone] = useState(false);
   const [resultClosed, setResultClosed] = useState(false);
   const [wrongKey, setWrongKey] = useState("");
-  const [drillText, setDrillText] = useState<string | null>(null);
+  const [drillText, setDrillText] = useState<string | null>(initialDrill);
   const [needsKhmerInputSwitch, setNeedsKhmerInputSwitch] = useState(false);
   const inputRef = useRef<HTMLTextAreaElement>(null);
   const audioRef = useRef<AudioContext | null>(null);
@@ -53,6 +53,7 @@ export default function TypingPractice({ language, platform = "Unknown", initial
   const lessonMinutes = Number.parseInt(lesson.duration, 10) || 1;
   const target = drillText ?? lesson.text;
   const keyBook = useKeyStatBook();
+  const recorder = useActivityRecorder();
   const normalizedInput = language === "khmer" ? normalizeKhmer(input) : input;
   const normalizedTarget = language === "khmer" ? normalizeKhmer(target) : target;
   const stats = useMemo(() => getTypingStats(normalizedTarget, normalizedInput, seconds), [normalizedTarget, normalizedInput, seconds]);
@@ -101,6 +102,17 @@ export default function TypingPractice({ language, platform = "Unknown", initial
     sessionStatsRef.current = {};
     // Drills use made-up text, so they would skew the lesson WPM records.
     if (!drillText) recordPractice(language, stats.wpm, stats.accuracy);
+    // Dashboard record: running out the clock is a typing test, finishing the passage is a completed lesson.
+    recorder.wordsFromText(language, normalizedTarget, normalizedInput);
+    recorder.finish({
+      activity: drillText ? "drill" : seconds >= timeLimit && typedLength < Array.from(normalizedTarget).length ? "typing-test" : "lesson",
+      language,
+      durationSec: seconds,
+      correct: stats.correct,
+      incorrect: stats.errors,
+      difficulty: lesson.level === "Beginner" ? "easy" : "medium",
+      detail: drillText ? "Weak-key drill" : lesson.title,
+    });
     // Save once per finished session.
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [done]);
@@ -114,6 +126,7 @@ export default function TypingPractice({ language, platform = "Unknown", initial
 
   /** Start over. A drill is kept on retry, and cleared when another lesson is chosen. */
   function reset(nextId = lessonId, drill?: string | null) {
+    recorder.flush();
     flushSession(language, sessionStatsRef.current);
     sessionStatsRef.current = {};
     lastKeyAtRef.current = null;
@@ -157,6 +170,10 @@ export default function TypingPractice({ language, platform = "Unknown", initial
         const expectedChar = Array.from(normalizedTarget)[previousLength + offset];
         return expectedChar ? [[expectedChar, typed === expectedChar]] : [];
       }));
+      additions.forEach((typed, offset) => {
+        const expectedChar = Array.from(normalizedTarget)[previousLength + offset];
+        if (expectedChar) recorder.keystroke(language, expectedChar, typed === expectedChar);
+      });
       setWrongKey(wrongCharacter ? wrongCharacter === " " ? "space" : wrongCharacter.toLowerCase() : "");
       playKeySound(!wrongCharacter);
 
@@ -219,11 +236,7 @@ export default function TypingPractice({ language, platform = "Unknown", initial
 
   return (
     <main className="practice-page">
-      <header className="topbar">
-        <Link className="brand" href="/"><Logo/></Link>
-        <nav className="topnav"><Link href="/">{t("nav.overview")}</Link><a className="active" href="#practice">{t("nav.practice")}</a><GamesMenu/><a href="#progress">{t("nav.progress")}</a></nav>
-        <ThemeSwitcher/><LocaleToggle/><div className="user-pill"><span className="avatar">S</span><span>{t("nav.guest")}</span><span className="chevron">⌄</span></div>
-      </header>
+      <SiteHeader />
       <section className="practice-shell" id="practice">
         <div className="practice-grid">
           <section className="practice-main">

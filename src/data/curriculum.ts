@@ -304,7 +304,7 @@ const engExpertModules: CurriculumModule[] = [
     title: "Speed & Endurance",
     lessons: [
       {
-        id: "keeping-focus",
+        id: "focus-sprint",
         title: "Focus Sprint — Expert",
         keyFocus: ["speed", "sustained accuracy", "endurance"],
         objectives: [

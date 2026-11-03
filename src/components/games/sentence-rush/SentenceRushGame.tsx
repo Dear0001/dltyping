@@ -12,6 +12,7 @@ import { DifficultySelector, LanguageSelector, Segmented } from "@/components/ga
 import { sentenceBanks } from "@/data/game-content";
 import { useScores, useSeen, useSettings } from "@/hooks/use-stored-value";
 import { useKeyInput } from "@/hooks/use-key-input";
+import { useActivityRecorder } from "@/hooks/useActivityRecorder";
 import { useAutoPause, useTicker } from "@/hooks/use-ticker";
 import { comboMultiplier, shuffled, unitScore, type Difficulty, type GameStatus } from "@/lib/game-engine";
 import { codepoints, normalizeKhmer } from "@/lib/khmer-unicode";
@@ -89,6 +90,7 @@ function reducer(s: State, a: Action): State {
 
 export default function SentenceRushGame() {
   const [settings, updateSettings] = useSettings();
+  const recorder = useActivityRecorder();
   const scores = useScores();
   const seen = useSeen();
   const [duration, setDuration] = useState<Duration>(60);
@@ -116,6 +118,7 @@ export default function SentenceRushGame() {
   useEffect(() => {
     if (state.status === "finished") {
       recordScore(variant, { score: state.score, wpm, accuracy });
+      recorder.finish({ activity: "sentence-rush", language: state.language, durationSec: state.elapsedMs / 1000, correct: state.correctKeys, incorrect: state.totalKeys - state.correctKeys, score: state.score, difficulty: state.difficulty, wpm });
       playSound("win", settings.sound);
     }
     // Only when a run ends.
@@ -123,6 +126,7 @@ export default function SentenceRushGame() {
   }, [state.status]);
 
   function start() {
+    recorder.flush();
     markSeen("sentence-rush");
     const best = scores[`sentence-rush:${language}:${difficulty}:${duration}`]?.best ?? 0;
     dispatch({ type: "start", language, difficulty, duration, seed: (Date.now() ^ 0x2c1b3c6d) >>> 0, bestAtStart: best });
@@ -133,6 +137,7 @@ export default function SentenceRushGame() {
     if (s.status !== "playing") return;
     const expected = codepoints(target(s))[s.typed.length];
     if (expected === undefined) return;
+    recorder.keystroke(s.language, expected, char === expected);
     playSound(char === expected ? "key" : "wrong", settings.sound);
     dispatch({ type: "key", char });
   }

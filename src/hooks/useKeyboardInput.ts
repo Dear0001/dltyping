@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useRef, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 import { isCorrectPress } from "@/lib/keyboard/keyboard-mapping";
 import type { Language } from "@/types";
 
@@ -9,6 +9,8 @@ type Mods = { shift: boolean; caps: boolean; ctrl: boolean; alt: boolean; meta: 
 const NO_MODS: Mods = { shift: false, caps: false, ctrl: false, alt: false, meta: false };
 const MODIFIER_CODES = /^(Shift|Control|Alt|Meta|CapsLock)/;
 const FLASH_MS = 320;
+/** A wrong key stays marked longer so the learner can read the feedback. */
+const WRONG_FLASH_MS = 900;
 
 type Options = {
   language: Language;
@@ -33,6 +35,14 @@ export function useKeyboardInput({ language, expected, judge = true }: Options) 
   const seq = useRef(0);
   const flashTimer = useRef<number | null>(null);
   const metaTimers = useRef(new Map<string, number>());
+
+  /** Marks a key correct/incorrect for a moment. Used for physical presses and for taps on the on-screen keys. */
+  const showFlash = useCallback((code: string, ok: boolean) => {
+    seq.current += 1;
+    setFlash({ code, ok, seq: seq.current });
+    if (flashTimer.current) window.clearTimeout(flashTimer.current);
+    flashTimer.current = window.setTimeout(() => setFlash(null), ok ? FLASH_MS : WRONG_FLASH_MS);
+  }, []);
 
   useEffect(() => {
     opts.current = { language, expected, judge };
@@ -71,10 +81,7 @@ export function useKeyboardInput({ language, expected, judge = true }: Options) 
       const judged = code === "Space" || /^(Key[A-Z]|Digit\d|Backquote|Minus|Equal|Bracket(Left|Right)|Backslash|Semicolon|Quote|Comma|Period|Slash)$/.test(code);
       if (!judged) return;
       const ok = code === "Space" ? want === " " : isCorrectPress(lang, code, e.shiftKey, e.getModifierState?.("CapsLock") ?? false, want);
-      seq.current += 1;
-      setFlash({ code, ok, seq: seq.current });
-      if (flashTimer.current) window.clearTimeout(flashTimer.current);
-      flashTimer.current = window.setTimeout(() => setFlash(null), FLASH_MS);
+      showFlash(code, ok);
     }
 
     function onKeyUp(e: KeyboardEvent) {
@@ -98,7 +105,7 @@ export function useKeyboardInput({ language, expected, judge = true }: Options) 
       timers.forEach((id) => window.clearTimeout(id));
       if (flashTimer.current) window.clearTimeout(flashTimer.current);
     };
-  }, []);
+  }, [showFlash]);
 
-  return { pressed, mods, flash };
+  return { pressed, mods, flash, showFlash };
 }

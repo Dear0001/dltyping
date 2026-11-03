@@ -1,0 +1,32 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100" width="100" height="100">
+  <g class="baby-cat">
+    <!-- Tail -->
+    <path class="tail" d="M 70 70 Q 90 70 85 50" stroke="#fca311" stroke-width="8" stroke-linecap="round" fill="none" />
+    
+    <!-- Body -->
+    <circle class="body" cx="50" cy="65" r="25" fill="#fca311" />
+    <ellipse cx="50" cy="72" rx="15" ry="18" fill="#ffe5b4" />
+    
+    <!-- Head -->
+    <g class="head">
+      <!-- Ears -->
+      <polygon class="ear-left" points="25,20 40,30 30,45" fill="#fca311" />
+      <polygon points="28,25 36,32 30,40" fill="#ffb6c1" />
+      <polygon class="ear-right" points="75,20 60,30 70,45" fill="#fca311" />
+      <polygon points="72,25 64,32 70,40" fill="#ffb6c1" />
+      
+      <!-- Face -->
+      <circle cx="50" cy="40" r="22" fill="#fca311" />
+      
+      <!-- Eyes & Mouth -->
+      <g class="eyes">
+        <circle cx="41" cy="38" r="3.5" fill="#14213d" />
+        <circle cx="40" cy="37" r="1" fill="#ffffff" />
+        <circle cx="59" cy="38" r="3.5" fill="#14213d" />
+        <circle cx="58" cy="37" r="1" fill="#ffffff" />
+      </g>
+      <path class="mouth" d="M 45 45 Q 50 49 55 45" stroke="#14213d" stroke-width="2" fill="none" stroke-linecap="round" />
+      <ellipse cx="50" cy="43" rx="3" ry="2" fill="#ffb6c1" />
+    </g>
+  </g>
+</svg>

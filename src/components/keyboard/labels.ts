@@ -10,6 +10,10 @@ const dict = {
     tipEnglish: "Tip: use the opposite hand for Shift. Keep your index fingers on F and J.",
     tipKhmer: "Tip: switch your computer to the Khmer (NiDA) input method, then press the highlighted keys.",
     detected: "Detected automatically", manual: "Chosen manually", shiftNext: "Hold Shift",
+    guide: "Finger guide", mode: "Guidance mode", modeLearning: "Learning", modePractice: "Practice", modeChallenge: "Challenge",
+    hideHands: "Hide hands", showHands: "Show hands", showHint: "Show hint", hintsHidden: "Challenge mode: hints are hidden.",
+    handsAria: "Both hands showing which finger to use", expectedKey: "Next key", fingerColors: "Finger colours",
+    leftHand: "Left hand", rightHand: "Right hand", pinky: "Little", ring: "Ring", middle: "Middle", index: "Index", thumb: "Thumb",
   },
   km: {
     keyboard: "ក្តារចុចនិម្មិត", english: "អង់គ្លេស", khmer: "ខ្មែរ", os: "ប្រភេទក្តារចុច", auto: "ស្វ័យប្រវត្តិ", mac: "Mac", windows: "Windows",
@@ -20,6 +24,10 @@ const dict = {
     tipEnglish: "គន្លឹះ៖ ប្រើដៃម្ខាងទៀតសម្រាប់ Shift។ ដាក់ម្រាមចង្អុលលើ F និង J។",
     tipKhmer: "គន្លឹះ៖ ប្តូរកុំព្យូទ័រទៅវិធីបញ្ចូលខ្មែរ (NiDA) រួចចុចគ្រាប់ដែលបានបន្លិច។",
     detected: "រកឃើញដោយស្វ័យប្រវត្តិ", manual: "ជ្រើសរើសដោយដៃ", shiftNext: "សង្កត់ Shift",
+    guide: "មគ្គុទេសក៍ម្រាមដៃ", mode: "របៀបណែនាំ", modeLearning: "រៀន", modePractice: "ហាត់", modeChallenge: "ប្រកួត",
+    hideHands: "លាក់ដៃ", showHands: "បង្ហាញដៃ", showHint: "បង្ហាញជំនួយ", hintsHidden: "របៀបប្រកួត៖ ជំនួយត្រូវបានលាក់។",
+    handsAria: "ដៃទាំងពីរបង្ហាញម្រាមដែលត្រូវប្រើ", expectedKey: "គ្រាប់បន្ទាប់", fingerColors: "ពណ៌ម្រាមដៃ",
+    leftHand: "ដៃឆ្វេង", rightHand: "ដៃស្តាំ", pinky: "តូច", ring: "នាង", middle: "កណ្តាល", index: "ចង្អុល", thumb: "មេដៃ",
   },
 } as const;
 

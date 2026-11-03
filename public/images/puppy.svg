@@ -1,0 +1,29 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100" width="100" height="100">
+  <g class="baby-puppy">
+    <!-- Tail -->
+    <path class="tail" d="M 65 80 Q 80 70 75 55" stroke="#d4a373" stroke-width="6" stroke-linecap="round" fill="none" />
+    
+    <!-- Body -->
+    <ellipse class="body" cx="50" cy="70" rx="20" ry="25" fill="#faedcd" />
+    
+    <!-- Head -->
+    <g class="head">
+      <!-- Ears -->
+      <ellipse class="ear-left" cx="26" cy="48" rx="8" ry="18" fill="#8b5a2b" />
+      <ellipse class="ear-right" cx="74" cy="48" rx="8" ry="18" fill="#8b5a2b" />
+      
+      <!-- Face -->
+      <circle cx="50" cy="45" r="22" fill="#faedcd" />
+      <circle class="eye-patch" cx="60" cy="40" r="10" fill="#d4a373" />
+      
+      <!-- Eyes & Nose -->
+      <g class="eyes">
+        <circle cx="40" cy="42" r="3.5" fill="#111111" />
+        <circle cx="39" cy="41" r="1" fill="#ffffff" />
+        <circle cx="60" cy="42" r="3.5" fill="#111111" />
+        <circle cx="59" cy="41" r="1" fill="#ffffff" />
+      </g>
+      <ellipse class="nose" cx="50" cy="50" rx="5" ry="3.5" fill="#111111" />
+    </g>
+  </g>
+</svg>

@@ -162,5 +162,14 @@
 @media(max-width:480px){.site-footer-inner{padding:32px 16px 24px;gap:26px 16px}.site-footer-bar{padding:16px 16px 22px}.sf-col a{padding:8px 0}}
 .gm-page~.site-footer,body:has(.gm-page) .site-footer{display:none}
 .topbar>:not(.topnav){flex:none}.topbar button{white-space:nowrap}
-@media(max-width:650px){.topbar{gap:8px;padding:0 12px}.topbar .brand svg{height:26px}.topnav{min-width:0;flex:1 1 0;overflow:hidden}.theme-switcher{gap:4px;margin-right:0}.theme-switcher button{width:15px;height:15px}.locale-toggle button{padding:5px 6px}}
-@media(max-width:520px){.topbar{height:auto;min-height:62px;flex-wrap:wrap;row-gap:6px;padding:8px 12px}.topnav{display:none}.topbar .theme-switcher{margin-left:auto}}
+@media(max-width:650px){.topbar{gap:8px;padding:0 12px}.topbar .brand svg{height:26px}.theme-switcher{gap:4px;margin-right:0}.theme-switcher button{width:15px;height:15px}.locale-toggle button{padding:5px 6px}}
+/* Phones: keep every nav link reachable in a scrollable second row instead of hiding them. */
+@media(max-width:650px){
+  .topbar{height:auto;flex-wrap:wrap;padding:8px 12px 0;row-gap:4px}
+  .topbar .theme-switcher{margin-left:auto}
+  .topnav{order:5;flex:0 0 calc(100% + 24px);width:calc(100% + 24px);margin:0 -12px;padding:0 12px;height:40px;gap:20px;justify-content:flex-start;overflow-x:auto;border-top:1px solid var(--line);scrollbar-width:none}
+  .topnav::-webkit-scrollbar{display:none}
+  .topnav a{display:flex;flex:none;font-size:12px;white-space:nowrap}
+  .topnav a.active{font-size:12px}
+  .gm-wrap{display:flex;height:100%;flex:none}.gm-caret{display:none}
+}

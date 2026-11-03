@@ -4,7 +4,7 @@ import { charMapFor } from "@/lib/keyboard/keyboard-mapping";
 import { isLetterKey, legendGlyph } from "@/lib/keyboard/keyboard-utils";
 import type { Language } from "@/types";
 import type { KeyFlash } from "@/hooks/useKeyboardInput";
-import KeyboardKey, { type KeyLegend } from "./KeyboardKey";
+import KeyboardKey, { type KeyLegend, type KeyMastery } from "./KeyboardKey";
 import type { KeySpec, PhysicalLayout } from "./layouts/types";
 
 type Props = {
@@ -19,6 +19,13 @@ type Props = {
   /** Modifier keys that are currently on (ctrl/alt/meta from the physical keyboard). */
   mods: { ctrl: boolean; alt: boolean; meta: boolean };
   heat?: Record<string, number>;
+  /** Dashboard heatmap: mastery colour and tooltip per physical key. */
+  keyStatus?: Record<string, { level: KeyMastery; tip?: string }>;
+  selectedKey?: string | null;
+  /** Finger colour per physical key (see finger-mapping). Enables finger tinting on the target key. */
+  fingerColors?: Record<string, string>;
+  /** Tint every key with its finger colour, not just the target (Learning mode). */
+  zones?: boolean;
   interactive: boolean;
   onTap?: (code: string) => void;
 };
@@ -37,7 +44,7 @@ function legendFor(spec: KeySpec, language: Language, shift: boolean, caps: bool
   return { main: show, alt: letter ? undefined : other };
 }
 
-export default function KeyboardLayout({ layout, language, shift, caps, pressed, flash, next, mods, heat, interactive, onTap }: Props) {
+export default function KeyboardLayout({ layout, language, shift, caps, pressed, flash, next, mods, heat, keyStatus, selectedKey, fingerColors, zones, interactive, onTap }: Props) {
   const khmer = language === "khmer";
 
   function renderKey(spec: KeySpec) {
@@ -59,6 +66,11 @@ export default function KeyboardLayout({ layout, language, shift, caps, pressed,
           wrong: flashed && !flash.ok,
           active: modOn,
           heat: heat?.[spec.code],
+          mastery: keyStatus?.[spec.code]?.level,
+          tip: keyStatus?.[spec.code]?.tip,
+          selected: selectedKey === spec.code,
+          finger: fingerColors?.[spec.code],
+          zone: zones,
         }}
       />
     );

@@ -165,6 +165,7 @@ export function markSeen(id: string) {
 
 // ---- User progress (XP, lesson completion, streak) -----------------------
 import type { UserProgressData } from "@/types";
+import { emitPetEvent } from "@/lib/pets/pet-events";
 
 export const USER_PROGRESS_KEY = "dlt.userProgress";
 
@@ -222,6 +223,7 @@ export function completeLesson(language: string, lessonId: string, xpReward: num
     lastActiveDate: todayDate,
   };
   writeRaw(USER_PROGRESS_KEY, JSON.stringify(updated));
+  if (!alreadyDone) emitPetEvent({ type: "celebrate" });
   return updated;
 }
 
