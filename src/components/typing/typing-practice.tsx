@@ -10,6 +10,7 @@ import type { Language, OSPlatform } from "@/types";
 import { useLocale } from "@/components/shared/LocaleProvider";
 import LocaleToggle from "@/components/shared/LocaleToggle";
 import { recordPractice } from "@/lib/local-progress";
+import { GameDialog } from "@/components/games/shared/GameDialog";
 import { pickRandomLesson } from "@/lib/lesson-picker";
 import VirtualKeyboard from "@/components/keyboard/VirtualKeyboard";
 import { osFromPlatform } from "@/lib/keyboard/keyboard-detection";
@@ -35,6 +36,7 @@ export default function TypingPractice({ language, platform = "Unknown", initial
   const [soundEnabled, setSoundEnabled] = useState(true);
   const [paused, setPaused] = useState(false);
   const [forcedDone, setForcedDone] = useState(false);
+  const [resultClosed, setResultClosed] = useState(false);
   const [wrongKey, setWrongKey] = useState("");
   const [drillText, setDrillText] = useState<string | null>(null);
   const [needsKhmerInputSwitch, setNeedsKhmerInputSwitch] = useState(false);
@@ -117,6 +119,7 @@ export default function TypingPractice({ language, platform = "Unknown", initial
     setLessonId(nextId);
     setPaused(false);
     setForcedDone(false);
+    setResultClosed(false);
     setInput("");
     setSeconds(0);
     setRunning(false);
@@ -234,17 +237,19 @@ export default function TypingPractice({ language, platform = "Unknown", initial
               </div>
               <textarea ref={inputRef} value={input} onChange={(event) => handleInput(event.target.value)} onCompositionStart={handleCompositionStart} onCompositionEnd={(event) => handleCompositionEnd(event.currentTarget.value)} onPaste={(event) => event.preventDefault()} className="typing-input" aria-label={locale === "km" ? "វាយអត្ថបទមេរៀន" : "Type the lesson text"} lang={language === "khmer" ? "km" : "en"} autoCapitalize="off" autoCorrect="off" spellCheck={false} />
               {paused && <p className="mx-auto my-2 w-fit rounded-lg bg-blue-50 px-4 py-2 text-sm font-semibold text-brand" role="status">⏸ Paused — press Resume to continue.</p>}
-              {done && <div className="mx-auto my-4 max-w-xl rounded-2xl border border-blue-100 bg-white p-5 text-center shadow-sm" role="status" aria-live="polite">
-                <h2 className="text-xl font-extrabold text-navy">🎉 Lesson complete</h2>
+              {done && !resultClosed && <GameDialog title="Lesson complete" icon="🎉" onEscape={() => setResultClosed(true)}>
+                <div className="text-center">
                 <dl className="my-4 grid grid-cols-4 gap-2 text-center">{[["WPM", stats.wpm], ["Accuracy", `${stats.accuracy}%`], ["Errors", stats.errors], ["Time", `${seconds}s`]].map(([label, value]) => <div key={String(label)} className="rounded-xl bg-slate-50 p-2"><dt className="text-[10px] font-bold uppercase text-mute">{label}</dt><dd className="text-xl font-extrabold text-navy">{value}</dd></div>)}</dl>
                 <div className="flex flex-wrap justify-center gap-2">
-                  <button type="button" className="rounded-xl border border-slate-300 bg-white px-4 py-2 text-sm font-bold text-navy" onClick={() => reset()}>↻ Retry</button>
+                  <button data-autofocus type="button" className="rounded-xl border border-slate-300 bg-white px-4 py-2 text-sm font-bold text-navy" onClick={() => reset()}>↻ Retry</button>
                   <button type="button" className="rounded-xl bg-brand px-4 py-2 text-sm font-bold text-white" onClick={() => reset(pickRandomLesson(language, lessonId).id)}>🎲 Random article</button>
                   {nextLesson && <button type="button" className="rounded-xl border border-slate-300 bg-white px-4 py-2 text-sm font-bold text-navy" onClick={() => reset(nextLesson.id)}>Next lesson →</button>}
                   <Link href="/games" className="rounded-xl border border-slate-300 bg-white px-4 py-2 text-sm font-bold text-navy">🎮 Play a game</Link>
+                  <button type="button" className="rounded-xl border border-slate-300 bg-white px-4 py-2 text-sm font-bold text-navy" onClick={() => setResultClosed(true)}>Close</button>
                 </div>
                 <WeakKeysReport language={language} km={locale === "km"} onDrill={(text) => reset(lessonId, text)} />
-              </div>}
+                </div>
+              </GameDialog>}
               <div className="typing-footer"><span><kbd>tab</kbd> + <kbd>enter</kbd> {t("practice.restartHint")}</span><div className="typing-actions"><button className={`sound-toggle ${soundEnabled ? "sound-on" : ""}`} onClick={() => setSoundEnabled((enabled) => !enabled)} aria-pressed={soundEnabled} title={soundEnabled ? t("practice.mute") : t("practice.enableSound")}>{soundEnabled ? "◖))" : "◖×"}<span>{t(soundEnabled ? "practice.soundOn" : "practice.soundOff")}</span></button>{!done && <button className="restart-button" onClick={() => { if (paused) { setPaused(false); if (typedLength > 0) setRunning(true); inputRef.current?.focus(); } else { setPaused(true); setRunning(false); } }} disabled={typedLength === 0 && !paused}>{paused ? "▶ Resume" : "⏸ Pause"}</button>}{!done && typedLength > 0 && <button className="restart-button" onClick={() => { setRunning(false); setPaused(false); setForcedDone(true); }}>🏁 Finish</button>}<button className="restart-button" onClick={() => reset()}>↻ <span>{t("practice.restart")}</span></button></div></div>
             </div>
             {needsKhmerInputSwitch && language === "khmer" && <div className="input-switch-hint" role="alert"><span className="feedback-icon">!</span><span><strong>{t("practice.switchTitle")}</strong><br />{t(platform === "Windows" ? "practice.switchWindows" : platform === "macOS" ? "practice.switchMac" : "practice.switchUnknown")}</span></div>}

@@ -1,7 +1,7 @@
 "use client";
 
 import { useCallback, useMemo, useSyncExternalStore } from "react";
-import { DEFAULT_SETTINGS, DEFAULT_USER_PROGRESS, LEVELS_KEY, PRACTICE_KEY, SCORES_KEY, SEEN_KEY, SETTINGS_KEY, USER_PROGRESS_KEY, parseStored, readRaw, subscribeStorage, validateLevels, validatePractice, validateScores, validateSeen, validateSettings, validateUserProgress, writeRaw, type GameSettings, type LevelBook, type PracticeBest, type ScoreBook } from "@/lib/local-progress";
+import { DEFAULT_SETTINGS, DEFAULT_USER_PROGRESS, levelsKeyFor, PRACTICE_KEY, SCORES_KEY, SEEN_KEY, SETTINGS_KEY, USER_PROGRESS_KEY, parseStored, readRaw, subscribeStorage, validateLevels, validatePractice, validateScores, validateSeen, validateSettings, validateUserProgress, writeRaw, type GameSettings, type LevelBook, type PracticeBest, type ScoreBook } from "@/lib/local-progress";
 import type { UserProgressData } from "@/types";
 
 /**
@@ -26,7 +26,7 @@ export function useSettings() {
 const EMPTY_SCORES: ScoreBook = {};
 export const useScores = () => useStoredValue(SCORES_KEY, EMPTY_SCORES, validateScores);
 const EMPTY_LEVELS: LevelBook = {};
-export const useLevelBook = () => useStoredValue(LEVELS_KEY, EMPTY_LEVELS, validateLevels);
+export const useLevelBook = (gameId = "mario-khmer-quest") => useStoredValue(levelsKeyFor(gameId), EMPTY_LEVELS, validateLevels);
 const EMPTY_PRACTICE: Record<string, PracticeBest> = {};
 export const usePracticeBest = () => useStoredValue(PRACTICE_KEY, EMPTY_PRACTICE, validatePractice);
 const EMPTY_SEEN: Record<string, boolean> = {};

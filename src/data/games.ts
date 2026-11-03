@@ -2,7 +2,7 @@ import type { Difficulty } from "@/lib/game-engine";
 import type { Language } from "@/types";
 
 export type GameCategory = "accuracy" | "speed" | "adventure";
-export type GameId = "mario-khmer-quest" | "letter-jump" | "word-sprint";
+export type GameId = "mario-khmer-quest" | "english-quest" | "sentence-rush" | "letter-jump" | "word-sprint";
 
 export type TypingGame = {
   id: GameId;
@@ -30,6 +30,17 @@ export const typingGames: TypingGame[] = [
     gradient: "from-emerald-500 via-teal-500 to-sky-500",
   },
   {
+    id: "english-quest",
+    href: "/games/english-quest",
+    title: "English Quest",
+    description: "Lead the explorer over floating platforms by typing English letters, short words and long words. Five levels, from the home row to summit-gate vocabulary.",
+    languages: ["english"],
+    difficulties: ["easy", "medium", "hard"],
+    category: "adventure",
+    skill: "English letters, words & capitals",
+    gradient: "from-amber-400 via-orange-500 to-rose-500",
+  },
+  {
     id: "letter-jump",
     href: "/games/letter-jump",
     title: "Letter Jump",
@@ -39,6 +50,17 @@ export const typingGames: TypingGame[] = [
     category: "accuracy",
     skill: "Key recognition & accuracy",
     gradient: "from-sky-400 via-blue-500 to-indigo-600",
+  },
+  {
+    id: "sentence-rush",
+    href: "/games/sentence-rush",
+    title: "Sentence Rush",
+    description: "Type whole sentences against the clock. Spaces, punctuation and flow all count — finish clean sentences to build your combo and WPM.",
+    languages: ["english", "khmer"],
+    difficulties: ["easy", "medium", "hard"],
+    category: "speed",
+    skill: "Sentence flow & punctuation",
+    gradient: "from-fuchsia-500 via-purple-600 to-indigo-700",
   },
   {
     id: "word-sprint",

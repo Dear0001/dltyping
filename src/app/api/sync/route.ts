@@ -1,7 +1,7 @@
 import { getSessionUser } from "@/lib/auth";
 import { accountPlayerId } from "@/lib/claim";
 import { prisma } from "@/lib/db";
-import { parsePayload, type SyncKeyStats, type SyncState } from "@/lib/sync-schema";
+import { EXTRA_LEVEL_GAMES, parsePayload, type SyncKeyStats, type SyncState } from "@/lib/sync-schema";
 
 type KeyStatRow = { language: "english" | "khmer"; ch: string; n: number; e: number; ms: number; t: number };
 
@@ -94,6 +94,18 @@ export async function POST(request: Request) {
             best_score = greatest(level_progress.best_score, excluded.best_score),
             updated_at = now()`;
       }
+      for (const [game, book] of Object.entries(payload.gameLevels ?? {})) {
+        const rows = Object.entries(book);
+        if (!rows.length) continue;
+        await tx.$executeRaw`
+          insert into level_progress (player_id, game_id, level, stars, best_score)
+          select ${id}::uuid, ${game}, l, st, sc
+          from unnest(${rows.map(([l]) => Number(l))}::int[], ${rows.map(([, r]) => r.stars)}::int[], ${rows.map(([, r]) => r.score)}::int[]) as t(l, st, sc)
+          on conflict (player_id, game_id, level) do update set
+            stars = greatest(level_progress.stars, excluded.stars),
+            best_score = greatest(level_progress.best_score, excluded.best_score),
+            updated_at = now()`;
+      }
       const practiceRows = Object.entries(payload.practice);
       if (practiceRows.length) {
         await tx.$executeRaw`
@@ -112,13 +124,14 @@ export async function POST(request: Request) {
 
       const [scores, levels, practice, settings] = await Promise.all([
         tx.game_scores.findMany({ where: { player_id: id } }),
-        tx.level_progress.findMany({ where: { player_id: id, game_id: "mario-khmer-quest" } }),
+        tx.level_progress.findMany({ where: { player_id: id, game_id: { in: ["mario-khmer-quest", ...EXTRA_LEVEL_GAMES] } } }),
         tx.practice_bests.findMany({ where: { player_id: id } }),
         tx.player_settings.findUnique({ where: { player_id: id } }),
       ]);
       const result: SyncState = {
         scores: Object.fromEntries(scores.map((s) => [s.variant, { best: s.best_score, bestWpm: s.best_wpm, bestAccuracy: s.best_accuracy, plays: s.plays }])),
-        levels: Object.fromEntries(levels.map((l) => [String(l.level), { stars: l.stars, score: l.best_score }])),
+        levels: Object.fromEntries(levels.filter((l) => l.game_id === "mario-khmer-quest").map((l) => [String(l.level), { stars: l.stars, score: l.best_score }])),
+        gameLevels: Object.fromEntries(EXTRA_LEVEL_GAMES.map((game) => [game, Object.fromEntries(levels.filter((l) => l.game_id === game).map((l) => [String(l.level), { stars: l.stars, score: l.best_score }]))])),
         practice: Object.fromEntries(practice.map((p) => [p.language, { bestWpm: p.best_wpm, bestAccuracy: p.best_accuracy }])),
         settings: (settings?.settings as Record<string, unknown> | undefined) ?? undefined,
       };

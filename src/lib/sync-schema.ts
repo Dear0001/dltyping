@@ -6,11 +6,15 @@ export type SyncPayload = {
   deviceId: string;
   scores: Record<string, SyncScore>;
   levels: Record<string, { stars: number; score: number }>;
+  /** Level progress of the other level-based games, keyed by game id. */
+  gameLevels?: Record<string, Record<string, { stars: number; score: number }>>;
   practice: Record<string, { bestWpm: number; bestAccuracy: number }>;
   settings?: Record<string, unknown>;
   /** Request: this device's own totals. Response: the sum of the account's OTHER devices. */
   keyStats?: SyncKeyStats;
 };
+/** Level-based games, besides Mario Khmer Quest (which uses `levels`), whose progress syncs. */
+export const EXTRA_LEVEL_GAMES: readonly string[] = ["english-quest"];
 export type SyncState = Omit<SyncPayload, "deviceId">;
 
 const UUID = /^[0-9a-f]{8}-[0-9a-f]{4}-[1-8][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i;
@@ -38,6 +42,21 @@ export function parsePayload(body: unknown): SyncPayload | null {
       if (!Number.isInteger(level) || level < 1 || level > 999 || !isRecord(v)) continue;
       out.levels[String(level)] = { stars: int(v.stars, 3), score: int(v.score, 1e9) };
     }
+  }
+  if (isRecord(body.gameLevels)) {
+    const gameLevels: NonNullable<SyncPayload["gameLevels"]> = {};
+    for (const game of EXTRA_LEVEL_GAMES) {
+      const src = body.gameLevels[game];
+      if (!isRecord(src)) continue;
+      const levels: Record<string, { stars: number; score: number }> = {};
+      for (const [key, v] of Object.entries(src).slice(0, MAX_ENTRIES)) {
+        const level = Number(key);
+        if (!Number.isInteger(level) || level < 1 || level > 999 || !isRecord(v)) continue;
+        levels[String(level)] = { stars: int(v.stars, 3), score: int(v.score, 1e9) };
+      }
+      gameLevels[game] = levels;
+    }
+    out.gameLevels = gameLevels;
   }
   if (isRecord(body.practice)) {
     for (const language of ["english", "khmer"]) {

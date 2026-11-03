@@ -44,3 +44,46 @@ export const marioLevels: MarioLevel[] = [
   { number: 4, name: "Village Road", nameKm: "ផ្លូវភូមិ", blurb: "Everyday words", units: split("ទឹក ផ្ទះ ថ្ងៃ គ្រូ ត្រី ផ្កា ឆ្មា សាលា ភាសា ស្អាត សត្វ ក្មេង") },
   { number: 5, name: "Temple Gate", nameKm: "ទ្វារប្រាសាទ", blurb: "Longer words", units: split("ខ្មែរ ក្រុម សប្បាយ អាហារ ការងារ កម្ពុជា មនុស្ស សួស្តី អរគុណ ប្រទេស មិត្តភក្តិ សៀវភៅ ភ្នំពេញ ស្រលាញ់") },
 ];
+
+/** English Quest: home row -> common words -> longer words -> capitals & punctuation. */
+export const englishQuestLevels: MarioLevel[] = [
+  { number: 1, name: "Meadow Path", nameKm: "ផ្លូវវាល", blurb: "Home row letters", units: split("a s d f j k l a s d f j k l g h") },
+  { number: 2, name: "Maple Grove", nameKm: "ព្រៃម៉េផល", blurb: "All lowercase letters", units: split("q w e r t y u i o p z x c v b n m") },
+  { number: 3, name: "Cedar Bridge", nameKm: "ស្ពានស៊ីដា", blurb: "Short words", units: split("sun cat dog red map pen cup sky fun win top box") },
+  { number: 4, name: "Castle Road", nameKm: "ផ្លូវប្រាសាទ", blurb: "Everyday words", units: split("planet window garden bridge simple travel market silver orange jungle forest pencil") },
+  { number: 5, name: "Summit Gate", nameKm: "ទ្វារកំពូល", blurb: "Capitals & long words", units: split("Keyboard Accuracy Challenge Adventure Beautiful Knowledge Practice Tomorrow Wonderful Mountain Discovery Imagination") },
+];
+
+/** Sentence banks for Sentence Rush. Khmer sentences are built from the same NiDA-reachable vocabulary as Word Sprint. */
+export const sentenceBanks: Record<Language, Record<Difficulty, string[]>> = {
+  english: {
+    easy: [
+      "The sun is big and red.", "I like my cat and dog.", "We run to the park.", "The pen is on the box.", "She has a red hat.",
+      "Open the door now.", "The sky is blue today.", "Tom can hop and jump.",
+    ],
+    medium: [
+      "The market opens early in the morning.", "She planted a garden behind the old castle.", "Our friend travels to a new island every summer.",
+      "The dragon slept beside the silver bridge.", "He wrote a simple note with a pencil.", "A purple rocket flew over the quiet forest.",
+      "We baked bread in the kitchen last winter.", "The monkey climbed the tallest tree in the jungle.",
+    ],
+    hard: [
+      "Practice makes progress, so keep your fingers relaxed and your eyes on the screen.",
+      "Tomorrow, we'll discover a beautiful mountain community full of wonderful stories.",
+      "Accuracy matters more than speed; fast typing follows steady, careful practice.",
+      "\"Challenge yourself,\" said the teacher, \"and every keyboard becomes an adventure.\"",
+      "Technology is only useful when we have the knowledge and imagination to use it well.",
+      "Perseverance, patience and a little curiosity turn difficult lessons into important skills.",
+    ],
+  },
+  khmer: {
+    easy: [
+      "ខ្ញុំ ទៅ សាលា", "ខ្ញុំ រៀន ភាសា ខ្មែរ", "ផ្ទះ ធំ ល្អ", "ឆ្មា មាន ត្រី", "ទឹក ត្រជាក់ ណាស់", "គ្រូ មក សាលា",
+    ],
+    medium: [
+      "សិស្ស រៀន ភាសា ខ្មែរ នៅ សាលា", "ខ្ញុំ ចូលចិត្ត អាន សៀវភៅ ថ្ងៃ នេះ", "ក្មេង ស្រី ដើរ ទៅ ផ្ទះ មិត្ត", "ម្ដាយ ធ្វើ អាហារ ឆ្ងាញ់ ណាស់", "ឪពុក ទៅ ធ្វើ ការងារ ពេល ព្រឹក", "ត្រី និង ស្មៅ នៅ ក្នុង បឹង",
+    ],
+    hard: [
+      "ប្រទេស កម្ពុជា មាន ប្រជាជន សប្បាយរីករាយ", "ខ្ញុំ ស្រលាញ់ ភ្នំពេញ និង សៀមរាប", "មិត្តភក្តិ ខិតខំរៀន សៀវភៅ ជាមួយ គ្នា", "សួស្តី អរគុណ ដែល មក សាលា ថ្ងៃ នេះ", "គ្រូ និយាយ ថា ភាសា ខ្មែរ ស្អាត ណាស់",
+    ],
+  },
+};

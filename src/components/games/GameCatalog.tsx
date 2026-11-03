@@ -4,8 +4,10 @@ import Link from "next/link";
 import { useLocale } from "@/components/shared/LocaleProvider";
 import { categoryLabels, difficultyLabels, typingGames } from "@/data/games";
 
-const gameIcons: Record<(typeof typingGames)[number]["id"], string> = {
+export const gameIcons: Record<(typeof typingGames)[number]["id"], string> = {
   "mario-khmer-quest": "🍄",
+  "english-quest": "🗻",
+  "sentence-rush": "📝",
   "letter-jump": "🦘",
   "word-sprint": "⚡",
 };

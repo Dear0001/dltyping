@@ -1,8 +1,8 @@
 // Browser-side sync client. Local storage stays the source the UI reads;
 // the server only ever raises records, so sync is safe to retry at any time.
-import { LEVELS_KEY, PRACTICE_KEY, SCORES_KEY, SETTINGS_KEY, parseStored, readRaw, validateLevels, validatePractice, validateScores, removeRaw, writeRaw, type LevelBook, type PracticeBest, type ScoreBook } from "@/lib/local-progress";
+import { LEVELS_KEY, levelsKeyFor, PRACTICE_KEY, SCORES_KEY, SETTINGS_KEY, parseStored, readRaw, validateLevels, validatePractice, validateScores, removeRaw, writeRaw, type LevelBook, type PracticeBest, type ScoreBook } from "@/lib/local-progress";
 import { KEYSTATS_KEY, KEYSTATS_REMOTE_KEY, EMPTY_BOOK, validateBook } from "@/lib/keyboard/key-stats";
-import { parsePayload, type SyncPayload, type SyncState } from "@/lib/sync-schema";
+import { EXTRA_LEVEL_GAMES, parsePayload, type SyncPayload, type SyncState } from "@/lib/sync-schema";
 
 const DEVICE_KEY = "dlt.device";
 let lastSynced = "";
@@ -46,6 +46,7 @@ function collect(deviceId: string): SyncPayload {
     deviceId,
     scores: parseStored(readRaw(SCORES_KEY), {} as ScoreBook, validateScores),
     levels: parseStored(readRaw(LEVELS_KEY), {} as LevelBook, validateLevels),
+    gameLevels: Object.fromEntries(EXTRA_LEVEL_GAMES.map((game) => [game, parseStored(readRaw(levelsKeyFor(game)), {} as LevelBook, validateLevels)])),
     practice: parseStored(readRaw(PRACTICE_KEY), {} as Record<string, PracticeBest>, validatePractice),
     settings,
     keyStats: parseStored(readRaw(KEYSTATS_KEY), EMPTY_BOOK, validateBook),
@@ -65,6 +66,15 @@ function applyServerState(server: SyncState) {
     const l = levels[k];
     levels[k] = l ? { stars: max(l.stars, s.stars), score: max(l.score, s.score) } : s;
   }
+  const gameLevels: Record<string, LevelBook> = {};
+  for (const game of EXTRA_LEVEL_GAMES) {
+    const book = parseStored(readRaw(levelsKeyFor(game)), {} as LevelBook, validateLevels);
+    for (const [k, s] of Object.entries(server.gameLevels?.[game] ?? {})) {
+      const l = book[k];
+      book[k] = l ? { stars: max(l.stars, s.stars), score: max(l.score, s.score) } : s;
+    }
+    gameLevels[game] = book;
+  }
   const practice = parseStored(readRaw(PRACTICE_KEY), {} as Record<string, PracticeBest>, validatePractice);
   for (const [k, s] of Object.entries(server.practice)) {
     const l = practice[k];
@@ -77,6 +87,7 @@ function applyServerState(server: SyncState) {
   };
   writeIfChanged(SCORES_KEY, scores);
   writeIfChanged(LEVELS_KEY, levels);
+  for (const game of EXTRA_LEVEL_GAMES) writeIfChanged(levelsKeyFor(game), gameLevels[game]);
   writeIfChanged(PRACTICE_KEY, practice);
   // Other devices' typing history replaces (not merges into) the stored copy: the server already summed it.
   if (server.keyStats) writeIfChanged(KEYSTATS_REMOTE_KEY, server.keyStats);
@@ -91,7 +102,7 @@ export async function syncProgress(force = false): Promise<void> {
   if (!deviceId) return;
   const payload = collect(deviceId);
   const body = JSON.stringify(payload);
-  const empty = !Object.keys(payload.scores).length && !Object.keys(payload.levels).length && !Object.keys(payload.practice).length && !payload.settings && !Object.keys(payload.keyStats?.english ?? {}).length && !Object.keys(payload.keyStats?.khmer ?? {}).length;
+  const empty = !Object.keys(payload.scores).length && !Object.keys(payload.levels).length && !Object.values(payload.gameLevels ?? {}).some((b) => Object.keys(b).length) && !Object.keys(payload.practice).length && !payload.settings && !Object.keys(payload.keyStats?.english ?? {}).length && !Object.keys(payload.keyStats?.khmer ?? {}).length;
   if (!force && (body === lastSynced || (empty && !signedIn))) return;
   inFlight = true;
   try {

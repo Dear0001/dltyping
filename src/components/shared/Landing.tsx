@@ -37,7 +37,9 @@ export default function Landing() {
           <div className="grid grid-cols-2 gap-3" aria-hidden="true">
             <div className="col-span-2 overflow-hidden rounded-3xl bg-gradient-to-br from-sky-400 to-blue-600 shadow-xl"><div className="aspect-[2/1]"><GameThumb id="letter-jump" /></div></div>
             <div className="overflow-hidden rounded-3xl bg-gradient-to-br from-blue-600 to-slate-900 shadow-xl"><div className="aspect-[2/1]"><GameThumb id="word-sprint" /></div></div>
+            <div className="overflow-hidden rounded-3xl bg-gradient-to-br from-fuchsia-500 to-indigo-700 shadow-xl"><div className="aspect-[2/1]"><GameThumb id="sentence-rush" /></div></div>
             <div className="overflow-hidden rounded-3xl bg-gradient-to-br from-emerald-500 to-sky-500 shadow-xl"><div className="aspect-[2/1]"><GameThumb id="mario-khmer-quest" /></div></div>
+            <div className="overflow-hidden rounded-3xl bg-gradient-to-br from-amber-400 to-rose-500 shadow-xl"><div className="aspect-[2/1]"><GameThumb id="english-quest" /></div></div>
           </div>
         </div>
       </section>

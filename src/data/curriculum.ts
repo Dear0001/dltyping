@@ -22,6 +22,7 @@ const engBeginnerModules: CurriculumModule[] = [
         tip: "Accuracy beats speed at this stage. One correct key at a time builds the muscle memory that makes speed possible later.",
         gameRecommendations: [
           { gameId: "letter-jump", reason: "Drill home-row key recognition by jumping platforms — one letter at a time" },
+          { gameId: "english-quest", reason: "Levels 1–2 of English Quest turn home-row letters into a platform adventure" },
         ],
         completionCriteria: { minAccuracy: 80 },
         xpReward: 50,
@@ -40,6 +41,7 @@ const engBeginnerModules: CurriculumModule[] = [
         gameRecommendations: [
           { gameId: "letter-jump", reason: "Sharpen individual key recognition at pace" },
           { gameId: "word-sprint", reason: "Race through everyday words to build a typing flow" },
+          { gameId: "english-quest", reason: "Level 3 of English Quest runs on short everyday words" },
         ],
         completionCriteria: { minAccuracy: 80 },
         xpReward: 50,
@@ -64,6 +66,7 @@ const engBeginnerModules: CurriculumModule[] = [
         tip: "Slow is smooth. Smooth is fast. Never rush — let the rhythm build naturally.",
         gameRecommendations: [
           { gameId: "word-sprint", reason: "Build word-level speed on common English vocabulary" },
+          { gameId: "sentence-rush", reason: "Type whole sentences against the clock to build flow and punctuation habits" },
         ],
         completionCriteria: { minAccuracy: 82 },
         xpReward: 50,
@@ -81,6 +84,7 @@ const engBeginnerModules: CurriculumModule[] = [
           "Use left Shift for right-hand letters and right Shift for left-hand letters. This habit keeps one hand anchored at all times. Focus on the story — understanding the text helps predict the next word.",
         gameRecommendations: [
           { gameId: "word-sprint", reason: "Sprint through word sequences to practise reading ahead" },
+          { gameId: "sentence-rush", reason: "Type whole sentences against the clock to build flow and punctuation habits" },
         ],
         completionCriteria: { minAccuracy: 82 },
         xpReward: 50,
@@ -126,6 +130,7 @@ const engBasicModules: CurriculumModule[] = [
         tip: "Your brain is forming motor memory. Even 10 focused minutes a day creates lasting improvement.",
         gameRecommendations: [
           { gameId: "word-sprint", reason: "Test accuracy and flow on a variety of vocabulary" },
+          { gameId: "english-quest", reason: "Levels 4–5 of English Quest stretch you on longer words and capitals" },
         ],
         completionCriteria: { minAccuracy: 85 },
         xpReward: 75,
@@ -149,6 +154,7 @@ const engBasicModules: CurriculumModule[] = [
           "This text contains financial vocabulary and number words. When you encounter a longer or unfamiliar word, slow down by one beat — accuracy matters more than unbroken speed.",
         gameRecommendations: [
           { gameId: "word-sprint", reason: "Build speed on longer English vocabulary words" },
+          { gameId: "sentence-rush", reason: "Type whole sentences against the clock to build flow and punctuation habits" },
         ],
         completionCriteria: { minAccuracy: 85 },
         xpReward: 75,
@@ -176,6 +182,7 @@ const engIntermediateModules: CurriculumModule[] = [
         tip: "Breathe naturally as you type. Tension in the shoulders and neck slows your fingers.",
         gameRecommendations: [
           { gameId: "word-sprint", reason: "Build the stamina to maintain word-level speed through long sequences" },
+          { gameId: "sentence-rush", reason: "Type whole sentences against the clock to build flow and punctuation habits" },
         ],
         completionCriteria: { minAccuracy: 85, minWpm: 20 },
         xpReward: 100,
@@ -193,6 +200,7 @@ const engIntermediateModules: CurriculumModule[] = [
           "This narrative describes farming in sequence. Reading for meaning helps your brain anticipate the next word, which naturally speeds up your typing. Keep your eyes moving forward, never backward.",
         gameRecommendations: [
           { gameId: "word-sprint", reason: "Strengthen word-level accuracy on varied vocabulary" },
+          { gameId: "sentence-rush", reason: "Type whole sentences against the clock to build flow and punctuation habits" },
         ],
         completionCriteria: { minAccuracy: 85, minWpm: 22 },
         xpReward: 100,
@@ -210,6 +218,7 @@ const engIntermediateModules: CurriculumModule[] = [
           "When you encounter a long or scientific word, slow down slightly — precision over panic. After you type it correctly, your brain logs the pattern and the next occurrence will feel easier.",
         gameRecommendations: [
           { gameId: "word-sprint", reason: "Practice medium-difficulty vocabulary at increasing speed" },
+          { gameId: "sentence-rush", reason: "Type whole sentences against the clock to build flow and punctuation habits" },
         ],
         completionCriteria: { minAccuracy: 87, minWpm: 25 },
         xpReward: 100,
@@ -234,6 +243,7 @@ const engIntermediateModules: CurriculumModule[] = [
         tip: "The best typing speed is the one that keeps accuracy high. Speed without accuracy wastes more time than slow but correct typing.",
         gameRecommendations: [
           { gameId: "word-sprint", reason: "Push your word speed to match the passage's natural rhythm" },
+          { gameId: "sentence-rush", reason: "Type whole sentences against the clock to build flow and punctuation habits" },
         ],
         completionCriteria: { minAccuracy: 87, minWpm: 25 },
         xpReward: 100,
@@ -279,6 +289,7 @@ const engAdvancedModules: CurriculumModule[] = [
           "This evocative text uses sensory language and uncommon words. Read each sentence as a unit of meaning, not a string of individual letters. Meaning-first reading is the hallmark of expert-level typing.",
         gameRecommendations: [
           { gameId: "word-sprint", reason: "Challenge yourself on advanced English vocabulary at pace" },
+          { gameId: "sentence-rush", reason: "Type whole sentences against the clock to build flow and punctuation habits" },
         ],
         completionCriteria: { minAccuracy: 90, minWpm: 30 },
         xpReward: 150,
@@ -306,6 +317,7 @@ const engExpertModules: CurriculumModule[] = [
         tip: "True speed comes from relaxation, not effort. Tense fingers are slow fingers.",
         gameRecommendations: [
           { gameId: "word-sprint", reason: "Play on Hard difficulty to match expert-level typing pace" },
+          { gameId: "sentence-rush", reason: "Type whole sentences against the clock to build flow and punctuation habits" },
         ],
         completionCriteria: { minAccuracy: 92, minWpm: 40 },
         xpReward: 200,
@@ -383,6 +395,7 @@ const khmBeginnerModules: CurriculumModule[] = [
           "This passage describes a typical school day. Many words use vowels you may not have drilled yet — stay calm, refer to the on-screen keyboard if needed, and keep typing forward.",
         gameRecommendations: [
           { gameId: "word-sprint", reason: "Build speed on everyday Khmer school vocabulary" },
+          { gameId: "sentence-rush", reason: "Type whole sentences against the clock to build flow and punctuation habits" },
         ],
         completionCriteria: { minAccuracy: 80 },
         xpReward: 50,
@@ -401,6 +414,7 @@ const khmBeginnerModules: CurriculumModule[] = [
           "Family vocabulary involves common, often-repeated words. Use this familiarity as an advantage — the more you've seen a word, the faster your fingers will type it. Focus on keeping both hands in the right zones.",
         gameRecommendations: [
           { gameId: "word-sprint", reason: "Practise common Khmer family words at pace" },
+          { gameId: "sentence-rush", reason: "Type whole sentences against the clock to build flow and punctuation habits" },
         ],
         completionCriteria: { minAccuracy: 80 },
         xpReward: 50,
@@ -419,6 +433,7 @@ const khmBeginnerModules: CurriculumModule[] = [
           "Health vocabulary repeats common root words. Each time you type a familiar cluster your speed increases a little. Track your accuracy — 82% is the target to complete this lesson.",
         gameRecommendations: [
           { gameId: "word-sprint", reason: "Strengthen speed on health and lifestyle vocabulary" },
+          { gameId: "sentence-rush", reason: "Type whole sentences against the clock to build flow and punctuation habits" },
         ],
         completionCriteria: { minAccuracy: 82 },
         xpReward: 50,
@@ -468,6 +483,7 @@ const khmBasicModules: CurriculumModule[] = [
         gameRecommendations: [
           { gameId: "mario-khmer-quest", reason: "Levels 3–4 drill the subscript clusters you'll encounter here" },
           { gameId: "word-sprint", reason: "Race through Khmer words to build typing flow" },
+          { gameId: "sentence-rush", reason: "Chain full sentences to practise reading ahead" },
         ],
         completionCriteria: { minAccuracy: 82, minWpm: 12 },
         xpReward: 75,
@@ -535,6 +551,7 @@ const khmIntermediateModules: CurriculumModule[] = [
         gameRecommendations: [
           { gameId: "word-sprint", reason: "Build speed on everyday market vocabulary" },
           { gameId: "mario-khmer-quest", reason: "Levels 4–5 cover the word-level vocabulary used here" },
+          { gameId: "sentence-rush", reason: "Chain full sentences to practise reading ahead" },
         ],
         completionCriteria: { minAccuracy: 83, minWpm: 15 },
         xpReward: 100,
@@ -553,6 +570,7 @@ const khmIntermediateModules: CurriculumModule[] = [
           "Environmental writing uses more formal register and compound sentences. Break each long sentence at its clause boundary to find natural pauses. Keep your reading eye ahead of your typing position.",
         gameRecommendations: [
           { gameId: "word-sprint", reason: "Drill environmental vocabulary at pace" },
+          { gameId: "sentence-rush", reason: "Type whole sentences against the clock to build flow and punctuation habits" },
         ],
         completionCriteria: { minAccuracy: 85, minWpm: 15 },
         xpReward: 100,
@@ -582,6 +600,7 @@ const khmAdvancedModules: CurriculumModule[] = [
         tip: "Formal Khmer often has predictable sentence patterns. Once you recognise them, your fingers will start anticipating the next word automatically.",
         gameRecommendations: [
           { gameId: "word-sprint", reason: "Build pace on technical Khmer vocabulary under time pressure" },
+          { gameId: "sentence-rush", reason: "Type whole sentences against the clock to build flow and punctuation habits" },
         ],
         completionCriteria: { minAccuracy: 87, minWpm: 17 },
         xpReward: 150,
@@ -600,6 +619,7 @@ const khmAdvancedModules: CurriculumModule[] = [
           "Technology vocabulary sometimes blends Khmer with transliterated English terms. Expect this mix — type each word as a complete unit. This passage is directly relevant to what you are doing right now: typing practice.",
         gameRecommendations: [
           { gameId: "word-sprint", reason: "Challenge yourself on advanced Khmer technology vocabulary" },
+          { gameId: "sentence-rush", reason: "Type whole sentences against the clock to build flow and punctuation habits" },
         ],
         completionCriteria: { minAccuracy: 87, minWpm: 18 },
         xpReward: 150,

@@ -113,6 +113,8 @@ export function bestForGame(book: ScoreBook, gameId: string) {
 export type LevelResult = { stars: number; score: number };
 export type LevelBook = Record<string, LevelResult>;
 export const LEVELS_KEY = "dlt.mario-khmer-quest.levels";
+/** Level book storage key; Mario Khmer Quest keeps its original key so existing progress survives. */
+export const levelsKeyFor = (gameId: string) => (gameId === "mario-khmer-quest" ? LEVELS_KEY : `dlt.${gameId}.levels`);
 
 export function validateLevels(value: unknown): LevelBook | null {
   if (!isRecord(value)) return null;
@@ -123,11 +125,12 @@ export function validateLevels(value: unknown): LevelBook | null {
   return book;
 }
 
-export function recordLevel(level: number, result: LevelResult) {
-  const book = parseStored(readRaw(LEVELS_KEY), {} as LevelBook, validateLevels);
+export function recordLevel(level: number, result: LevelResult, gameId = "mario-khmer-quest") {
+  const key = levelsKeyFor(gameId);
+  const book = parseStored(readRaw(key), {} as LevelBook, validateLevels);
   const previous = book[level];
   book[level] = { stars: Math.max(previous?.stars ?? 0, result.stars), score: Math.max(previous?.score ?? 0, result.score) };
-  writeRaw(LEVELS_KEY, JSON.stringify(book));
+  writeRaw(key, JSON.stringify(book));
 }
 
 // ---- Practice records & first-visit flags ---------------------------------
