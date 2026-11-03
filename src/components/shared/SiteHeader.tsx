@@ -13,9 +13,11 @@ export default function SiteHeader() {
     <Link className="brand" href="/"><span className="brand-mark">d</span><span>keyflow<span className="brand-dot">.</span></span></Link>
     <nav className="topnav" aria-label="Primary">
       <Link href="/">{t("nav.overview")}</Link>
+      <Link href="/learn">{t("nav.learn")}</Link>
+      <Link href="/library">{t("nav.library")}</Link>
       <Link href="/setup">{t("nav.practice")}</Link>
       <GamesMenu/>
-      <Link href="/#progress">{t("nav.progress")}</Link>
+      <Link href="/progress">{t("nav.progress")}</Link>
     </nav>
     <LocaleToggle/>
     <AccountMenu />

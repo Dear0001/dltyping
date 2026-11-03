@@ -159,3 +159,95 @@ export function markSeen(id: string) {
   const seen = parseStored(readRaw(SEEN_KEY), {} as Record<string, boolean>, validateSeen);
   writeRaw(SEEN_KEY, JSON.stringify({ ...seen, [id]: true }));
 }
+
+// ---- User progress (XP, lesson completion, streak) -----------------------
+import type { UserProgressData } from "@/types";
+
+export const USER_PROGRESS_KEY = "dlt.userProgress";
+
+const today = () => new Date().toISOString().slice(0, 10);
+
+export const DEFAULT_USER_PROGRESS: UserProgressData = {
+  xp: 0,
+  completedLessons: {},
+  streak: 0,
+  lastActiveDate: "",
+  achievements: [],
+};
+
+export function validateUserProgress(value: unknown): UserProgressData | null {
+  if (!isRecord(value)) return null;
+  const num = (n: unknown) => (typeof n === "number" && Number.isFinite(n) && n >= 0 ? n : 0);
+  const str = (s: unknown) => (typeof s === "string" ? s : "");
+  const boolMap = (m: unknown): Record<string, boolean> => {
+    if (!isRecord(m)) return {};
+    return Object.fromEntries(Object.entries(m).filter(([, v]) => v === true).map(([k]) => [k, true as boolean]));
+  };
+  const strArr = (a: unknown): string[] => (Array.isArray(a) ? a.filter((x): x is string => typeof x === "string") : []);
+  return {
+    xp: num(value.xp),
+    completedLessons: boolMap(value.completedLessons),
+    streak: num(value.streak),
+    lastActiveDate: str(value.lastActiveDate),
+    achievements: strArr(value.achievements),
+  };
+}
+
+export function readUserProgress(): UserProgressData {
+  return parseStored(readRaw(USER_PROGRESS_KEY), DEFAULT_USER_PROGRESS, validateUserProgress);
+}
+
+/** Mark a lesson complete and award XP. Returns the updated progress. */
+export function completeLesson(language: string, lessonId: string, xpReward: number): UserProgressData {
+  const progress = readUserProgress();
+  const key = `${language}:${lessonId}`;
+  const alreadyDone = progress.completedLessons[key];
+
+  // Update streak
+  const todayDate = today();
+  let { streak } = progress;
+  if (progress.lastActiveDate !== todayDate) {
+    const yesterday = new Date(Date.now() - 86400000).toISOString().slice(0, 10);
+    streak = progress.lastActiveDate === yesterday ? streak + 1 : 1;
+  }
+
+  const updated: UserProgressData = {
+    ...progress,
+    xp: alreadyDone ? progress.xp : progress.xp + xpReward,
+    completedLessons: { ...progress.completedLessons, [key]: true },
+    streak,
+    lastActiveDate: todayDate,
+  };
+  writeRaw(USER_PROGRESS_KEY, JSON.stringify(updated));
+  return updated;
+}
+
+export function addAchievement(id: string): void {
+  const progress = readUserProgress();
+  if (progress.achievements.includes(id)) return;
+  writeRaw(USER_PROGRESS_KEY, JSON.stringify({ ...progress, achievements: [...progress.achievements, id] }));
+}
+
+export function xpForLevel(level: number) {
+  // Level 1=0, 2=200, 3=500, 4=1000, 5=1700, 6=2500
+  const thresholds = [0, 200, 500, 1000, 1700, 2500];
+  return thresholds[Math.min(level - 1, thresholds.length - 1)] ?? 0;
+}
+
+export function levelFromXp(xp: number): number {
+  const thresholds = [0, 200, 500, 1000, 1700, 2500];
+  let level = 1;
+  for (let i = 0; i < thresholds.length; i++) {
+    if (xp >= thresholds[i]) level = i + 1;
+  }
+  return level;
+}
+
+export const LEVEL_TITLES: Record<number, string> = {
+  1: "Novice Typist",
+  2: "Beginner Typist",
+  3: "Capable Typist",
+  4: "Fluent Typist",
+  5: "Expert Typist",
+  6: "Master Typist",
+};
