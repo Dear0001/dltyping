@@ -1,17 +1,22 @@
 // Wire format + validation shared by the sync route and the client.
 export type SyncScore = { best: number; bestWpm: number; bestAccuracy: number; plays: number };
+export type SyncKeyStat = { n: number; e: number; ms: number; t: number };
+export type SyncKeyStats = Record<"english" | "khmer", Record<string, SyncKeyStat>>;
 export type SyncPayload = {
   deviceId: string;
   scores: Record<string, SyncScore>;
   levels: Record<string, { stars: number; score: number }>;
   practice: Record<string, { bestWpm: number; bestAccuracy: number }>;
   settings?: Record<string, unknown>;
+  /** Request: this device's own totals. Response: the sum of the account's OTHER devices. */
+  keyStats?: SyncKeyStats;
 };
 export type SyncState = Omit<SyncPayload, "deviceId">;
 
 const UUID = /^[0-9a-f]{8}-[0-9a-f]{4}-[1-8][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i;
 const VARIANT = /^[a-z0-9:_-]{1,80}$/;
 const MAX_ENTRIES = 500;
+const MAX_KEYS_PER_LANGUAGE = 400;
 
 const isRecord = (v: unknown): v is Record<string, unknown> => typeof v === "object" && v !== null && !Array.isArray(v);
 const int = (v: unknown, max: number) => (typeof v === "number" && Number.isFinite(v) ? Math.min(max, Math.max(0, Math.round(v))) : 0);
@@ -39,6 +44,20 @@ export function parsePayload(body: unknown): SyncPayload | null {
       const v = body.practice[language];
       if (isRecord(v)) out.practice[language] = { bestWpm: int(v.bestWpm, 1000), bestAccuracy: int(v.bestAccuracy, 100) };
     }
+  }
+  if (isRecord(body.keyStats)) {
+    const ks: SyncKeyStats = { english: {}, khmer: {} };
+    for (const language of ["english", "khmer"] as const) {
+      const src = body.keyStats[language];
+      if (!isRecord(src)) continue;
+      for (const [ch, v] of Object.entries(src).slice(0, MAX_KEYS_PER_LANGUAGE)) {
+        if (ch.length < 1 || ch.length > 8 || ch.includes("\0") || !isRecord(v)) continue;
+        const n = int(v.n, 2e9);
+        if (n === 0) continue;
+        ks[language][ch] = { n, e: Math.min(n, int(v.e, 2e9)), ms: int(v.ms, 2e9), t: Math.min(n, int(v.t, 2e9)) };
+      }
+    }
+    out.keyStats = ks;
   }
   if (isRecord(body.settings)) {
     const s = body.settings;

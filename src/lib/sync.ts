@@ -1,6 +1,7 @@
 // Browser-side sync client. Local storage stays the source the UI reads;
 // the server only ever raises records, so sync is safe to retry at any time.
 import { LEVELS_KEY, PRACTICE_KEY, SCORES_KEY, SETTINGS_KEY, parseStored, readRaw, validateLevels, validatePractice, validateScores, removeRaw, writeRaw, type LevelBook, type PracticeBest, type ScoreBook } from "@/lib/local-progress";
+import { KEYSTATS_KEY, KEYSTATS_REMOTE_KEY, EMPTY_BOOK, validateBook } from "@/lib/keyboard/key-stats";
 import { parsePayload, type SyncPayload, type SyncState } from "@/lib/sync-schema";
 
 const DEVICE_KEY = "dlt.device";
@@ -16,7 +17,7 @@ export function setSyncAccount(isSignedIn: boolean) {
 
 /** Signing out on a shared browser must not leave one person's progress to be uploaded into the next account. */
 export function clearLocalProgress() {
-  for (const key of [SCORES_KEY, LEVELS_KEY, PRACTICE_KEY, SETTINGS_KEY, DEVICE_KEY]) removeRaw(key);
+  for (const key of [SCORES_KEY, LEVELS_KEY, PRACTICE_KEY, SETTINGS_KEY, DEVICE_KEY, KEYSTATS_KEY, KEYSTATS_REMOTE_KEY]) removeRaw(key);
   lastSynced = "";
 }
 
@@ -47,6 +48,7 @@ function collect(deviceId: string): SyncPayload {
     levels: parseStored(readRaw(LEVELS_KEY), {} as LevelBook, validateLevels),
     practice: parseStored(readRaw(PRACTICE_KEY), {} as Record<string, PracticeBest>, validatePractice),
     settings,
+    keyStats: parseStored(readRaw(KEYSTATS_KEY), EMPTY_BOOK, validateBook),
   };
 }
 
@@ -76,6 +78,8 @@ function applyServerState(server: SyncState) {
   writeIfChanged(SCORES_KEY, scores);
   writeIfChanged(LEVELS_KEY, levels);
   writeIfChanged(PRACTICE_KEY, practice);
+  // Other devices' typing history replaces (not merges into) the stored copy: the server already summed it.
+  if (server.keyStats) writeIfChanged(KEYSTATS_REMOTE_KEY, server.keyStats);
   // A brand-new device adopts the saved settings; an existing choice is never overwritten.
   if (server.settings && !readRaw(SETTINGS_KEY)) writeRaw(SETTINGS_KEY, JSON.stringify(server.settings));
 }
@@ -87,7 +91,7 @@ export async function syncProgress(force = false): Promise<void> {
   if (!deviceId) return;
   const payload = collect(deviceId);
   const body = JSON.stringify(payload);
-  const empty = !Object.keys(payload.scores).length && !Object.keys(payload.levels).length && !Object.keys(payload.practice).length && !payload.settings;
+  const empty = !Object.keys(payload.scores).length && !Object.keys(payload.levels).length && !Object.keys(payload.practice).length && !payload.settings && !Object.keys(payload.keyStats?.english ?? {}).length && !Object.keys(payload.keyStats?.khmer ?? {}).length;
   if (!force && (body === lastSynced || (empty && !signedIn))) return;
   inFlight = true;
   try {

@@ -51,6 +51,7 @@ button.vk-key:hover{background:#f8fafc}
 .vk-khmer .vk-alt{font-size:calc(var(--u) * .24)}
 
 /* States */
+.vk-key.has-heat{background:color-mix(in srgb,#ef4444 calc(var(--heat) * 38%),#fff);border-color:color-mix(in srgb,#ef4444 calc(var(--heat) * 60%),#dbe3ee)}
 .vk-key.is-pressed{background:#dbeafe;border-color:var(--vk-brand);color:var(--vk-brand);transform:translateY(1px);box-shadow:0 0 0 1px #2563eb33}
 .vk-key.is-active.vk-mod{background:var(--vk-brand);border-color:#1d4ed8;color:#fff}
 .vk-key.is-next{border-color:var(--vk-accent);background:#f0f9ff;box-shadow:0 0 0 2px #38bdf866,0 2px 6px #38bdf855;animation:vk-pulse 1.4s ease-in-out infinite}

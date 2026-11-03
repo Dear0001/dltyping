@@ -18,6 +18,7 @@ type Props = {
   next: ReadonlySet<string>;
   /** Modifier keys that are currently on (ctrl/alt/meta from the physical keyboard). */
   mods: { ctrl: boolean; alt: boolean; meta: boolean };
+  heat?: Record<string, number>;
   interactive: boolean;
   onTap?: (code: string) => void;
 };
@@ -36,7 +37,7 @@ function legendFor(spec: KeySpec, language: Language, shift: boolean, caps: bool
   return { main: show, alt: letter ? undefined : other };
 }
 
-export default function KeyboardLayout({ layout, language, shift, caps, pressed, flash, next, mods, interactive, onTap }: Props) {
+export default function KeyboardLayout({ layout, language, shift, caps, pressed, flash, next, mods, heat, interactive, onTap }: Props) {
   const khmer = language === "khmer";
 
   function renderKey(spec: KeySpec) {
@@ -57,6 +58,7 @@ export default function KeyboardLayout({ layout, language, shift, caps, pressed,
           correct: flashed && flash.ok,
           wrong: flashed && !flash.ok,
           active: modOn,
+          heat: heat?.[spec.code],
         }}
       />
     );

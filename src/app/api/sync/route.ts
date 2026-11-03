@@ -1,7 +1,41 @@
 import { getSessionUser } from "@/lib/auth";
 import { accountPlayerId } from "@/lib/claim";
 import { prisma } from "@/lib/db";
-import { parsePayload, type SyncState } from "@/lib/sync-schema";
+import { parsePayload, type SyncKeyStats, type SyncState } from "@/lib/sync-schema";
+
+type KeyStatRow = { language: "english" | "khmer"; ch: string; n: number; e: number; ms: number; t: number };
+
+/**
+ * Weak-keys history. Runs in its own small transaction so a problem here (for example the
+ * key_stats migration not applied yet) can never break the rest of the sync.
+ * Stores this device's totals and returns the sum of the account's other devices.
+ */
+async function syncKeyStats(playerId: string, deviceId: string, own: SyncKeyStats): Promise<SyncKeyStats> {
+  const rows = (["english", "khmer"] as const).flatMap((language) => Object.entries(own[language]).map(([ch, s]) => ({ language, ch, ...s })));
+  return prisma.$transaction(async (tx) => {
+    if (rows.length) {
+      await tx.$executeRaw`
+        insert into key_stats (player_id, device_id, language, ch, attempts, errors, total_ms, timed)
+        select ${playerId}::uuid, ${deviceId}::uuid, lg, c, a, e, m, t
+        from unnest(${rows.map((r) => r.language)}::text[], ${rows.map((r) => r.ch)}::text[], ${rows.map((r) => r.n)}::int[], ${rows.map((r) => r.e)}::int[], ${rows.map((r) => r.ms)}::int[], ${rows.map((r) => r.t)}::int[]) as x(lg, c, a, e, m, t)
+        on conflict (player_id, device_id, language, ch) do update set
+          attempts = greatest(key_stats.attempts, excluded.attempts),
+          errors = greatest(key_stats.errors, excluded.errors),
+          total_ms = greatest(key_stats.total_ms, excluded.total_ms),
+          timed = greatest(key_stats.timed, excluded.timed),
+          updated_at = now()`;
+    }
+    const others = await tx.$queryRaw<KeyStatRow[]>`
+      select language, ch, least(sum(attempts), 2000000000)::int as n, least(sum(errors), 2000000000)::int as e,
+             least(sum(total_ms), 2000000000)::int as ms, least(sum(timed), 2000000000)::int as t
+      from key_stats where player_id = ${playerId}::uuid and device_id <> ${deviceId}::uuid
+      group by language, ch`;
+    const out: SyncKeyStats = { english: {}, khmer: {} };
+    for (const r of others) out[r.language][r.ch] = { n: r.n, e: r.e, ms: r.ms, t: r.t };
+    return out;
+  }, { maxWait: 10_000, timeout: 20_000 });
+}
+
 
 /**
  * POST /api/sync — merges one device's local progress into the database and
@@ -23,7 +57,7 @@ export async function POST(request: Request) {
 
   const user = await getSessionUser();
   try {
-    const state = await prisma.$transaction(async (tx) => {
+    const { state, playerId } = await prisma.$transaction(async (tx) => {
       let id: string;
       if (user) {
         // Signed in: always the account's canonical player, whichever device this is.
@@ -88,8 +122,15 @@ export async function POST(request: Request) {
         practice: Object.fromEntries(practice.map((p) => [p.language, { bestWpm: p.best_wpm, bestAccuracy: p.best_accuracy }])),
         settings: (settings?.settings as Record<string, unknown> | undefined) ?? undefined,
       };
-      return result;
+      return { state: result, playerId: id };
     }, { maxWait: 10_000, timeout: 20_000 });
+    if (payload.keyStats) {
+      try {
+        state.keyStats = await syncKeyStats(playerId, payload.deviceId, payload.keyStats);
+      } catch (error) {
+        console.error("key stats sync failed", error); // non-fatal: scores and levels already synced
+      }
+    }
     return Response.json(state);
   } catch (error) {
     if (error instanceof Error && error.message === "device-linked") return Response.json({ error: "Device belongs to an account; sign in" }, { status: 409 });

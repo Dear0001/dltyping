@@ -31,13 +31,15 @@ type Props = {
   osHint?: KeyboardOS | null;
   /** Let the user switch English/Khmer on the keyboard itself (e.g. the setup preview). */
   languageSelectable?: boolean;
+  /** Per-key 0..1 "trouble" level (by event.code) drawn as a red tint, e.g. a weak-keys report. */
+  heat?: Record<string, number>;
   className?: string;
   controls?: ReactNode;
 };
 
 const WIDTH = { sm: "34rem", md: "46rem", lg: "58rem" } as const;
 
-export default function VirtualKeyboard({ language, expected = null, onChar, onBackspace, disabled = false, osHint = null, languageSelectable = false, className = "", controls }: Props) {
+export default function VirtualKeyboard({ language, expected = null, onChar, onBackspace, disabled = false, osHint = null, languageSelectable = false, className = "", heat, controls }: Props) {
   const { locale } = useLocale();
   const labels = keyboardLabels(locale);
   const [settings, update] = useKeyboardSettings();
@@ -96,7 +98,7 @@ export default function VirtualKeyboard({ language, expected = null, onChar, onB
           <div className="vk-wrap" style={{ maxWidth: WIDTH[settings.size] }}>
             <KeyboardLayout
               layout={layout} language={lang} shift={shift} caps={caps} pressed={pressed} flash={flash} next={next}
-              mods={mods} interactive={interactive} onTap={tap}
+              mods={mods} heat={heat} interactive={interactive} onTap={tap}
             />
           </div>
           <p className="vk-desc">{desc}{osNote && <span className="vk-os-note"> · {osNote}</span>}</p>

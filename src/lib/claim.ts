@@ -36,6 +36,16 @@ export async function claimDevice(tx: Prisma.TransactionClient, userId: string, 
     select ${target}::uuid, language, best_wpm, best_accuracy from practice_bests where player_id = ${anon.id}::uuid
     on conflict (player_id, language) do update set
       best_wpm = greatest(practice_bests.best_wpm, excluded.best_wpm), best_accuracy = greatest(practice_bests.best_accuracy, excluded.best_accuracy), updated_at = now()`;
+  // Weak-keys history moves with the device. Skipped if the key_stats migration has not been applied yet.
+  const [{ present }] = await tx.$queryRaw<{ present: boolean }[]>`select to_regclass('public.key_stats') is not null as present`;
+  if (present) {
+    await tx.$executeRaw`
+      insert into key_stats (player_id, device_id, language, ch, attempts, errors, total_ms, timed)
+      select ${target}::uuid, device_id, language, ch, attempts, errors, total_ms, timed from key_stats where player_id = ${anon.id}::uuid
+      on conflict (player_id, device_id, language, ch) do update set
+        attempts = greatest(key_stats.attempts, excluded.attempts), errors = greatest(key_stats.errors, excluded.errors),
+        total_ms = greatest(key_stats.total_ms, excluded.total_ms), timed = greatest(key_stats.timed, excluded.timed), updated_at = now()`;
+  }
   await tx.$executeRaw`
     insert into player_settings (player_id, settings) select ${target}::uuid, settings from player_settings where player_id = ${anon.id}::uuid
     on conflict (player_id) do nothing`;

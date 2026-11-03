@@ -54,6 +54,7 @@ model players {
   player_settings player_settings?
   users           users?           @relation(fields: [user_id], references: [id], onDelete: Cascade, onUpdate: NoAction)
   practice_bests  practice_bests[]
+  key_stats       key_stats[]
 }
 
 /// This table contains check constraints and requires additional setup for migrations. Visit https://pris.ly/d/check-constraints for more info.
@@ -98,4 +99,20 @@ model users {
   created_at    DateTime   @default(now()) @db.Timestamptz(6)
   players       players?
   sessions      sessions[]
+}
+
+/// Per-key typing history (weak-keys report). Each device writes its own totals; readers sum the other devices.
+model key_stats {
+  player_id  String   @db.Uuid
+  device_id  String   @db.Uuid
+  language   String
+  ch         String
+  attempts   Int      @default(0)
+  errors     Int      @default(0)
+  total_ms   Int      @default(0)
+  timed      Int      @default(0)
+  updated_at DateTime @default(now()) @db.Timestamptz(6)
+  players    players  @relation(fields: [player_id], references: [id], onDelete: Cascade, onUpdate: NoAction)
+
+  @@id([player_id, device_id, language, ch])
 }

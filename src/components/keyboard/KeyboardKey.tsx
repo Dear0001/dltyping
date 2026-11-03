@@ -4,7 +4,7 @@ import { memo } from "react";
 import type { KeySpec } from "./layouts/types";
 
 export type KeyLegend = { main: string; alt?: string; hint?: string; upper?: boolean };
-export type KeyState = { pressed?: boolean; next?: boolean; correct?: boolean; wrong?: boolean; active?: boolean };
+export type KeyState = { pressed?: boolean; next?: boolean; correct?: boolean; wrong?: boolean; active?: boolean; heat?: number };
 
 type Props = {
   spec: KeySpec;
@@ -20,7 +20,7 @@ function KeyboardKeyBase({ spec, legend, state, khmer, interactive, onTap }: Pro
     "vk-key", `vk-${spec.kind}`, spec.align ? `vk-${spec.align}` : "",
     legend && khmer ? "vk-khmer" : "", spec.code === "CapsLock" ? "vk-caps" : "",
     state.pressed ? "is-pressed" : "", state.next ? "is-next" : "", state.correct ? "is-correct" : "",
-    state.wrong ? "is-wrong" : "", state.active ? "is-active" : "",
+    state.wrong ? "is-wrong" : "", state.active ? "is-active" : "", state.heat ? "has-heat" : "",
   ].filter(Boolean).join(" ");
 
   const content = legend ? (
@@ -41,6 +41,7 @@ function KeyboardKeyBase({ spec, legend, state, khmer, interactive, onTap }: Pro
     <Tag
       className={cls}
       data-code={spec.code}
+      style={state.heat ? ({ "--heat": state.heat } as React.CSSProperties) : undefined}
       {...(interactive
         ? { type: "button" as const, tabIndex: -1, onMouseDown: (e: React.MouseEvent) => e.preventDefault(), onClick: () => onTap?.(spec.code), "aria-label": legend?.main ?? spec.label?.[1] ?? spec.label?.[0] ?? spec.code }
         : { "aria-hidden": true })}
