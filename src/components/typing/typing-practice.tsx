@@ -8,7 +8,9 @@ import { normalizeKhmer } from "@/lib/khmer-unicode";
 import { lessons } from "@/data/lessons";
 import type { Language, OSPlatform } from "@/types";
 import { useLocale } from "@/components/shared/LocaleProvider";
+import Logo from "@/components/shared/Logo";
 import LocaleToggle from "@/components/shared/LocaleToggle";
+import ThemeSwitcher from "@/components/shared/ThemeSwitcher";
 import { recordPractice } from "@/lib/local-progress";
 import { GameDialog } from "@/components/games/shared/GameDialog";
 import { pickRandomLesson } from "@/lib/lesson-picker";
@@ -218,9 +220,9 @@ export default function TypingPractice({ language, platform = "Unknown", initial
   return (
     <main className="practice-page">
       <header className="topbar">
-        <Link className="brand" href="/"><span className="brand-mark">d</span><span>keyflow<span className="brand-dot">.</span></span></Link>
+        <Link className="brand" href="/"><Logo/></Link>
         <nav className="topnav"><Link href="/">{t("nav.overview")}</Link><a className="active" href="#practice">{t("nav.practice")}</a><GamesMenu/><a href="#progress">{t("nav.progress")}</a></nav>
-        <LocaleToggle/><div className="user-pill"><span className="avatar">S</span><span>{t("nav.guest")}</span><span className="chevron">⌄</span></div>
+        <ThemeSwitcher/><LocaleToggle/><div className="user-pill"><span className="avatar">S</span><span>{t("nav.guest")}</span><span className="chevron">⌄</span></div>
       </header>
       <section className="practice-shell" id="practice">
         <div className="practice-grid">
@@ -258,7 +260,6 @@ export default function TypingPractice({ language, platform = "Unknown", initial
           </section>
           <aside className="stats-column"><div className="stats-card"><div className="stats-title"><span>{t("practice.sessionStats")}</span><span className="info">i</span></div><div className="wpm-stat"><strong>{stats.wpm}</strong><span>{t("practice.wpm")}</span></div><div className="stat-divider"/><div className="mini-stat"><span>{t("practice.accuracy")}</span><strong>{stats.accuracy}<small>%</small></strong></div><div className="mini-stat"><span>{t("practice.errors")}</span><strong>{stats.errors.toString().padStart(2, "0")}</strong></div><div className="mini-stat"><span>{t("practice.time")}</span><strong>{Math.floor(seconds / 60).toString().padStart(2, "0")}:{(seconds % 60).toString().padStart(2, "0")}</strong></div><div className="progress-label"><span>{t("practice.lessonProgress")}</span><strong>{stats.progress}%</strong></div><div className="progress-track"><span style={{ width: `${stats.progress}%` }}/></div></div><div className="tip-card"><span className="tip-icon">✦</span><div><strong>{t("practice.tipTitle")}</strong><p>{t("practice.tipText")}</p></div></div><div className="next-lesson"><span className="small-label">{t("practice.upNext")}</span><strong>{list[(list.findIndex((item) => item.id === lessonId) + 1) % list.length].title}</strong><button onClick={() => reset(list[(list.findIndex((item) => item.id === lessonId) + 1) % list.length].id)}>{t("practice.preview")} <span>→</span></button></div></aside>
         </div>
-        <footer className="practice-footer" id="progress"><span>{t("common.footer")} <span className="footer-heart">♥</span></span><span>{t("practice.guestFooter")}</span></footer>
       </section>
     </main>
   );

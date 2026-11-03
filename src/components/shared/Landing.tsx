@@ -92,7 +92,7 @@ export default function Landing() {
       </section>
 
       <section className="mx-auto max-w-6xl px-4 py-14 sm:px-6" aria-labelledby="benefits-heading">
-        <h2 id="benefits-heading" className="text-2xl font-extrabold sm:text-3xl">Why Keyflow</h2>
+        <h2 id="benefits-heading" className="text-2xl font-extrabold sm:text-3xl">Why DL Typing</h2>
         <ul className="mt-6 grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
           {benefits.map((b) => <li key={b.title} className="rounded-2xl border border-slate-200 bg-white p-5 shadow-sm"><div className="text-3xl" aria-hidden="true">{b.icon}</div><h3 className="mt-2 font-extrabold">{b.title}</h3><p className="mt-1 text-sm text-slate-600">{b.text}</p></li>)}
         </ul>
@@ -114,9 +114,5 @@ export default function Landing() {
         </div>
       </section>
     </main>
-    <footer className="border-t border-slate-200 bg-white py-8 text-center text-sm text-mute">
-      <p>Keyflow · Free English &amp; Khmer typing practice <span className="text-bad">♥</span></p>
-      <nav className="mt-2 flex justify-center gap-5 font-semibold" aria-label="Footer"><Link href="/setup" className="hover:text-brand">Practice</Link><Link href="/games" className="hover:text-brand">Games</Link><Link href="/learn/english" className="hover:text-brand">English</Link><Link href="/learn/khmer" className="hover:text-brand">Khmer</Link></nav>
-    </footer>
   </div>;
 }

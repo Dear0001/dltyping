@@ -56,7 +56,7 @@ export function LocaleProvider({ children }: { children: ReactNode }) {
 
   useEffect(() => {
     document.documentElement.lang = locale === "km" ? "km" : "en";
-    document.title = locale === "km" ? "Keyflow — ហាត់វាយអក្សរខ្មែរ និងអង់គ្លេស" : "Keyflow — Find your typing rhythm";
+    document.title = locale === "km" ? "DL Typing — ហាត់វាយអក្សរខ្មែរ និងអង់គ្លេស" : "DL Typing — Find your typing rhythm";
   }, [locale]);
 
   const setLocale = useCallback((nextLocale: AppLocale) => saveLocale(nextLocale), []);

@@ -52,35 +52,35 @@ export default function SetupForm() {
 
   return (
     <div className="grid gap-6 lg:grid-cols-[minmax(0,1fr)_320px]">
-      <section className="rounded-2xl border border-[#e2e8f0] bg-white p-5 shadow-sm sm:p-7">
+      <section className="rounded-2xl border border-[color:var(--line)] bg-white p-5 shadow-sm sm:p-7">
         <div className="mb-7">
-          <span className="text-[10px] font-bold tracking-[0.16em] text-[#64748b]">{t("setup.stepLanguage")}</span>
+          <span className="text-[10px] font-bold tracking-[0.16em] text-[color:var(--muted)]">{t("setup.stepLanguage")}</span>
           <div className="mt-3"><CategorySelector categories={lessonCategories} selectedId={config.categoryId} onSelect={selectCategory} /></div>
         </div>
         <div className="mb-7">
-          <label htmlFor="lesson" className="text-[10px] font-bold tracking-[0.16em] text-[#64748b]">{t("setup.stepLesson")}</label>
+          <label htmlFor="lesson" className="text-[10px] font-bold tracking-[0.16em] text-[color:var(--muted)]">{t("setup.stepLesson")}</label>
           <select id="lesson" value={config.activeSectionId} onChange={(event) => { const picked = category.sections.find((item) => item.id === event.target.value); setConfig((current) => ({ ...current, activeSectionId: event.target.value, timeLimit: picked && !timeTouched ? suggestedTime(picked) : current.timeLimit })); }} className="mt-3 block w-full rounded-lg border border-[#dee2e8] bg-white px-3 py-3 text-sm text-[#33373d] outline-none focus:border-[#717e94] focus:ring-2 focus:ring-[#717e94]/15">
             <option value={RANDOM_LESSON}>{km ? "🎲 អត្ថបទចៃដន្យ (ណែនាំ)" : "🎲 Random article (recommended)"}</option>
             {category.sections.map((section) => <option key={section.id} value={section.id}>{section.title} · {section.level === "Beginner" ? t("setup.beginner") : t("setup.intermediate")}</option>)}
           </select>
         </div>
         <fieldset>
-          <legend className="text-[10px] font-bold tracking-[0.16em] text-[#64748b]">{t("setup.stepTime")}</legend>
+          <legend className="text-[10px] font-bold tracking-[0.16em] text-[color:var(--muted)]">{t("setup.stepTime")}</legend>
           <div className="mt-3 grid grid-cols-3 gap-2">
-            {timeLimits.map((seconds) => <button key={seconds} type="button" aria-pressed={(!isRandom || timeTouched) && config.timeLimit === seconds} onClick={() => { setTimeTouched(true); setConfig((current) => ({ ...current, timeLimit: seconds })); }} className={`rounded-lg border px-3 py-3 text-sm transition ${config.timeLimit === seconds ? "border-[#2563eb] bg-[#eff6ff] font-semibold text-[#3a4b67]" : "border-[#e2e8f0] bg-white text-[#6f747b] hover:border-[#e2e8f0]"}`}>{seconds / 60} {t("setup.min")}<span className="mt-1 block text-[10px] font-normal opacity-75">{seconds} {t("setup.seconds")}</span></button>)}
+            {timeLimits.map((seconds) => <button key={seconds} type="button" aria-pressed={(!isRandom || timeTouched) && config.timeLimit === seconds} onClick={() => { setTimeTouched(true); setConfig((current) => ({ ...current, timeLimit: seconds })); }} className={`rounded-lg border px-3 py-3 text-sm transition ${config.timeLimit === seconds ? "border-[color:var(--green)] bg-[color:var(--pale)] font-semibold text-[#3a4b67]" : "border-[color:var(--line)] bg-white text-[#6f747b] hover:border-[color:var(--line)]"}`}>{seconds / 60} {t("setup.min")}<span className="mt-1 block text-[10px] font-normal opacity-75">{seconds} {t("setup.seconds")}</span></button>)}
           </div>
         </fieldset>
         <div className="mt-8 flex flex-wrap items-center justify-between gap-4 border-t border-[#ebedf0] pt-5">
-          <span className="text-xs text-[#64748b]">{t("setup.free")}</span>
-          <Link href={startHref} onClick={start} className="inline-flex items-center gap-4 rounded-lg bg-[#2563eb] px-5 py-3 text-sm font-semibold text-white shadow-sm transition hover:bg-[#2a3c59]">{t("setup.start")} <span aria-hidden="true">→</span></Link>
+          <span className="text-xs text-[color:var(--muted)]">{t("setup.free")}</span>
+          <Link href={startHref} onClick={start} className="inline-flex items-center gap-4 rounded-lg bg-[color:var(--green)] px-5 py-3 text-sm font-semibold text-white shadow-sm transition hover:bg-[#2a3c59]">{t("setup.start")} <span aria-hidden="true">→</span></Link>
         </div>
       </section>
       <aside className="space-y-4">
           <Timer seconds={config.timeLimit} label={t("timer.label")} />
-        <div className="rounded-xl border border-[#eff6ff] bg-[#eff1f5] p-4">
-          <span className="text-[9px] font-bold tracking-[0.14em] text-[#64748b]">{t("setup.upNext")}</span>
+        <div className="rounded-xl border border-[color:var(--pale)] bg-[#eff1f5] p-4">
+          <span className="text-[9px] font-bold tracking-[0.14em] text-[color:var(--muted)]">{t("setup.upNext")}</span>
           <h2 className="mt-2 font-serif text-xl text-[#2e3238]">{isRandom ? (km ? "🎲 អត្ថបទចៃដន្យ" : "🎲 Random article") : selectedSection.title}</h2>
-          <p className="mt-2 text-xs leading-5 text-[#64748b]">{isRandom ? (km ? `ជ្រើសរើសដោយចៃដន្យពី ${category.sections.length} មេរៀន នៅពេលអ្នកចុចចាប់ផ្តើម។ រយៈពេលនឹងសមស្របតាមអត្ថបទ។` : `A surprise pick from ${category.sections.length} lessons, chosen when you press Start. Time adjusts to the article unless you set it.`) : <>{selectedSection.text.slice(0, 116)}{selectedSection.text.length > 116 ? "…" : ""}</>}</p>
+          <p className="mt-2 text-xs leading-5 text-[color:var(--muted)]">{isRandom ? (km ? `ជ្រើសរើសដោយចៃដន្យពី ${category.sections.length} មេរៀន នៅពេលអ្នកចុចចាប់ផ្តើម។ រយៈពេលនឹងសមស្របតាមអត្ថបទ។` : `A surprise pick from ${category.sections.length} lessons, chosen when you press Start. Time adjusts to the article unless you set it.`) : <>{selectedSection.text.slice(0, 116)}{selectedSection.text.length > 116 ? "…" : ""}</>}</p>
           {!isRandom && <div className="mt-3 flex gap-2 text-[10px] text-[#7f848b]"><span>{sectionLevel}</span><span>·</span><span>{sectionMinutes} {t("setup.min")}</span></div>}
         </div>
       </aside>

@@ -10,9 +10,9 @@ type Props = { params: Promise<{ lessonId: string }> };
 export async function generateMetadata({ params }: Props): Promise<Metadata> {
   const { lessonId } = await params;
   const lesson = findLesson(englishCurriculum, lessonId);
-  if (!lesson) return { title: "Lesson not found — Keyflow" };
+  if (!lesson) return { title: "Lesson not found — DL Typing" };
   return {
-    title: `${lesson.title} — Keyflow`,
+    title: `${lesson.title} — DL Typing`,
     description: lesson.objectives[0] ?? "English typing lesson",
   };
 }

@@ -2,11 +2,13 @@
 
 import { useState } from "react";
 import { GameDialog, primaryBtn, secondaryBtn } from "@/components/games/shared/GameDialog";
+import { useLocale } from "@/components/shared/LocaleProvider";
 import { authenticate, signOut, useAccount } from "@/lib/account";
 
 /** Optional account control. Nothing in the app requires signing in. */
 export default function AccountMenu() {
   const account = useAccount();
+  const { t } = useLocale();
   const [open, setOpen] = useState(false);
   const [mode, setMode] = useState<"login" | "signup">("login");
   const [email, setEmail] = useState("");
@@ -29,11 +31,11 @@ export default function AccountMenu() {
   if (account.status === "user") {
     return <div className="flex items-center gap-2 text-xs">
       <span className="hidden max-w-[160px] truncate rounded-full bg-blue-50 px-3 py-1.5 font-semibold text-brand sm:inline" title={account.email}>☁ {account.email}</span>
-      <button type="button" className={`${secondaryBtn} !px-3 !py-1.5 !text-xs`} onClick={() => void signOut()}>Sign out</button>
+      <button type="button" className={`${secondaryBtn} whitespace-nowrap !px-3 !py-1.5 !text-xs`} onClick={() => void signOut()}>{t("auth.signOut")}</button>
     </div>;
   }
   return <>
-    <button type="button" className={`${primaryBtn} !px-4 !py-2 !text-xs`} onClick={() => { setMode("login"); setError(null); setOpen(true); }}>Sign in</button>
+    <button type="button" className={`${primaryBtn} whitespace-nowrap !px-4 !py-2 !text-xs`} onClick={() => { setMode("login"); setError(null); setOpen(true); }}>{t("auth.signIn")}</button>
     {open && <GameDialog title={mode === "login" ? "Sign in" : "Create account"} subtitle="Optional — sync your scores and progress across devices." icon="☁️" onEscape={() => setOpen(false)}>
       <form onSubmit={submit} className="space-y-3">
         <label className="block text-xs font-bold uppercase tracking-wider text-mute">Email

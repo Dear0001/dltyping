@@ -2,7 +2,7 @@ import type { Metadata } from "next";
 import LessonLibrary from "@/components/library/LessonLibrary";
 
 export const metadata: Metadata = {
-  title: "Library — Keyflow",
+  title: "Library — DL Typing",
   description: "Browse, search and filter every English and Khmer typing lesson in one place.",
 };
 

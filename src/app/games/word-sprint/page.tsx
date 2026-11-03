@@ -2,7 +2,7 @@ import type { Metadata } from "next";
 import WordSprintGame from "@/components/games/word-sprint/WordSprintGame";
 
 export const metadata: Metadata = {
-  title: "Word Sprint — Keyflow",
+  title: "Word Sprint — DL Typing",
   description: "Race the timer by typing words in English or Khmer. Track WPM, accuracy and combos.",
 };
 

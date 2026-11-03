@@ -1,4 +1,4 @@
-# Keyflow — English & Khmer typing practice and games
+# DL Typing — English & Khmer typing practice and games
 
 Next.js (App Router) + TypeScript + Tailwind. No backend, database or login: progress is stored in `localStorage` on the current device.
 

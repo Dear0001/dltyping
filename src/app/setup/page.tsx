@@ -5,7 +5,7 @@ import VirtualKeyboard from "@/components/keyboard/VirtualKeyboard";
 
 export default function SetupPage() {
   return (
-    <main className="min-h-screen bg-[#f8fafc] text-[#0f172a]">
+    <main className="min-h-screen bg-surface text-navy">
       <SetupHeader />
       <div className="mx-auto max-w-6xl px-5 py-10 sm:py-14">
         <SetupHeading />
