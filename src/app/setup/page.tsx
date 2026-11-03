@@ -1,5 +1,4 @@
 
-import { Suspense } from "react";
 import SetupForm from "@/components/setup/SetupForm";
 import { SetupHeader, SetupHeading } from "@/components/setup/SetupHeader";
 import VirtualKeyboard from "@/components/keyboard/VirtualKeyboard";
@@ -12,9 +11,7 @@ export default function SetupPage() {
         <SetupHeading />
         <SetupForm />
         <section className="mt-6">
-          <Suspense fallback={<div className="h-36 animate-pulse rounded-2xl border border-[#e2e8f0] bg-white p-5" />}>
-            <VirtualKeyboard />
-          </Suspense>
+          <VirtualKeyboard language="english" languageSelectable />
         </section>
       </div>
     </main>

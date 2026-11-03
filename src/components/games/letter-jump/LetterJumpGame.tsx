@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useReducer, useRef, useState } from "react";
-import GameKeyboard from "@/components/keyboard/GameKeyboard";
+import VirtualKeyboard from "@/components/keyboard/VirtualKeyboard";
 import GameControls from "@/components/games/shared/GameControls";
 import { GameOverDialog, GamePauseDialog, GameStartDialog } from "@/components/games/shared/GameDialog";
 import GameInstructions from "@/components/games/shared/GameInstructions";
@@ -165,8 +165,7 @@ export default function LetterJumpGame() {
         <HudStat label="Accuracy" value={`${accuracy}%`} tone={accuracy >= 90 ? "good" : "default"} />
       </div>
       <GameScene theme="sky" hero="blob" units={units} index={state.index} typed={state.cp} jumpKey={state.jumpKey} errorKey={state.errorKey} language={state.language} />
-      <GameControls status={state.status} onPause={() => dispatch({ type: "pause" })} onResume={() => dispatch({ type: "resume" })} onRestart={start} onMenu={() => dispatch({ type: "menu" })} />
-      <GameKeyboard language={state.status === "idle" ? language : state.language} expected={expected} disabled={!playing} onChar={handleChar} />
+      <VirtualKeyboard language={state.status === "idle" ? language : state.language} expected={expected} disabled={!playing} onChar={handleChar} controls={<GameControls status={state.status} onPause={() => dispatch({ type: "pause" })} onResume={() => dispatch({ type: "resume" })} onRestart={start} onMenu={() => dispatch({ type: "menu" })} />} />
     </div>
 
     {state.status === "idle" && <GameStartDialog title="Letter Jump" subtitle="Type each target to leap across the sky." icon="🦘" onStart={start}>

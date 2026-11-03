@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useReducer, useRef, useState } from "react";
-import GameKeyboard from "@/components/keyboard/GameKeyboard";
+import VirtualKeyboard from "@/components/keyboard/VirtualKeyboard";
 import GameControls from "@/components/games/shared/GameControls";
 import { GameOverDialog, GamePauseDialog, GameStartDialog } from "@/components/games/shared/GameDialog";
 import GameInstructions from "@/components/games/shared/GameInstructions";
@@ -175,8 +175,7 @@ export default function WordSprintGame() {
         </div>
       </section>
 
-      <GameControls status={state.status} onPause={() => dispatch({ type: "pause" })} onResume={() => dispatch({ type: "resume" })} onRestart={start} onFinish={() => dispatch({ type: "finish" })} onMenu={() => dispatch({ type: "menu" })} />
-      <GameKeyboard language={state.status === "idle" ? language : state.language} expected={nextCp} disabled={!playing} onChar={handleChar} onBackspace={() => dispatch({ type: "backspace" })} />
+      <VirtualKeyboard language={state.status === "idle" ? language : state.language} expected={nextCp} disabled={!playing} onChar={handleChar} onBackspace={() => dispatch({ type: "backspace" })} controls={<GameControls status={state.status} onPause={() => dispatch({ type: "pause" })} onResume={() => dispatch({ type: "resume" })} onRestart={start} onFinish={() => dispatch({ type: "finish" })} onMenu={() => dispatch({ type: "menu" })} />} />
     </div>
 
     {state.status === "idle" && <GameStartDialog title="Word Sprint" subtitle="Type fast, type clean, keep the combo alive." icon="⚡" onStart={start}>

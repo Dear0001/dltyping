@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useRef } from "react";
-import { charForCode } from "@/lib/keyboard-layouts";
+import { charForCode } from "@/lib/keyboard/keyboard-mapping";
 import { isKhmerChar } from "@/lib/khmer-unicode";
 import type { Language } from "@/types";
 

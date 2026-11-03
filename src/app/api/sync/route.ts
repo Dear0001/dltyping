@@ -34,10 +34,14 @@ export async function POST(request: Request) {
         id = existing ? (await tx.players.update({ where: { id: existing.id }, data: { updated_at: new Date() } })).id : (await tx.players.create({ data: { device_id: payload.deviceId } })).id;
       }
 
-      for (const [variant, s] of Object.entries(payload.scores)) {
+      // One statement per table (unnest) instead of one round-trip per row: the database is remote,
+      // so per-row inserts could exceed the transaction timeout.
+      const scoreRows = Object.entries(payload.scores);
+      if (scoreRows.length) {
         await tx.$executeRaw`
           insert into game_scores (player_id, variant, best_score, best_wpm, best_accuracy, plays)
-          values (${id}::uuid, ${variant}, ${s.best}, ${s.bestWpm}, ${s.bestAccuracy}, ${s.plays})
+          select ${id}::uuid, v, s, w, a, p
+          from unnest(${scoreRows.map(([v]) => v)}::text[], ${scoreRows.map(([, r]) => r.best)}::int[], ${scoreRows.map(([, r]) => r.bestWpm)}::int[], ${scoreRows.map(([, r]) => r.bestAccuracy)}::int[], ${scoreRows.map(([, r]) => r.plays)}::int[]) as t(v, s, w, a, p)
           on conflict (player_id, variant) do update set
             best_score = greatest(game_scores.best_score, excluded.best_score),
             best_wpm = greatest(game_scores.best_wpm, excluded.best_wpm),
@@ -45,19 +49,23 @@ export async function POST(request: Request) {
             plays = greatest(game_scores.plays, excluded.plays),
             updated_at = now()`;
       }
-      for (const [level, l] of Object.entries(payload.levels)) {
+      const levelRows = Object.entries(payload.levels);
+      if (levelRows.length) {
         await tx.$executeRaw`
           insert into level_progress (player_id, game_id, level, stars, best_score)
-          values (${id}::uuid, 'mario-khmer-quest', ${Number(level)}, ${l.stars}, ${l.score})
+          select ${id}::uuid, 'mario-khmer-quest', l, st, sc
+          from unnest(${levelRows.map(([l]) => Number(l))}::int[], ${levelRows.map(([, r]) => r.stars)}::int[], ${levelRows.map(([, r]) => r.score)}::int[]) as t(l, st, sc)
           on conflict (player_id, game_id, level) do update set
             stars = greatest(level_progress.stars, excluded.stars),
             best_score = greatest(level_progress.best_score, excluded.best_score),
             updated_at = now()`;
       }
-      for (const [language, p] of Object.entries(payload.practice)) {
+      const practiceRows = Object.entries(payload.practice);
+      if (practiceRows.length) {
         await tx.$executeRaw`
           insert into practice_bests (player_id, language, best_wpm, best_accuracy)
-          values (${id}::uuid, ${language}, ${p.bestWpm}, ${p.bestAccuracy})
+          select ${id}::uuid, lg, w, a
+          from unnest(${practiceRows.map(([l]) => l)}::text[], ${practiceRows.map(([, r]) => r.bestWpm)}::int[], ${practiceRows.map(([, r]) => r.bestAccuracy)}::int[]) as t(lg, w, a)
           on conflict (player_id, language) do update set
             best_wpm = greatest(practice_bests.best_wpm, excluded.best_wpm),
             best_accuracy = greatest(practice_bests.best_accuracy, excluded.best_accuracy),
@@ -81,7 +89,7 @@ export async function POST(request: Request) {
         settings: (settings?.settings as Record<string, unknown> | undefined) ?? undefined,
       };
       return result;
-    });
+    }, { maxWait: 10_000, timeout: 20_000 });
     return Response.json(state);
   } catch (error) {
     if (error instanceof Error && error.message === "device-linked") return Response.json({ error: "Device belongs to an account; sign in" }, { status: 409 });

@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useReducer, useRef, useState } from "react";
-import GameKeyboard from "@/components/keyboard/GameKeyboard";
+import VirtualKeyboard from "@/components/keyboard/VirtualKeyboard";
 import GameControls from "@/components/games/shared/GameControls";
 import { GameOverDialog, GamePauseDialog, GameStartDialog, primaryBtn } from "@/components/games/shared/GameDialog";
 import GameInstructions from "@/components/games/shared/GameInstructions";
@@ -151,8 +151,7 @@ export default function MarioKhmerQuestGame() {
         <HudStat label="Coins" value={`🪙 ${coins}`} />
       </div>
       <GameScene theme="temple" hero="explorer" units={state.units} index={state.index} typed={state.cp} total={total} jumpKey={state.jumpKey} errorKey={state.errorKey} language="khmer" />
-      <GameControls status={state.status} onPause={() => dispatch({ type: "pause" })} onResume={() => dispatch({ type: "resume" })} onRestart={() => startLevel(state.level)} onMenu={() => dispatch({ type: "menu" })} />
-      <GameKeyboard language="khmer" expected={expected} disabled={!playing} onChar={handleChar} />
+      <VirtualKeyboard language="khmer" expected={expected} disabled={!playing} onChar={handleChar} controls={<GameControls status={state.status} onPause={() => dispatch({ type: "pause" })} onResume={() => dispatch({ type: "resume" })} onRestart={() => startLevel(state.level)} onMenu={() => dispatch({ type: "menu" })} />} />
     </div>
 
     {state.status === "idle" && <GameStartDialog title="Mario Khmer Quest" subtitle="Choose a level and difficulty, then start your adventure." icon="🧭" onStart={() => startLevel(selected)} startLabel={`Start Level ${selected}`}>
