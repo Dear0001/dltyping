@@ -28,7 +28,7 @@ export default function LandingContent({ siteUrl }: { siteUrl: string }) {
       <ol className="mt-6 grid gap-4 md:grid-cols-3">
         {steps.map(([title, text], i) => <li key={title} className="rounded-2xl border border-slate-200 bg-white p-5 shadow-sm">
           <span className="grid h-8 w-8 place-items-center rounded-full bg-brand text-sm font-bold text-white" aria-hidden="true">{i + 1}</span>
-          <h3 className="mt-3 font-extrabold">{title}</h3>
+          <p className="mt-3 font-extrabold">{title}</p>
           <p className="mt-1 text-sm text-slate-600">{text}</p>
         </li>)}
       </ol>
@@ -42,7 +42,7 @@ export default function LandingContent({ siteUrl }: { siteUrl: string }) {
         </p>
         <ul className="mt-6 grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
           {tips.map(([title, text]) => <li key={title} className="rounded-2xl border border-slate-200 bg-surface p-5">
-            <h3 className="font-extrabold">{title}</h3>
+            <p className="font-extrabold">{title}</p>
             <p className="mt-1 text-sm text-slate-600">{text}</p>
           </li>)}
         </ul>

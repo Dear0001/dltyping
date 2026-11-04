@@ -49,7 +49,7 @@ export default function Landing({ children }: { children?: React.ReactNode }) {
         <p className="mt-1 text-mute">Structured curriculum with 5 levels per language — or jump straight into free practice.</p>
         <div className="mt-6 grid gap-5 md:grid-cols-2">
           <div className="rounded-3xl border border-slate-200 bg-white p-6 shadow-sm">
-            <div className="flex items-center gap-3"><span className="grid h-12 w-12 place-items-center rounded-2xl bg-blue-50 text-2xl font-extrabold text-brand">Aa</span><div><h3 className="text-xl font-extrabold">English</h3><p className="text-sm text-mute">QWERTY · Beginner → Expert · 13 lessons</p></div></div>
+            <div className="flex items-center gap-3"><span className="grid h-12 w-12 place-items-center rounded-2xl bg-blue-50 text-2xl font-extrabold text-brand">Aa</span><div><p className="text-xl font-extrabold">English</p><p className="text-sm text-mute">QWERTY · Beginner → Expert · 13 lessons</p></div></div>
             <p className="mt-4 text-sm text-slate-600">From home-row basics to professional passages — each lesson has objectives, instructions, and a recommended typing game.</p>
             <div className="mt-5 flex flex-wrap gap-2">
               <Link href="/learn" className={primaryBtn}>Start English Curriculum</Link>
@@ -58,7 +58,7 @@ export default function Landing({ children }: { children?: React.ReactNode }) {
             </div>
           </div>
           <div className="rounded-3xl border border-slate-200 bg-white p-6 shadow-sm">
-            <div className="flex items-center gap-3"><span className="grid h-12 w-12 place-items-center rounded-2xl bg-emerald-50 font-khmer text-2xl font-extrabold text-emerald-700">ក</span><div><h3 className="text-xl font-extrabold">ខ្មែរ Khmer</h3><p className="text-sm text-mute">NiDA keyboard · Unicode-aware · 13 lessons</p></div></div>
+            <div className="flex items-center gap-3"><span className="grid h-12 w-12 place-items-center rounded-2xl bg-emerald-50 font-khmer text-2xl font-extrabold text-emerald-700">ក</span><div><p className="text-xl font-extrabold">ខ្មែរ Khmer</p><p className="text-sm text-mute">NiDA keyboard · Unicode-aware · 13 lessons</p></div></div>
             <p className="mt-4 text-sm text-slate-600">Consonants, subscript clusters, cultural passages, and vocabulary — with game-based reinforcement at every level.</p>
             <div className="mt-5 flex flex-wrap gap-2">
               <Link href="/learn" className={primaryBtn}>Start Khmer Curriculum</Link>
@@ -81,7 +81,7 @@ export default function Landing({ children }: { children?: React.ReactNode }) {
               return <li key={game.id} className="overflow-hidden rounded-3xl border border-slate-200 bg-surface shadow-sm transition hover:-translate-y-0.5 hover:shadow-md">
                 <div className={`h-36 bg-gradient-to-br ${game.gradient}`} aria-hidden="true"><GameThumb id={game.id} /></div>
                 <div className="p-5">
-                  <h3 className="text-lg font-extrabold">{game.title}</h3>
+                  <p className="text-lg font-extrabold">{game.title}</p>
                   <p className="mt-1 text-sm text-slate-600">{game.skill}</p>
                   <div className="mt-4 flex items-center justify-between"><span className="text-xs font-semibold text-mute">{best > 0 ? `🏆 ${best.toLocaleString("en-US")}` : game.languages.map((l) => (l === "khmer" ? "Khmer" : "English")).join(" · ")}</span><Link href={game.href} className={primaryBtn}>Play {game.title}</Link></div>
                 </div>
@@ -94,7 +94,7 @@ export default function Landing({ children }: { children?: React.ReactNode }) {
       <section className="mx-auto max-w-6xl px-4 py-14 sm:px-6" aria-labelledby="benefits-heading">
         <h2 id="benefits-heading" className="text-2xl font-extrabold sm:text-3xl">Why DL Typing</h2>
         <ul className="mt-6 grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
-          {benefits.map((b) => <li key={b.title} className="rounded-2xl border border-slate-200 bg-white p-5 shadow-sm"><div className="text-3xl" aria-hidden="true">{b.icon}</div><h3 className="mt-2 font-extrabold">{b.title}</h3><p className="mt-1 text-sm text-slate-600">{b.text}</p></li>)}
+          {benefits.map((b) => <li key={b.title} className="rounded-2xl border border-slate-200 bg-white p-5 shadow-sm"><div className="text-3xl" aria-hidden="true">{b.icon}</div><p className="mt-2 font-extrabold">{b.title}</p><p className="mt-1 text-sm text-slate-600">{b.text}</p></li>)}
         </ul>
       </section>
 

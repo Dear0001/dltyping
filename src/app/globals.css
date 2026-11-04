@@ -176,7 +176,7 @@
 .sf-brand p{margin:14px 0 16px;max-width:340px;line-height:1.65}
 .sf-lang{display:inline-flex;align-items:center;gap:7px;padding:5px 11px;border:1px solid var(--line);border-radius:999px;background:var(--paper);color:var(--ink);font-size:12px;font-weight:600}
 .sf-lang svg{color:var(--green)}
-.sf-col h2{display:flex;align-items:center;gap:8px;margin:0 0 14px;font-size:13px;font-weight:700;color:var(--ink)}
+.sf-col .sf-title{display:flex;align-items:center;gap:8px;margin:0 0 14px;font-size:13px;font-weight:700;color:var(--ink)}
 .sf-ico{display:grid;place-items:center;width:26px;height:26px;border-radius:8px;background:var(--pale);color:var(--green)}
 .sf-col ul{list-style:none;margin:0;padding:0;display:flex;flex-direction:column;gap:2px}
 .sf-col a{display:block;padding:5px 0;border-radius:4px;transition:color .15s,transform .15s}

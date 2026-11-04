@@ -24,7 +24,7 @@ type Item = { label: string; href?: string };
 function Column({ title, ico, items, soon }: { title: string; ico: ReactNode; items: Item[]; soon: string }) {
   return (
     <nav className="sf-col" aria-label={title}>
-      <h2><span className="sf-ico">{ico}</span>{title}</h2>
+      <p className="sf-title"><span className="sf-ico">{ico}</span>{title}</p>
       <ul>
         {items.map((it) => (
           <li key={it.label}>
