@@ -44,11 +44,11 @@ const PetSprite = forwardRef<HTMLDivElement, Props>(function PetSprite({ def, an
       data-pet={def.id} data-anim={anim} data-move={def.locomotion} data-view={def.view ?? "front"} data-motion={motion} data-aura={def.aura}
       aria-hidden="true"
     >
-      {def.rarity === "legendary" && !silhouette && (
-        // Legendary magic: a shimmering halo behind the pet and sparkles rising around it.
-        <div className="pet-magic" aria-hidden="true">
+      {!silhouette && (
+        // Every pet gets a soft halo; legendary and special pets also get rising sparkles.
+        <div className="pet-magic" data-rarity={def.rarity} aria-hidden="true">
           <i className="pet-magic-halo" />
-          {MAGIC_SPARKLES.map((sp, i) => <b key={i} style={{ left: sp.left, "--md": sp.delay, "--mx": sp.drift } as React.CSSProperties}>{sp.glyph}</b>)}
+          {(def.rarity === "legendary" || def.rarity === "special") && MAGIC_SPARKLES.map((sp, i) => <b key={i} style={{ "--md": sp.delay, "--mx": sp.drift, left: sp.left } as React.CSSProperties}>{sp.glyph}</b>)}
         </div>
       )}
       {markup ? (
