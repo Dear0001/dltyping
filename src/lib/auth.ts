@@ -47,7 +47,7 @@ export async function getSessionUser() {
   if (!token) return null;
   const session = await prisma.sessions.findUnique({ where: { token_hash: sha256(token) }, include: { users: true } });
   if (!session || session.expires_at < new Date() || !session.users.email_verified_at) return null;
-  return { id: session.users.id, email: session.users.email };
+  return { id: session.users.id, email: session.users.email, name: session.users.name };
 }
 
 export async function destroySession() {
@@ -89,6 +89,15 @@ export async function clientIp() {
 }
 
 const EMAIL = /^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/;
+/** A display name: 1-50 characters after trimming, no control characters or angle brackets. */
+export function parseName(value: unknown): { name: string } | { error: string } {
+  const name = typeof value === "string" ? value.replace(/\s+/g, " ").trim() : "";
+  if (!name) return { error: "Enter your name" };
+  if (name.length > 50) return { error: "Name is too long (50 characters at most)" };
+  if (/[\u0000-\u001f\u007f<>]/.test(name)) return { error: "Name contains characters that aren't allowed" };
+  return { name };
+}
+
 export function parseCredentials(body: unknown): { email: string; password: string; deviceId?: string } | { error: string } {
   if (typeof body !== "object" || body === null) return { error: "Invalid request" };
   const { email, password, deviceId } = body as Record<string, unknown>;

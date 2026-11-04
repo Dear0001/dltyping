@@ -1,28 +1,30 @@
-import { createHash, randomBytes } from "node:crypto";
+import { createHash, randomInt, timingSafeEqual } from "node:crypto";
 
-/** Pure helpers for email verification (no database or network), so they can be tested directly. */
-export const VERIFY_TTL_MS = 24 * 60 * 60 * 1000;
+/** Pure helpers for email verification by one-time code (no database or network), so they can be tested directly. */
+export const CODE_TTL_MS = 10 * 60 * 1000;
+export const MAX_CODE_ATTEMPTS = 5;
 
-export const generateToken = () => randomBytes(32).toString("base64url");
-/** Only this hash is stored; the token itself exists only in the email. */
-export const hashToken = (token: string) => createHash("sha256").update(token).digest("hex");
-export const isPlausibleToken = (token: unknown): token is string => typeof token === "string" && /^[A-Za-z0-9_-]{20,100}$/.test(token);
+/** Six digits from a cryptographically secure source, zero-padded ("004217"). */
+export const generateCode = () => String(randomInt(0, 1_000_000)).padStart(6, "0");
+/** Only this hash is stored. The user id is mixed in so the same code for two people never matches the same row. */
+export const hashCode = (userId: string, code: string) => createHash("sha256").update(`${userId}:${code}`).digest("hex");
+export const codesMatch = (a: string, b: string) => a.length === b.length && timingSafeEqual(Buffer.from(a), Buffer.from(b));
+export const isPlausibleCode = (code: unknown): code is string => typeof code === "string" && /^\d{6}$/.test(code);
 export const isExpired = (expiresAt: Date, now = new Date()) => expiresAt.getTime() <= now.getTime();
-export const verificationLink = (baseUrl: string, token: string) => `${baseUrl.replace(/\/$/, "")}/verify-email?token=${encodeURIComponent(token)}`;
 
 const escapeHtml = (v: string) => v.replace(/[&<>"']/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" })[c]!);
 
-export function verificationEmail(link: string): { subject: string; html: string; text: string } {
-  const safe = escapeHtml(link);
+export function verificationEmail(code: string, name?: string | null): { subject: string; html: string; text: string } {
+  const hello = name ? `Hi ${name}, welcome` : "Welcome";
+  const minutes = CODE_TTL_MS / 60_000;
   return {
-    subject: "Verify your email for DL Typing",
-    text: `Welcome to DL Typing!\n\nConfirm your email address to finish creating your account:\n${link}\n\nThis link expires in 24 hours. If you didn't create an account, you can ignore this email.`,
+    subject: `${code} is your DL Typing verification code`,
+    text: `${hello} to DL Typing!\n\nYour verification code is: ${code}\n\nEnter it in the sign-up window to finish creating your account. It expires in ${minutes} minutes. If you didn't create an account, you can ignore this email.`,
     html: `<div style="font-family:Arial,Helvetica,sans-serif;max-width:480px;margin:0 auto;padding:24px;color:#0f172a">
-  <h1 style="font-size:22px;margin:0 0 12px">Welcome to DL Typing!</h1>
-  <p style="font-size:15px;line-height:1.5">Confirm your email address to finish creating your account.</p>
-  <p style="margin:24px 0"><a href="${safe}" style="background:#2563eb;color:#fff;text-decoration:none;font-weight:bold;padding:12px 22px;border-radius:10px;display:inline-block">Verify my email</a></p>
-  <p style="font-size:13px;color:#475569;line-height:1.5">Or paste this link into your browser:<br><span style="word-break:break-all">${safe}</span></p>
-  <p style="font-size:13px;color:#475569">This link expires in 24 hours. If you didn't create an account, you can ignore this email.</p>
+  <h1 style="font-size:22px;margin:0 0 12px">${escapeHtml(hello)} to DL Typing!</h1>
+  <p style="font-size:15px;line-height:1.5">Enter this code in the sign-up window to finish creating your account:</p>
+  <p style="margin:24px 0;text-align:center"><span style="background:#eff6ff;color:#2563eb;font-size:32px;font-weight:bold;letter-spacing:8px;padding:14px 22px;border-radius:10px;display:inline-block">${escapeHtml(code)}</span></p>
+  <p style="font-size:13px;color:#475569">This code expires in ${minutes} minutes. If you didn't create an account, you can ignore this email.</p>
 </div>`,
   };
 }

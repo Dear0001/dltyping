@@ -1,22 +1,38 @@
 import { assertSameOrigin, clientIp, throttle } from "@/lib/auth";
 import { prisma } from "@/lib/db";
-import { hashToken, isExpired, isPlausibleToken } from "@/lib/verification-core";
+import { codesMatch, hashCode, isExpired, isPlausibleCode, MAX_CODE_ATTEMPTS } from "@/lib/verification-core";
 
-/** Confirms an email address from the link in the verification email. Does not sign anyone in. */
+const EMAIL = /^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/;
+const GONE = "This code has expired or is no longer valid. Request a new one.";
+
+/** Confirms an email address from the 6-digit code in the verification email. Does not sign anyone in. */
 export async function POST(request: Request) {
   if (!(await assertSameOrigin(request))) return Response.json({ error: "Bad request" }, { status: 400 });
-  const body = (await request.json().catch(() => null)) as { token?: unknown } | null;
-  if (!isPlausibleToken(body?.token)) return Response.json({ error: "This link is invalid. Request a new verification email." }, { status: 400 });
-  if (!(await throttle(`verify:${await clientIp()}`, 30))) return Response.json({ error: "Too many attempts. Try again in a few minutes." }, { status: 429 });
+  const body = (await request.json().catch(() => null)) as { email?: unknown; code?: unknown } | null;
+  const email = typeof body?.email === "string" ? body.email.trim().toLowerCase() : "";
+  if (!email || email.length > 254 || !EMAIL.test(email)) return Response.json({ error: "Enter a valid email address" }, { status: 400 });
+  if (!isPlausibleCode(body?.code)) return Response.json({ error: "Enter the 6-digit code from your email." }, { status: 400 });
+  if (!(await Promise.all([throttle(`verify:${await clientIp()}`, 30), throttle(`verify:${email}`, 15)])).every(Boolean)) {
+    return Response.json({ error: "Too many attempts. Try again in a few minutes." }, { status: 429 });
+  }
 
-  const row = await prisma.email_verifications.findUnique({ where: { token_hash: hashToken(body.token) }, include: { users: true } });
-  if (!row || isExpired(row.expires_at)) {
+  const user = await prisma.users.findUnique({ where: { email } });
+  const row = user && (await prisma.email_verifications.findFirst({ where: { user_id: user.id }, orderBy: { created_at: "desc" } }));
+  if (!user || !row || isExpired(row.expires_at)) {
     if (row) await prisma.email_verifications.delete({ where: { id: row.id } });
-    return Response.json({ error: "This link has expired or was already used. Request a new verification email." }, { status: 400 });
+    return Response.json({ error: GONE }, { status: 400 });
+  }
+  if (!codesMatch(row.token_hash, hashCode(user.id, body.code))) {
+    if (row.attempts + 1 >= MAX_CODE_ATTEMPTS) {
+      await prisma.email_verifications.delete({ where: { id: row.id } });
+      return Response.json({ error: "Too many wrong codes. Request a new one." }, { status: 400 });
+    }
+    await prisma.email_verifications.update({ where: { id: row.id }, data: { attempts: { increment: 1 } } });
+    return Response.json({ error: "That code is not right. Check it and try again." }, { status: 400 });
   }
   await prisma.$transaction([
-    prisma.users.update({ where: { id: row.user_id }, data: { email_verified_at: row.users.email_verified_at ?? new Date() } }),
-    prisma.email_verifications.deleteMany({ where: { user_id: row.user_id } }),
+    prisma.users.update({ where: { id: user.id }, data: { email_verified_at: user.email_verified_at ?? new Date() } }),
+    prisma.email_verifications.deleteMany({ where: { user_id: user.id } }),
   ]);
-  return Response.json({ ok: true, email: row.users.email });
+  return Response.json({ ok: true, email: user.email });
 }

@@ -1,4 +1,4 @@
-import { assertSameOrigin, clientIp, hashPassword, parseCredentials, throttle } from "@/lib/auth";
+import { assertSameOrigin, clientIp, hashPassword, parseCredentials, parseName, throttle } from "@/lib/auth";
 import { prisma } from "@/lib/db";
 import { issueVerification } from "@/lib/verification";
 
@@ -7,6 +7,9 @@ export async function POST(request: Request) {
   const body = await request.json().catch(() => null);
   const creds = parseCredentials(body);
   if ("error" in creds) return Response.json({ error: creds.error }, { status: 400 });
+  const parsedName = parseName((body as { name?: unknown }).name);
+  if ("error" in parsedName) return Response.json({ error: parsedName.error }, { status: 400 });
+  const { name } = parsedName;
 
   const ip = await clientIp();
   // The last two limits stop the signup form being used to spam someone else's inbox.
@@ -21,11 +24,11 @@ export async function POST(request: Request) {
     // An unverified account is not proof anyone owns the address, so signing up again replaces its password
     // (otherwise someone could squat on an email address and lock its real owner out).
     const user = existing
-      ? await prisma.users.update({ where: { id: existing.id }, data: { password_hash } })
-      : await prisma.users.create({ data: { email: creds.email, password_hash } });
-    const emailSent = await issueVerification(user.id, user.email);
-    // No session yet: the account only works once the emailed link has been clicked.
-    return Response.json({ pendingVerification: true, email: user.email, emailSent }, { status: 201 });
+      ? await prisma.users.update({ where: { id: existing.id }, data: { password_hash, name } })
+      : await prisma.users.create({ data: { email: creds.email, password_hash, name } });
+    const { sent: emailSent, devCode } = await issueVerification(user.id, user.email, name);
+    // No session yet: the account only works once the emailed code has been entered.
+    return Response.json({ pendingVerification: true, email: user.email, emailSent, ...(devCode && { devCode }) }, { status: 201 });
   } catch (error) {
     if (typeof error === "object" && error !== null && "code" in error && (error as { code: string }).code === "P2002") {
       return Response.json({ error: "An account with this email already exists. Sign in instead." }, { status: 409 });

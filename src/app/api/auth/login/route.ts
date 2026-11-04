@@ -17,12 +17,12 @@ export async function POST(request: Request) {
   const ok = await verifyPassword(creds.password, user?.password_hash ?? null);
   if (!user || !ok) return Response.json({ error: "Invalid email or password" }, { status: 401 });
   // Said only after the password is right, so this can't be used to discover which emails have accounts.
-  if (!user.email_verified_at) return Response.json({ error: "Please verify your email first. Check your inbox for the link.", code: "unverified" }, { status: 403 });
+  if (!user.email_verified_at) return Response.json({ error: "Please verify your email first. Enter the code from your inbox.", code: "unverified" }, { status: 403 });
 
   try {
     await prisma.$transaction((tx) => claimDevice(tx, user.id, creds.deviceId));
     await Promise.all([createSession(user.id), clearThrottle(`email:${creds.email}`)]);
-    return Response.json({ user: { email: user.email } });
+    return Response.json({ user: { email: user.email, name: user.name } });
   } catch (error) {
     console.error("login failed", error);
     return Response.json({ error: "Could not sign in" }, { status: 500 });
