@@ -3,7 +3,7 @@ import { PET_BY_ID } from "@/lib/pets/pet-catalog";
 
 /**
  * All pet data in one versioned localStorage entry. Plain JSON keyed by pet id and ISO
- * dates, so it can later sync to a PostgreSQL table (user_id, pet_id, unlocked_at).
+ * dates, and synced to the account through /api/sync (see pet-sync.ts).
  */
 export const PETS_KEY = "dlt.pets.v1";
 export const PETS_VERSION = 1;
@@ -94,13 +94,27 @@ export function validatePetState(value: unknown): PetState | null {
 }
 
 export const readPetState = (): PetState => parseStored(readRaw(PETS_KEY), EMPTY_PETS, validatePetState);
-export const writePetState = (state: PetState) => writeRaw(PETS_KEY, JSON.stringify(state));
+
+/** When the team or settings were last changed on this device (ms). Decides which device wins when syncing. 0: never changed. */
+export const PETS_AT_KEY = "dlt.pets.at";
+export const readPetStamp = (): number => { const n = Number(readRaw(PETS_AT_KEY)); return Number.isFinite(n) && n > 0 ? n : 0; };
+const teamKey = (s: PetState) => JSON.stringify([s.active, s.extra, s.enabled, s.settings]);
+
+/**
+ * Saves the state. `stamp`: "auto" records the time when the team or settings changed; "keep" never touches the
+ * time (unlocks and account grants must not beat another device's choices); a number sets it (used by sync).
+ */
+export function writePetState(state: PetState, stamp: "auto" | "keep" | number = "auto") {
+  if (typeof stamp === "number") writeRaw(PETS_AT_KEY, String(stamp));
+  else if (stamp === "auto" && teamKey(state) !== teamKey(readPetState())) writeRaw(PETS_AT_KEY, String(Date.now()));
+  writeRaw(PETS_KEY, JSON.stringify(state));
+}
 
 /** Read-modify-write. Always re-reads, so concurrent tabs merge instead of overwriting. */
-export function updatePets(fn: (state: PetState) => PetState): PetState {
+export function updatePets(fn: (state: PetState) => PetState, stamp: "auto" | "keep" = "auto"): PetState {
   const current = readPetState();
   const next = fn(current);
-  if (next !== current) writePetState(next); // unchanged: leave storage alone
+  if (next !== current) writePetState(next, stamp); // unchanged: leave storage alone
   return next;
 }
 
@@ -142,7 +156,7 @@ export function grantAllPets(): PetState {
     const unlocked = { ...s.unlocked };
     for (const p of missing) unlocked[p.id] = { id: p.id, at, streak: p.unlockStreak, source: "account" };
     return { ...s, unlocked, active: s.active ?? missing[0].id };
-  });
+  }, "keep");
 }
 
 /** Removes account-granted pets (on sign-out) but never ones earned by streak. */
@@ -154,5 +168,5 @@ export function revokeAccountGrants(): PetState {
     const team = activeIds(s).filter((id) => id in unlocked);
     if (!team.length && Object.keys(unlocked)[0]) team.push(Object.keys(unlocked)[0]);
     return { ...withTeam(s, team), unlocked, pending: s.pending.filter((id) => id in unlocked) };
-  });
+  }, "keep");
 }

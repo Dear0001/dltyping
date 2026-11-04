@@ -2,6 +2,8 @@
 // the server only ever raises records, so sync is safe to retry at any time.
 import { LEVELS_KEY, levelsKeyFor, PRACTICE_KEY, SCORES_KEY, SETTINGS_KEY, parseStored, readRaw, validateLevels, validatePractice, validateScores, removeRaw, writeRaw, type LevelBook, type PracticeBest, type ScoreBook } from "@/lib/local-progress";
 import { KEYSTATS_KEY, KEYSTATS_REMOTE_KEY, EMPTY_BOOK, validateBook } from "@/lib/keyboard/key-stats";
+import { PETS_KEY, readPetState, readPetStamp, writePetState, EMPTY_PETS } from "@/lib/pets/pet-storage";
+import { mergePetSync, toPetSync } from "@/lib/pets/pet-sync";
 import { EXTRA_LEVEL_GAMES, parsePayload, type SyncPayload, type SyncState } from "@/lib/sync-schema";
 
 const DEVICE_KEY = "dlt.device";
@@ -50,6 +52,7 @@ function collect(deviceId: string): SyncPayload {
     practice: parseStored(readRaw(PRACTICE_KEY), {} as Record<string, PracticeBest>, validatePractice),
     settings,
     keyStats: parseStored(readRaw(KEYSTATS_KEY), EMPTY_BOOK, validateBook),
+    pets: readRaw(PETS_KEY) ? toPetSync(readPetState(), readPetStamp()) : undefined,
   };
 }
 
@@ -91,6 +94,16 @@ function applyServerState(server: SyncState) {
   writeIfChanged(PRACTICE_KEY, practice);
   // Other devices' typing history replaces (not merges into) the stored copy: the server already summed it.
   if (server.keyStats) writeIfChanged(KEYSTATS_REMOTE_KEY, server.keyStats);
+  // Pets: unlocks are merged, the team and settings follow whichever device changed them last.
+  if (server.pets) {
+    const local = readRaw(PETS_KEY) ? toPetSync(readPetState(), readPetStamp()) : null;
+    const merged = mergePetSync(local, server.pets);
+    if (merged) {
+      const current = local ? readPetState() : EMPTY_PETS;
+      const next = { ...current, unlocked: merged.unlocked, active: merged.active, extra: merged.extra, enabled: merged.enabled, settings: merged.settings };
+      if (JSON.stringify(next) !== JSON.stringify(current) || merged.at !== readPetStamp()) writePetState(next, merged.at);
+    }
+  }
   // A brand-new device adopts the saved settings; an existing choice is never overwritten.
   if (server.settings && !readRaw(SETTINGS_KEY)) writeRaw(SETTINGS_KEY, JSON.stringify(server.settings));
 }

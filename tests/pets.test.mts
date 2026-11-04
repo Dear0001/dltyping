@@ -538,3 +538,18 @@ test("signing out removes account-granted pets from the active team too", () => 
   const after = revokeAccountGrants();
   assert.deepEqual(activeIds(after), ["mochi", "snowy"], "granted pets leave the team, earned pets stay");
 });
+
+test("syncing pets between devices: unlocks are unioned, the latest team wins", async () => {
+  const { mergePetSync, parsePetSync } = await import("@/lib/pets/pet-sync");
+  const r = (id: string) => ({ id, at: "2026-01-01T00:00:00.000Z", streak: 3 });
+  const base = { enabled: true, settings: { animations: "full", cursor: true, speech: true, whileTyping: "quiet", size: "md" } };
+  const a = parsePetSync({ at: 100, unlocked: { mochi: r("mochi"), snowy: r("snowy") }, active: "mochi", extra: ["snowy"], ...base })!;
+  const b = parsePetSync({ at: 200, unlocked: { mochi: r("mochi"), boo: r("boo") }, active: "boo", extra: ["ghost-pet"], ...base })!;
+  const m = mergePetSync(a, b)!;
+  assert.deepEqual(Object.keys(m.unlocked).sort(), ["boo", "mochi", "snowy"]);
+  assert.equal(m.active, "boo");
+  assert.deepEqual(m.extra, []);
+  assert.equal(m.at, 200);
+  assert.equal(mergePetSync(null, a), a);
+  assert.equal(parsePetSync("nope"), null);
+});

@@ -39,7 +39,7 @@ export default function PetRewards() {
     if (!hydrated || account.status !== "user") return; // streak rewards need an account
     const result = evaluateRewards(readPetState(), store.sessions, new Date());
     if (!result.unlocked.length) return;
-    writePetState(result.state);
+    writePetState(result.state, "keep");
     emitPetEvent({ type: "unlock" });
   }, [store.sessions, hydrated, account.status]);
 

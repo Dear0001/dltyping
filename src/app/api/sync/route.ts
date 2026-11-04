@@ -1,6 +1,7 @@
 import { getSessionUser } from "@/lib/auth";
 import { accountPlayerId } from "@/lib/claim";
 import { prisma } from "@/lib/db";
+import { mergePetSync, parsePetSync } from "@/lib/pets/pet-sync";
 import { EXTRA_LEVEL_GAMES, parsePayload, type SyncKeyStats, type SyncState } from "@/lib/sync-schema";
 
 type KeyStatRow = { language: "english" | "khmer"; ch: string; n: number; e: number; ms: number; t: number };
@@ -117,23 +118,29 @@ export async function POST(request: Request) {
             best_accuracy = greatest(practice_bests.best_accuracy, excluded.best_accuracy),
             updated_at = now()`;
       }
-      if (payload.settings) {
-        const settings = payload.settings as object;
+      // Settings and pets share one JSON column: read it first so neither overwrites the other.
+      const existing = await tx.player_settings.findUnique({ where: { player_id: id } });
+      const { pets: storedPets, ...storedSettings } = (existing?.settings && typeof existing.settings === "object" && !Array.isArray(existing.settings) ? existing.settings : {}) as Record<string, unknown>;
+      const pets = mergePetSync(parsePetSync(storedPets), payload.pets ?? null);
+      if (payload.settings || (payload.pets && JSON.stringify(pets) !== JSON.stringify(storedPets))) {
+        const settings = { ...(payload.settings ?? storedSettings), ...(pets ? { pets } : {}) } as object;
         await tx.player_settings.upsert({ where: { player_id: id }, create: { player_id: id, settings }, update: { settings, updated_at: new Date() } });
       }
 
-      const [scores, levels, practice, settings] = await Promise.all([
+      const [scores, levels, practice] = await Promise.all([
         tx.game_scores.findMany({ where: { player_id: id } }),
         tx.level_progress.findMany({ where: { player_id: id, game_id: { in: ["mario-khmer-quest", ...EXTRA_LEVEL_GAMES] } } }),
         tx.practice_bests.findMany({ where: { player_id: id } }),
-        tx.player_settings.findUnique({ where: { player_id: id } }),
       ]);
+      const settings = await tx.player_settings.findUnique({ where: { player_id: id } });
+      const { pets: _pets, ...settingsOut } = ((settings?.settings ?? {}) as Record<string, unknown>);
       const result: SyncState = {
         scores: Object.fromEntries(scores.map((s) => [s.variant, { best: s.best_score, bestWpm: s.best_wpm, bestAccuracy: s.best_accuracy, plays: s.plays }])),
         levels: Object.fromEntries(levels.filter((l) => l.game_id === "mario-khmer-quest").map((l) => [String(l.level), { stars: l.stars, score: l.best_score }])),
         gameLevels: Object.fromEntries(EXTRA_LEVEL_GAMES.map((game) => [game, Object.fromEntries(levels.filter((l) => l.game_id === game).map((l) => [String(l.level), { stars: l.stars, score: l.best_score }]))])),
         practice: Object.fromEntries(practice.map((p) => [p.language, { bestWpm: p.best_wpm, bestAccuracy: p.best_accuracy }])),
-        settings: (settings?.settings as Record<string, unknown> | undefined) ?? undefined,
+        settings: settings ? settingsOut : undefined,
+        pets: pets ?? undefined,
       };
       return { state: result, playerId: id };
     }, { maxWait: 10_000, timeout: 20_000 });

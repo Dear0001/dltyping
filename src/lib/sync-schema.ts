@@ -1,5 +1,7 @@
 // Wire format + validation shared by the sync route and the client.
 export type SyncScore = { best: number; bestWpm: number; bestAccuracy: number; plays: number };
+import { parsePetSync, type PetSync } from "@/lib/pets/pet-sync";
+
 export type SyncKeyStat = { n: number; e: number; ms: number; t: number };
 export type SyncKeyStats = Record<"english" | "khmer", Record<string, SyncKeyStat>>;
 export type SyncPayload = {
@@ -12,6 +14,8 @@ export type SyncPayload = {
   settings?: Record<string, unknown>;
   /** Request: this device's own totals. Response: the sum of the account's OTHER devices. */
   keyStats?: SyncKeyStats;
+  /** Active pets, unlocks and pet settings. Merged by the server (union of unlocks, latest change wins). */
+  pets?: PetSync;
 };
 /** Level-based games, besides Mario Khmer Quest (which uses `levels`), whose progress syncs. */
 export const EXTRA_LEVEL_GAMES: readonly string[] = ["english-quest"];
@@ -87,5 +91,7 @@ export function parsePayload(body: unknown): SyncPayload | null {
       difficulty: s.difficulty === "medium" || s.difficulty === "hard" ? s.difficulty : "easy",
     };
   }
+  const pets = parsePetSync(body.pets);
+  if (pets) out.pets = pets;
   return out;
 }
