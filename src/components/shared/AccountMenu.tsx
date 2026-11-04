@@ -23,7 +23,7 @@ export default function AccountMenu() {
   const [devCode, setDevCode] = useState<string | null>(null); // development only: shown when the email could not be delivered
   const [cooldown, setCooldown] = useState(0);
   const [expiresAt, setExpiresAt] = useState<number | null>(null); // when the emailed code stops working (ms)
-  const [now, setNow] = useState(() => Date.now());
+  const [now, setNow] = useState(0); // set only by startCountdown and the interval, never during render
   const [info, setInfo] = useState<string | null>(null);
 
   useEffect(() => {
