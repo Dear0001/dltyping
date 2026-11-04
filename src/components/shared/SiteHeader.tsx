@@ -21,7 +21,6 @@ export default function SiteHeader() {
       {links.map(([href, key]) => <Link key={href} href={href} className={isActive(href) ? "active" : undefined} aria-current={isActive(href) ? "page" : undefined}>{t(key)}</Link>)}
       <GamesMenu/>
       <Link href="/dashboard" className={isActive("/dashboard") ? "active" : undefined} aria-current={isActive("/dashboard") ? "page" : undefined}>{t("nav.dashboard")}</Link>
-      <Link href="/pets" className={isActive("/pets") ? "active" : undefined} aria-current={isActive("/pets") ? "page" : undefined}>{t("nav.pets")}</Link>
       <Link href="/progress" className={isActive("/progress") ? "active" : undefined} aria-current={isActive("/progress") ? "page" : undefined}>{t("nav.progress")}</Link>
     </nav>
     <ThemeSwitcher/>
