@@ -23,6 +23,7 @@ export const metadata: Metadata = {
     siteName: "DL Typing",
     type: "website",
   },
+  twitter: { card: "summary_large_image", title: "DL Typing — Free English & Khmer typing practice", description: "Free typing lessons, games, and practice in English and Khmer." },
   robots: { index: true, follow: true },
 };
 

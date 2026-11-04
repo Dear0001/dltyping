@@ -15,7 +15,7 @@ const benefits = [
   { icon: "🏆", title: "XP and achievements", text: "Earn experience points for every lesson completed. Level up, unlock achievements, and track your streak." },
 ];
 
-export default function Landing() {
+export default function Landing({ children }: { children?: React.ReactNode }) {
   const practice = usePracticeBest();
   const scores = useScores();
   const totalPlays = Object.values(scores).reduce((sum, s) => sum + s.plays, 0);
@@ -27,11 +27,11 @@ export default function Landing() {
         <div className="mx-auto grid max-w-6xl items-center gap-10 px-4 py-16 sm:px-6 lg:grid-cols-2 lg:py-24">
           <div>
             <p className="mb-3 inline-block rounded-full bg-white/10 px-3 py-1 text-xs font-bold uppercase tracking-widest text-sky-300">English · ខ្មែរ · Free · No sign-up</p>
-            <h1 className="text-4xl font-extrabold leading-tight tracking-tight sm:text-5xl lg:text-6xl">Type faster in <span className="text-accent">English</span> and <span className="font-khmer text-accent">ខ្មែរ</span>.</h1>
-            <p className="mt-5 max-w-xl text-lg text-slate-300">Structured typing curriculum with levels, guided lessons, game-based reinforcement, XP rewards, and live feedback — starting right now, no account needed.</p>
+            <h1 className="text-4xl font-extrabold leading-tight tracking-tight sm:text-5xl lg:text-6xl">Learn to type faster in <span className="text-accent">English</span> and <span className="text-accent">Khmer</span>.</h1>
+            <p className="mt-5 max-w-xl text-lg text-slate-300">DL Typing helps you type faster with a structured typing curriculum: guided English and Khmer lessons, typing games, XP rewards and live feedback on your speed and accuracy. Start right now, no account needed.</p>
             <div className="mt-8 flex flex-wrap gap-3">
-              <Link href="/learn" className={`${primaryBtn} !px-7 !py-3.5 !text-base`}>Start Learning</Link>
-              <Link href="/setup" className={`${secondaryBtn} !px-7 !py-3.5 !text-base`}>Quick Practice</Link>
+              <Link href="/learn" className={`${primaryBtn} !px-7 !py-3.5 !text-base`}>Start learning to type</Link>
+              <Link href="/setup" className={`${secondaryBtn} !px-7 !py-3.5 !text-base`}>Try quick practice</Link>
             </div>
           </div>
           <div className="grid grid-cols-2 gap-3" aria-hidden="true">
@@ -53,7 +53,7 @@ export default function Landing() {
             <p className="mt-4 text-sm text-slate-600">From home-row basics to professional passages — each lesson has objectives, instructions, and a recommended typing game.</p>
             <div className="mt-5 flex flex-wrap gap-2">
               <Link href="/learn" className={primaryBtn}>Start English Curriculum</Link>
-              <Link href="/learn/english" className="self-center text-xs font-semibold text-mute hover:text-brand">Quick Practice →</Link>
+              <Link href="/learn/english" className="self-center text-xs font-semibold text-mute hover:text-brand">Practice English now →</Link>
               {practice.english && <span className="self-center text-xs font-semibold text-mute">Best: {practice.english.bestWpm} WPM</span>}
             </div>
           </div>
@@ -62,7 +62,7 @@ export default function Landing() {
             <p className="mt-4 text-sm text-slate-600">Consonants, subscript clusters, cultural passages, and vocabulary — with game-based reinforcement at every level.</p>
             <div className="mt-5 flex flex-wrap gap-2">
               <Link href="/learn" className={primaryBtn}>Start Khmer Curriculum</Link>
-              <Link href="/learn/khmer" className="self-center text-xs font-semibold text-mute hover:text-brand">Quick Practice →</Link>
+              <Link href="/learn/khmer" className="self-center text-xs font-semibold text-mute hover:text-brand">Practice Khmer now →</Link>
               {practice.khmer && <span className="self-center text-xs font-semibold text-mute">Best: {practice.khmer.bestWpm} WPM</span>}
             </div>
           </div>
@@ -83,7 +83,7 @@ export default function Landing() {
                 <div className="p-5">
                   <h3 className="text-lg font-extrabold">{game.title}</h3>
                   <p className="mt-1 text-sm text-slate-600">{game.skill}</p>
-                  <div className="mt-4 flex items-center justify-between"><span className="text-xs font-semibold text-mute">{best > 0 ? `🏆 ${best.toLocaleString("en-US")}` : game.languages.map((l) => (l === "khmer" ? "Khmer" : "English")).join(" · ")}</span><Link href={game.href} className={primaryBtn}>Play Now</Link></div>
+                  <div className="mt-4 flex items-center justify-between"><span className="text-xs font-semibold text-mute">{best > 0 ? `🏆 ${best.toLocaleString("en-US")}` : game.languages.map((l) => (l === "khmer" ? "Khmer" : "English")).join(" · ")}</span><Link href={game.href} className={primaryBtn}>Play {game.title}</Link></div>
                 </div>
               </li>;
             })}
@@ -98,6 +98,8 @@ export default function Landing() {
         </ul>
       </section>
 
+      {children}
+
       <section id="progress" className="mx-auto max-w-6xl scroll-mt-20 px-4 pb-16 sm:px-6" aria-labelledby="progress-heading">
         <div className="rounded-3xl bg-gradient-to-br from-brand to-blue-800 p-8 text-white shadow-lg sm:p-10">
           <h2 id="progress-heading" className="text-2xl font-extrabold sm:text-3xl">Your progress, on this device</h2>
@@ -110,7 +112,7 @@ export default function Landing() {
               ["Top game score", Math.max(0, ...typingGames.map((g) => bestForGame(scores, g.id))) || "—"],
             ].map(([label, value]) => <div key={String(label)} className="rounded-2xl bg-white/10 p-4"><dt className="text-xs font-bold uppercase tracking-wider text-blue-100">{label}</dt><dd className="mt-1 text-3xl font-extrabold tabular-nums">{value}</dd></div>)}
           </dl>
-          <div className="mt-6 flex flex-wrap gap-3"><Link href="/learn" className={`${secondaryBtn} !border-white !bg-white`}>Start Learning</Link><Link href="/progress" className={`${secondaryBtn} !border-white !bg-white`}>Full Progress →</Link></div>
+          <div className="mt-6 flex flex-wrap gap-3"><Link href="/learn" className={`${secondaryBtn} !border-white !bg-white`}>Continue your lessons</Link><Link href="/progress" className={`${secondaryBtn} !border-white !bg-white`}>View full progress →</Link></div>
         </div>
       </section>
     </main>
