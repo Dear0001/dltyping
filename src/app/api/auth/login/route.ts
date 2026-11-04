@@ -16,6 +16,8 @@ export async function POST(request: Request) {
   const user = await prisma.users.findUnique({ where: { email: creds.email } });
   const ok = await verifyPassword(creds.password, user?.password_hash ?? null);
   if (!user || !ok) return Response.json({ error: "Invalid email or password" }, { status: 401 });
+  // Said only after the password is right, so this can't be used to discover which emails have accounts.
+  if (!user.email_verified_at) return Response.json({ error: "Please verify your email first. Check your inbox for the link.", code: "unverified" }, { status: 403 });
 
   try {
     await prisma.$transaction((tx) => claimDevice(tx, user.id, creds.deviceId));

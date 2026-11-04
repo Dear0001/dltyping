@@ -46,7 +46,7 @@ export async function getSessionUser() {
   const token = (await cookies()).get(SESSION_COOKIE)?.value;
   if (!token) return null;
   const session = await prisma.sessions.findUnique({ where: { token_hash: sha256(token) }, include: { users: true } });
-  if (!session || session.expires_at < new Date()) return null;
+  if (!session || session.expires_at < new Date() || !session.users.email_verified_at) return null;
   return { id: session.users.id, email: session.users.email };
 }
 
