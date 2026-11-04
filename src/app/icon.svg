@@ -1,0 +1,9 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100" width="100" height="100">
+  <defs><linearGradient id="l" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#38bdf8"/><stop offset="1" stop-color="#2563eb"/></linearGradient></defs>
+  <rect width="100" height="100" rx="22" fill="#0f172a" />
+  <g transform="translate(-2.7 18.5) scale(0.37)">
+    <path d="M 40 40 H 85 A 50 50 0 0 1 85 140 H 40 Z M 75 70 H 85 A 20 20 0 0 1 85 110 H 75 Z" fill="#ffffff" fill-rule="evenodd" />
+    <path d="M 145 40 H 180 V 110 H 240 V 140 H 145 Z" fill="url(#l)" />
+    <path d="M 215 30 Q 215 60 245 60 Q 215 60 215 90 Q 215 60 185 60 Q 215 60 215 30 Z" fill="#38bdf8" />
+  </g>
+</svg>
