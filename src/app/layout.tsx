@@ -1,4 +1,5 @@
 import type { Metadata } from "next";
+import { Poppins } from "next/font/google";
 import { Suspense } from "react";
 import { LocaleProvider } from "@/components/shared/LocaleProvider";
 import SiteFooter from "@/components/shared/SiteFooter";
@@ -8,6 +9,9 @@ import PetRewards from "@/components/pets/PetRewards";
 import { THEME_INIT_SCRIPT } from "@/lib/themes";
 import { SITE_URL } from "@/lib/site";
 import "./globals.css";
+
+/** The app font. Poppins has no Khmer letters, so Khmer text falls back to the Khmer fonts listed in --font-body (globals.css). */
+const poppins = Poppins({ subsets: ["latin"], weight: ["400", "500", "600", "700", "800"], display: "swap", variable: "--font-poppins" });
 
 export const metadata: Metadata = {
   metadataBase: new URL(SITE_URL),
@@ -24,7 +28,7 @@ export const metadata: Metadata = {
 
 export default function RootLayout({ children }: LayoutProps<"/">) {
   return (
-    <html lang="en" suppressHydrationWarning>
+    <html lang="en" className={poppins.variable} suppressHydrationWarning>
       <head><script dangerouslySetInnerHTML={{ __html: THEME_INIT_SCRIPT }} /></head>
       <body id="top" suppressHydrationWarning><LocaleProvider>{children}<SiteFooter /><ProgressSync /><Suspense fallback={null}><PetCompanion /></Suspense><PetRewards /></LocaleProvider></body>
     </html>
