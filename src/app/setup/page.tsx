@@ -1,7 +1,14 @@
+import type { Metadata } from "next";
 
 import SetupForm from "@/components/setup/SetupForm";
 import { SetupHeader, SetupHeading } from "@/components/setup/SetupHeader";
 import VirtualKeyboard from "@/components/keyboard/VirtualKeyboard";
+
+export const metadata: Metadata = {
+  title: "Setup — DL Typing",
+  description: "Choose your language and keyboard layout for DL Typing.",
+  robots: { index: false, follow: true },
+};
 
 export default function SetupPage() {
   return (

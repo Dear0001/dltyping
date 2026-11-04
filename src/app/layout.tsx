@@ -6,11 +6,20 @@ import ProgressSync from "@/components/shared/ProgressSync";
 import PetCompanion from "@/components/pets/PetCompanion";
 import PetRewards from "@/components/pets/PetRewards";
 import { THEME_INIT_SCRIPT } from "@/lib/themes";
+import { SITE_URL } from "@/lib/site";
 import "./globals.css";
 
 export const metadata: Metadata = {
-  title: "DL Typing — Find your typing rhythm",
-  description: "Build your typing confidence with free English and Khmer practice.",
+  metadataBase: new URL(SITE_URL),
+  title: "DL Typing — Free English & Khmer typing practice",
+  description: "Build your typing confidence with free English and Khmer typing practice, lessons, and games.",
+  openGraph: {
+    title: "DL Typing — Free English & Khmer typing practice",
+    description: "Free typing lessons, games, and practice in English and Khmer.",
+    siteName: "DL Typing",
+    type: "website",
+  },
+  robots: { index: true, follow: true },
 };
 
 export default function RootLayout({ children }: LayoutProps<"/">) {
