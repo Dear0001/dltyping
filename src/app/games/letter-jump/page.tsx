@@ -5,7 +5,7 @@ import { parseChars } from "@/lib/progress/drill-params";
 
 export const metadata: Metadata = {
   title: "Letter Jump — DL Typing",
-  description: "Type the glowing target to hop between floating platforms. English and Khmer, three difficulties, timed or endless.",
+  description: "Type the glowing target to hop between floating platforms. Practise key recognition and accuracy in English or Khmer, with three difficulty levels and a choice of timed or endless play.",
 };
 
 type Props = { searchParams: Promise<{ lang?: string; keys?: string }> };

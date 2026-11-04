@@ -3,7 +3,7 @@ import EnglishQuestGame from "@/components/games/english-quest/EnglishQuestGame"
 
 export const metadata: Metadata = {
   title: "English Quest — DL Typing",
-  description: "A platform-adventure game that teaches English letters, words and capitals across five levels.",
+  description: "A platform-adventure typing game that teaches English letters, words and capital letters across five levels. Collect stars, beat each level and build real typing speed as you play.",
 };
 
 export default function EnglishQuestPage() {

@@ -4,7 +4,7 @@ import SiteHeader from "@/components/shared/SiteHeader";
 
 export const metadata: Metadata = {
   title: "Help & Guides — DL Typing",
-  description: "How to use DL Typing, keyboard layout tips for English QWERTY and Khmer NiDA, and answers to common questions.",
+  description: "How to use DL Typing, keyboard layout tips for English QWERTY and Khmer NiDA, and clear answers to common questions about accounts, progress and typing practice.",
 };
 
 const steps = [
