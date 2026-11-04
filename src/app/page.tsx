@@ -7,7 +7,7 @@ import { SITE_URL } from "@/lib/site";
 
 export const metadata: Metadata = {
   title: "DL Typing — English & Khmer typing practice and games",
-  description: "Learn to type faster in English and Khmer with free typing lessons, fun typing games and live speed and accuracy feedback. Practise at your own pace on any computer, with no sign-up needed.",
+  description: "Learn to type faster in English and Khmer with free typing lessons, fun games and live speed and accuracy feedback. Practise at your pace, no sign-up needed.",
   alternates: { canonical: "/" },
 };
 

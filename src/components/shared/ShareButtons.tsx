@@ -28,7 +28,7 @@ export default function ShareButtons({ url, text }: { url: string; text: string 
 
   return (
     <div className="flex flex-wrap gap-2">
-      {links.map(([label, href]) => <a key={label} href={href} target="_blank" rel="noopener noreferrer" className={pill}>{label}</a>)}
+      {links.map(([label, href]) => <a key={label} href={href} target="_blank" rel="nofollow noopener noreferrer" className={pill}>{label}</a>)}
       <a href={`mailto:?subject=${encodeURIComponent("Free English and Khmer typing practice")}&body=${t}%20${u}`} className={pill}>Share by email</a>
       <button type="button" onClick={() => void copy()} className={pill}>{copied ? "Link copied ✓" : "Copy link"}</button>
     </div>

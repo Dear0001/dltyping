@@ -17,7 +17,7 @@ const poppins = Poppins({ subsets: ["latin"], weight: ["400", "500", "600", "700
 export const metadata: Metadata = {
   metadataBase: new URL(SITE_URL),
   title: "DL Typing — Free English & Khmer typing practice",
-  description: "Build your typing confidence with free English and Khmer typing practice. Follow structured lessons, play typing games and track your speed and accuracy, with no account needed to start.",
+  description: "Build your typing confidence with free English and Khmer typing practice. Follow structured lessons, play typing games and track your speed and accuracy.",
   openGraph: {
     title: "DL Typing — Free English & Khmer typing practice",
     description: "Free typing lessons, games, and practice in English and Khmer.",

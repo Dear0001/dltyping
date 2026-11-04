@@ -3,7 +3,7 @@ import SentenceRushGame from "@/components/games/sentence-rush/SentenceRushGame"
 
 export const metadata: Metadata = {
   title: "Sentence Rush — DL Typing",
-  description: "A timed sentence-typing game for English and Khmer. Build combos with clean, accurate sentences, learn punctuation and sentence flow, and push your words per minute higher each round.",
+  description: "A timed sentence-typing game for English and Khmer. Build combos with clean, accurate sentences, learn punctuation and flow, and push your WPM higher.",
 };
 
 export default function SentenceRushPage() {
