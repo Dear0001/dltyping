@@ -1,0 +1,232 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 600 600" width="100%" height="100%">
+  <defs>
+    <!-- Tan Coat Gradients -->
+    <linearGradient id="tanFur" x1="15%" y1="10%" x2="85%" y2="90%">
+      <stop offset="0%" stop-color="#f9bc79" />
+      <stop offset="55%" stop-color="#ea9f5a" />
+      <stop offset="100%" stop-color="#cc7d3d" />
+    </linearGradient>
+
+    <linearGradient id="tanBody" x1="0%" y1="0%" x2="50%" y2="100%">
+      <stop offset="0%" stop-color="#f0a865" />
+      <stop offset="60%" stop-color="#dc8d48" />
+      <stop offset="100%" stop-color="#b86b2d" />
+    </linearGradient>
+
+    <!-- White Fur Gradients -->
+    <linearGradient id="whiteFur" x1="10%" y1="0%" x2="90%" y2="100%">
+      <stop offset="0%" stop-color="#ffffff" />
+      <stop offset="65%" stop-color="#f4eee6" />
+      <stop offset="100%" stop-color="#d5cbc0" />
+    </linearGradient>
+
+    <linearGradient id="whiteShadow" x1="0%" y1="0%" x2="0%" y2="100%">
+      <stop offset="0%" stop-color="#e3dcd3" />
+      <stop offset="100%" stop-color="#bfb3a6" />
+    </linearGradient>
+
+    <!-- Inner Ear Pink -->
+    <linearGradient id="earPink" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#f9b8a2" />
+      <stop offset="60%" stop-color="#eb9880" />
+      <stop offset="100%" stop-color="#c9725d" />
+    </linearGradient>
+
+    <!-- Collar & Tag Gradients -->
+    <linearGradient id="collarGrad" x1="0%" y1="0%" x2="100%" y2="0%">
+      <stop offset="0%" stop-color="#f48e80" />
+      <stop offset="50%" stop-color="#e5776a" />
+      <stop offset="100%" stop-color="#b3534c" />
+    </linearGradient>
+
+    <linearGradient id="goldTag" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#ffe184" />
+      <stop offset="60%" stop-color="#edc04c" />
+      <stop offset="100%" stop-color="#c49124" />
+    </linearGradient>
+
+    <!-- Tongue Gradient -->
+    <linearGradient id="tongueGrad" x1="0%" y1="0%" x2="0%" y2="100%">
+      <stop offset="0%" stop-color="#e87a74" />
+      <stop offset="100%" stop-color="#ff9e96" />
+    </linearGradient>
+
+    <!-- Soft 3D Shading Filter -->
+    <filter id="softShadow" x="-10%" y="-10%" width="120%" height="120%">
+      <feDropShadow dx="0" dy="5" stdDeviation="5" flood-color="#3d271d" flood-opacity="0.22" />
+    </filter>
+  </defs>
+
+  <!-- ================= TAIL ================= -->
+  <g id="tail" filter="url(#softShadow)">
+    <!-- Tan Base -->
+    <path d="M 442 355 Q 445 315 488 272 Q 525 320 492 368 Q 470 385 442 355 Z" fill="url(#tanBody)" />
+    <!-- White Tip -->
+    <path d="M 465 305 Q 488 272 488 272 Q 518 308 500 352 Q 492 332 482 325 Q 475 310 465 305 Z" fill="url(#whiteFur)" />
+  </g>
+
+  <!-- ================= BACK FAR LEG ================= -->
+  <g id="back-far-leg">
+    <path d="M 365 440 L 368 502 Q 388 510 408 502 L 412 440 Z" fill="url(#whiteShadow)" />
+    <ellipse cx="388" cy="500" rx="22" ry="12" fill="url(#whiteShadow)" />
+  </g>
+
+  <!-- ================= TORSO / BODY ================= -->
+  <g id="body" filter="url(#softShadow)">
+    <!-- Main Tan Body -->
+    <path d="M 330 335 
+             Q 425 330 475 365 
+             Q 515 405 502 475 
+             L 435 475 
+             Q 415 445 365 458 
+             L 310 430 Z" fill="url(#tanBody)" />
+
+    <!-- White Underbelly -->
+    <path d="M 350 455 Q 405 452 435 425 Q 440 455 435 475 Q 390 480 350 455 Z" fill="url(#whiteShadow)" />
+
+    <!-- Back Near Leg (Viewer's Right) -->
+    <path d="M 432 465 L 432 512 Q 465 522 496 512 L 502 465 Q 468 455 432 465 Z" fill="url(#whiteFur)" />
+    <!-- Back Paw Toes -->
+    <ellipse cx="464" cy="510" rx="33" ry="14" fill="url(#whiteFur)" />
+    <path d="M 446 502 L 446 518 M 464 500 L 464 520 M 482 502 L 482 518" stroke="#c4b9ad" stroke-width="2.5" stroke-linecap="round" />
+  </g>
+
+  <!-- ================= FRONT LEGS ================= -->
+  <g id="front-legs" filter="url(#softShadow)">
+    <!-- Front Right Leg (Viewer's Left) -->
+    <path d="M 195 430 L 202 515 L 268 515 L 275 450 Z" fill="url(#whiteFur)" />
+    <!-- Paw -->
+    <path d="M 192 520 Q 192 495 230 495 Q 268 495 268 520 Q 268 532 230 532 Q 192 532 192 520 Z" fill="url(#whiteFur)" />
+    <path d="M 212 505 L 212 528 M 232 503 L 232 530 M 250 505 L 250 528" stroke="#cec3b6" stroke-width="2.5" stroke-linecap="round" />
+
+    <!-- Front Left Leg (Viewer's Right - Tan Shoulder + White Sock) -->
+    <path d="M 292 405 L 292 485 Q 335 495 375 475 L 392 385 Z" fill="url(#tanBody)" />
+    <path d="M 292 475 L 292 525 L 365 525 L 375 468 Q 335 480 292 475 Z" fill="url(#whiteFur)" />
+    <!-- Paw -->
+    <path d="M 290 528 Q 290 502 328 502 Q 366 502 366 528 Q 366 540 328 540 Q 290 540 290 528 Z" fill="url(#whiteFur)" />
+    <path d="M 308 512 L 308 536 M 328 510 L 328 538 M 348 512 L 348 536" stroke="#cec3b6" stroke-width="2.5" stroke-linecap="round" />
+  </g>
+
+  <!-- ================= CHEST RUFF ================= -->
+  <g id="chest-ruff" filter="url(#softShadow)">
+    <path d="M 172 365 
+             Q 155 405 175 425 L 170 435 
+             Q 190 465 218 475 L 215 488 
+             Q 245 498 275 490 
+             Q 315 465 348 418 L 362 422 
+             Q 378 395 380 375 L 392 378 
+             Q 395 352 382 335 Z" fill="url(#whiteFur)" />
+    <!-- Subtle Fur Creases -->
+    <path d="M 235 455 L 245 480 M 255 450 L 265 482 M 278 442 L 285 472" stroke="#d5cbc0" stroke-width="3" stroke-linecap="round" />
+  </g>
+
+  <!-- ================= COLLAR & TAG ================= -->
+  <g id="collar" filter="url(#softShadow)">
+    <!-- Pink Strap -->
+    <path d="M 165 362 Q 245 408 378 325 L 372 348 Q 245 435 168 386 Z" fill="url(#collarGrad)" />
+    <!-- Gold Clasp & Bell/Tag -->
+    <rect x="212" y="382" width="11" height="22" rx="4" fill="url(#goldTag)" />
+    <circle cx="222" cy="418" r="19" fill="#b88418" />
+    <circle cx="218" cy="418" r="19" fill="url(#goldTag)" />
+  </g>
+
+  <!-- ================= EARS ================= -->
+  <g id="ears" filter="url(#softShadow)">
+    <!-- Left Ear (Viewer's Left) -->
+    <path d="M 122 252 
+             C 92 165, 98 85, 132 72 
+             C 168 60, 215 118, 228 168 Z" fill="url(#tanFur)" />
+    <path d="M 132 238 
+             C 112 168, 118 105, 142 98 
+             C 168 90, 202 138, 212 178 Z" fill="url(#earPink)" />
+
+    <!-- Right Ear (Viewer's Right) -->
+    <path d="M 285 165 
+             C 325 100, 378 48, 412 65 
+             C 442 82, 430 198, 392 260 Z" fill="url(#tanFur)" />
+    <path d="M 308 178 
+             C 340 122, 378 82, 398 95 
+             C 418 108, 405 198, 375 245 Z" fill="url(#earPink)" />
+    <!-- Ear Base Folds -->
+    <ellipse cx="338" cy="198" rx="12" ry="7" transform="rotate(25 338 198)" fill="#d67c67" opacity="0.6" />
+    <ellipse cx="348" cy="212" rx="14" ry="8" transform="rotate(20 348 212)" fill="#d67c67" opacity="0.6" />
+  </g>
+
+  <!-- ================= HEAD ================= -->
+  <g id="head" filter="url(#softShadow)">
+    <!-- Base Tan Head Shape -->
+    <path d="M 130 230 
+             C 138 175, 205 152, 265 155 
+             C 325 158, 372 195, 375 255 
+             L 398 272 L 378 282 
+             L 405 302 L 378 318 
+             Q 335 372 245 375 
+             Q 155 375 110 320 
+             L 98 312 L 112 298 
+             L 95 288 L 118 270 
+             L 102 260 L 130 242 Z" fill="url(#tanFur)" />
+
+    <!-- White Blaze, Cheeks & Lower Face -->
+    <path d="M 235 155 
+             Q 255 154 270 156 
+             C 248 182, 238 220, 235 255 
+             C 262 265, 290 285, 385 298 
+             L 405 302 L 378 318 
+             L 392 326 L 368 338 
+             Q 320 382 238 380 
+             Q 145 378 105 322 
+             L 98 312 L 112 298 
+             L 95 288 L 122 275 
+             C 162 268, 185 262, 195 250 
+             C 202 212, 212 178, 235 155 Z" fill="url(#whiteFur)" />
+
+    <!-- ================= EYES ================= -->
+    <!-- Left Eye (Viewer's Left) -->
+    <g id="left-eye">
+      <ellipse cx="171" cy="236" rx="14" ry="18" transform="rotate(8 171 236)" fill="#2d1912" />
+      <ellipse cx="173" cy="238" rx="9" ry="12" transform="rotate(8 173 238)" fill="#140a07" />
+      <ellipse cx="175" cy="230" rx="3.5" ry="5" transform="rotate(8 175 230)" fill="#ffffff" />
+    </g>
+
+    <!-- Right Eye (Viewer's Right) -->
+    <g id="right-eye">
+      <circle cx="268" cy="242" r="21" fill="#2d1912" />
+      <circle cx="266" cy="244" r="14" fill="#140a07" />
+      <circle cx="274" cy="234" r="5" fill="#ffffff" />
+    </g>
+
+    <!-- ================= SNOUT & MOUTH ================= -->
+    <g id="snout">
+      <!-- Mouth Interior -->
+      <path d="M 165 292 
+               Q 205 278 256 296 
+               Q 242 346 198 342 
+               Q 168 335 165 292 Z" fill="#4d191b" />
+
+      <!-- Tongue -->
+      <path d="M 185 308 
+               Q 212 305 236 315 
+               Q 222 345 194 344 
+               Q 172 342 185 308 Z" fill="url(#tongueGrad)" />
+      <!-- Tongue Center Crease -->
+      <path d="M 212 312 Q 202 325 195 336" fill="none" stroke="#d46560" stroke-width="2" stroke-linecap="round" opacity="0.6" />
+
+      <!-- Upper Muzzle Cushion -->
+      <path d="M 148 272 
+               Q 145 304 176 306 
+               Q 192 306 202 296 
+               Q 214 312 238 308 
+               Q 262 302 258 276 
+               Q 245 248 202 248 
+               Q 158 248 148 272 Z" fill="url(#whiteFur)" filter="url(#softShadow)" />
+
+      <!-- Nose -->
+      <ellipse cx="189" cy="264" rx="26" ry="18" transform="rotate(-6 189 264)" fill="#261c1a" />
+      <!-- Nostrils -->
+      <ellipse cx="176" cy="268" rx="4.5" ry="6.5" transform="rotate(20 176 268)" fill="#0d0807" />
+      <ellipse cx="196" cy="267" rx="4.5" ry="6.5" transform="rotate(-15 196 267)" fill="#0d0807" />
+      <!-- Nose Soft Highlight -->
+      <ellipse cx="188" cy="254" rx="14" ry="5" transform="rotate(-6 188 254)" fill="#594945" opacity="0.65" />
+    </g>
+  </g>
+</svg>

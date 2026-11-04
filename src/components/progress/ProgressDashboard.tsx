@@ -5,6 +5,7 @@ import SiteHeader from "@/components/shared/SiteHeader";
 import { secondaryBtn } from "@/components/games/shared/GameDialog";
 import { curricula, getAllLessons, levelLabels, levelColors, courseProgress } from "@/data/curriculum";
 import { useUserProgress, useScores, usePracticeBest } from "@/hooks/use-stored-value";
+import { useAccount } from "@/lib/account";
 import { levelFromXp, xpForLevel, LEVEL_TITLES } from "@/lib/local-progress";
 import { typingGames } from "@/data/games";
 import { bestForGame } from "@/lib/local-progress";
@@ -35,6 +36,8 @@ function ProgressRing({ pct, size = 60, strokeWidth = 6 }: { pct: number; size?:
 
 export default function ProgressDashboard() {
   const progress = useUserProgress();
+  const signedIn = useAccount().status === "user";
+  const streak = signedIn ? progress.streak : 0; // streaks (and the achievements for them) need an account
   const scores = useScores();
   const practiceBest = usePracticeBest();
   const level = levelFromXp(progress.xp);
@@ -71,11 +74,16 @@ export default function ProgressDashboard() {
                 {progress.xp} XP{nextMin > progress.xp ? ` · ${nextMin - progress.xp} XP to Level ${level + 1}` : " · Maximum level reached!"}
               </p>
             </div>
-            {progress.streak > 0 && (
+            {streak > 0 ? (
               <div className="rounded-2xl bg-white/10 px-4 py-3 text-center">
                 <p className="text-2xl">🔥</p>
-                <p className="text-lg font-extrabold">{progress.streak}</p>
+                <p className="text-lg font-extrabold">{streak}</p>
                 <p className="text-xs text-blue-200">day streak</p>
+              </div>
+            ) : !signedIn && (
+              <div className="rounded-2xl bg-white/10 px-4 py-3 text-center">
+                <p className="text-2xl">🔒</p>
+                <p className="text-xs text-blue-200">Sign in to<br />unlock streaks</p>
               </div>
             )}
           </div>
@@ -153,7 +161,7 @@ export default function ProgressDashboard() {
           <h2 className="mb-4 text-xl font-extrabold">Achievements</h2>
           <div className="grid grid-cols-2 gap-3 sm:grid-cols-3">
             {ACHIEVEMENTS.map((ach) => {
-              const unlocked = ach.condition(progress.xp, progress.streak, progress.completedLessons);
+              const unlocked = ach.condition(progress.xp, streak, progress.completedLessons);
               return (
                 <div key={ach.id} className={`rounded-2xl border p-4 transition ${unlocked ? "border-amber-200 bg-amber-50 shadow-sm" : "border-slate-200 bg-white opacity-50"}`}>
                   <p className={`text-3xl ${unlocked ? "" : "grayscale filter"}`} aria-hidden="true">{ach.emoji}</p>

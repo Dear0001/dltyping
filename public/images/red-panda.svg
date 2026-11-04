@@ -1,0 +1,46 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100" width="100" height="100">
+  <g class="red-panda">
+    <!-- Ringed tail -->
+    <g class="tail">
+      <path d="M 66 78 Q 96 74 92 44 Q 88 34 80 40 Q 84 58 64 64 Z" fill="#c2410c" />
+      <path d="M 86 52 Q 92 56 90 62 Q 84 60 82 54 Z" fill="#7c2d12" />
+      <path d="M 78 62 Q 84 66 80 72 Q 74 70 72 64 Z" fill="#7c2d12" />
+      <path d="M 89 38 Q 94 42 92 47 Q 86 46 84 40 Z" fill="#fde7c7" />
+    </g>
+    <!-- Legs and feet (dark) -->
+    <rect x="34" y="82" width="11" height="12" rx="5.5" fill="#3b1d0f" />
+    <rect x="55" y="82" width="11" height="12" rx="5.5" fill="#3b1d0f" />
+    <!-- Body -->
+    <ellipse class="body" cx="50" cy="70" rx="21" ry="20" fill="#c2410c" />
+    <ellipse cx="50" cy="75" rx="12" ry="13" fill="#7c2d12" />
+    <!-- Head -->
+    <g class="head">
+      <g class="ear-left">
+        <circle cx="30" cy="30" r="9" fill="#c2410c" />
+        <circle cx="30" cy="31" r="5" fill="#fde7c7" />
+      </g>
+      <g class="ear-right">
+        <circle cx="70" cy="30" r="9" fill="#c2410c" />
+        <circle cx="70" cy="31" r="5" fill="#fde7c7" />
+      </g>
+      <ellipse cx="50" cy="46" rx="24" ry="20" fill="#c2410c" />
+      <!-- Cream cheeks and brow marks -->
+      <ellipse cx="38" cy="53" rx="10" ry="8" fill="#fff7ed" />
+      <ellipse cx="62" cy="53" rx="10" ry="8" fill="#fff7ed" />
+      <ellipse cx="50" cy="56" rx="7" ry="5" fill="#fff7ed" />
+      <ellipse cx="40" cy="36" rx="4" ry="3" fill="#fff7ed" />
+      <ellipse cx="60" cy="36" rx="4" ry="3" fill="#fff7ed" />
+      <!-- Tear stripes -->
+      <path d="M 39 47 Q 36 53 38 58" stroke="#7c2d12" stroke-width="2" fill="none" stroke-linecap="round" />
+      <path d="M 61 47 Q 64 53 62 58" stroke="#7c2d12" stroke-width="2" fill="none" stroke-linecap="round" />
+      <g class="eyes">
+        <circle cx="41" cy="46" r="3.2" fill="#1c1917" />
+        <circle cx="59" cy="46" r="3.2" fill="#1c1917" />
+        <circle cx="42" cy="45" r="1" fill="#ffffff" />
+        <circle cx="60" cy="45" r="1" fill="#ffffff" />
+      </g>
+      <ellipse class="nose" cx="50" cy="54" rx="3" ry="2.2" fill="#1c1917" />
+      <path d="M 46 58 Q 50 61 54 58" stroke="#1c1917" stroke-width="1.5" fill="none" stroke-linecap="round" />
+    </g>
+  </g>
+</svg>

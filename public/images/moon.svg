@@ -1,0 +1,29 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100" width="100" height="100">
+  <g class="moon-sprite">
+    <!-- Floating star -->
+    <path class="tail" d="M 84 38 L 87 46 L 95 47 L 89 52 L 91 60 L 84 56 L 77 60 L 79 52 L 73 47 L 81 46 Z" fill="#fde047" stroke="#f59e0b" stroke-width="1" stroke-linejoin="round" />
+    <!-- Pyjama body and feet -->
+    <ellipse cx="38" cy="93" rx="8" ry="4" fill="#312e81" />
+    <ellipse cx="62" cy="93" rx="8" ry="4" fill="#312e81" />
+    <ellipse class="body" cx="50" cy="78" rx="20" ry="16" fill="#4f46e5" />
+    <circle cx="44" cy="76" r="1.8" fill="#fde047" /><circle cx="56" cy="80" r="1.8" fill="#fde047" /><circle cx="50" cy="86" r="1.5" fill="#fde047" />
+    <ellipse cx="29" cy="76" rx="5" ry="4" fill="#fef3c7" />
+    <ellipse cx="71" cy="76" rx="5" ry="4" fill="#fef3c7" />
+    <!-- Moon head -->
+    <g class="head">
+      <circle cx="50" cy="42" r="24" fill="#fef3c7" stroke="#fcd34d" stroke-width="1.4" />
+      <circle cx="64" cy="52" r="5" fill="#fde68a" /><circle cx="58" cy="30" r="3" fill="#fde68a" />
+      <!-- Sleepy nightcap -->
+      <path d="M 28 28 Q 36 6 62 8 Q 78 10 74 30 Q 56 18 28 28 Z" fill="#4f46e5" />
+      <path d="M 28 28 Q 52 20 74 30 L 72 34 Q 52 26 30 33 Z" fill="#c7d2fe" />
+      <circle cx="76" cy="14" r="5" fill="#fde047" />
+      <g class="eyes">
+        <path d="M 36 44 Q 41 49 46 44" stroke="#312e81" stroke-width="2.2" fill="none" stroke-linecap="round" />
+        <path d="M 54 44 Q 59 49 64 44" stroke="#312e81" stroke-width="2.2" fill="none" stroke-linecap="round" />
+      </g>
+      <path class="mouth" d="M 46 55 Q 50 58 54 55" stroke="#312e81" stroke-width="1.8" fill="none" stroke-linecap="round" />
+      <circle cx="35" cy="52" r="3.4" fill="#fda4af" opacity="0.6" />
+      <circle cx="65" cy="52" r="3.4" fill="#fda4af" opacity="0.6" />
+    </g>
+  </g>
+</svg>

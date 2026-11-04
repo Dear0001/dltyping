@@ -1,0 +1,39 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100" width="100" height="100">
+  <g class="snowman">
+    <!-- Twig arms -->
+    <g class="arm-left" stroke="#7c4a21" stroke-width="2.6" stroke-linecap="round" fill="none">
+      <path d="M 30 66 L 12 58 M 18 61 L 14 52" />
+    </g>
+    <g class="arm-right" stroke="#7c4a21" stroke-width="2.6" stroke-linecap="round" fill="none">
+      <path d="M 70 66 L 88 58 M 82 61 L 86 52" />
+    </g>
+    <!-- Bottom snowball -->
+    <circle class="body" cx="50" cy="76" r="22" fill="#f8fafc" stroke="#cbd5e1" stroke-width="1.2" />
+    <ellipse cx="42" cy="84" rx="9" ry="6" fill="#e2e8f0" opacity="0.7" />
+    <!-- Coal buttons -->
+    <circle cx="50" cy="68" r="2.4" fill="#1e293b" />
+    <circle cx="50" cy="77" r="2.4" fill="#1e293b" />
+    <circle cx="50" cy="86" r="2.4" fill="#1e293b" />
+    <!-- Head -->
+    <g class="head">
+      <!-- Scarf -->
+      <path d="M 32 52 Q 50 62 68 52 L 68 58 Q 50 68 32 58 Z" fill="#dc2626" />
+      <path d="M 60 58 L 66 72 L 58 70 Z" fill="#b91c1c" />
+      <circle cx="50" cy="38" r="17" fill="#f8fafc" stroke="#cbd5e1" stroke-width="1.2" />
+      <!-- Top hat -->
+      <rect x="34" y="18" width="32" height="4.5" rx="2" fill="#1e293b" />
+      <rect x="39" y="4" width="22" height="16" rx="2.5" fill="#1e293b" />
+      <rect x="39" y="14" width="22" height="3.5" fill="#7c3aed" />
+      <g class="eyes">
+        <circle cx="43" cy="35" r="2.4" fill="#1e293b" />
+        <circle cx="57" cy="35" r="2.4" fill="#1e293b" />
+      </g>
+      <!-- Carrot nose -->
+      <path class="nose" d="M 48 40 L 64 43 L 48 46 Z" fill="#f97316" />
+      <!-- Coal smile -->
+      <g fill="#1e293b"><circle cx="41" cy="47" r="1.1" /><circle cx="45" cy="49.5" r="1.1" /><circle cx="50" cy="50.5" r="1.1" /><circle cx="55" cy="49.5" r="1.1" /><circle cx="59" cy="47" r="1.1" /></g>
+      <circle cx="37" cy="42" r="3" fill="#fda4af" opacity="0.6" />
+      <circle cx="63" cy="42" r="3" fill="#fda4af" opacity="0.6" />
+    </g>
+  </g>
+</svg>

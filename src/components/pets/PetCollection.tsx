@@ -7,8 +7,9 @@ import SiteHeader from "@/components/shared/SiteHeader";
 import { usePetState } from "@/hooks/usePets";
 import { useNow, useTypingProgress } from "@/hooks/useTypingProgress";
 import { PETS, RARITIES, type PetAnim, type PetDefinition } from "@/lib/pets/pet-catalog";
+import { useAccount } from "@/lib/account";
 import { nextReward } from "@/lib/pets/pet-rewards";
-import { patchPetSettings, selectPet, setPetEnabled, type PetSettings } from "@/lib/pets/pet-storage";
+import { activeIds, MAX_ACTIVE_PETS, patchPetSettings, setPetEnabled, togglePet, type PetSettings } from "@/lib/pets/pet-storage";
 import { currentStreak, longestStreak, QUALIFYING_MIN_CORRECT } from "@/lib/progress/progress-analytics";
 
 const PREVIEW_ANIMS: { anim: PetAnim; label: string }[] = [
@@ -21,10 +22,13 @@ export default function PetCollection() {
   const { state, hydrated } = usePetState();
   const { store } = useTypingProgress();
   const now = useNow();
-  const current = useMemo(() => currentStreak(store.sessions, now), [store.sessions, now]);
-  const best = useMemo(() => longestStreak(store.sessions), [store.sessions]);
+  const signedIn = useAccount().status === "user";
+  // Streaks (and the pets they unlock) need an account; signed out, they read as zero.
+  const current = useMemo(() => (signedIn ? currentStreak(store.sessions, now) : 0), [signedIn, store.sessions, now]);
+  const best = useMemo(() => (signedIn ? longestStreak(store.sessions) : 0), [signedIn, store.sessions]);
   const next = nextReward(state, best);
   const unlockedCount = Object.keys(state.unlocked).length;
+  const team = activeIds(state);
   const systemReduced = typeof window !== "undefined" && window.matchMedia?.("(prefers-reduced-motion: reduce)").matches;
   const motion = effectiveMotion(state.settings.animations, Boolean(systemReduced));
 
@@ -45,6 +49,7 @@ export default function PetCollection() {
             <section className="grid gap-4 lg:grid-cols-[minmax(0,1fr)_minmax(0,1.2fr)]" aria-label="Streak and settings">
               <div className="rounded-2xl border border-slate-200 bg-white p-5 shadow-sm">
                 <h2 className="text-base font-extrabold">Your streak</h2>
+                {!signedIn && <p role="status" className="mt-2 rounded-xl border border-amber-200 bg-amber-50 px-3 py-2 text-sm font-semibold text-amber-800">🔒 Sign in to unlock streaks and earn pets. Your practice on this device counts once you do.</p>}
                 <div className="mt-3 grid grid-cols-3 gap-2 text-center">
                   <Stat label="Current" value={`${current}`} unit={current === 1 ? "day" : "days"} />
                   <Stat label="Best" value={`${best}`} unit={best === 1 ? "day" : "days"} />
@@ -64,11 +69,13 @@ export default function PetCollection() {
               <Settings settings={state.settings} enabled={state.enabled} hasActive={Boolean(state.active)} />
             </section>
 
+            {unlockedCount > 0 && <p className="text-sm text-mute" role="status">Active pets: <strong className="text-navy">{team.length}/{MAX_ACTIVE_PETS}</strong>. Add up to {MAX_ACTIVE_PETS} unlocked pets and they all keep you company at once.</p>}
+
             <section aria-label="All pets" className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
               {PETS.map((pet) => (
                 <PetCard
                   key={pet.id} pet={pet} unlocked={Boolean(state.unlocked[pet.id])} unlockedAt={state.unlocked[pet.id]?.at}
-                  active={state.active === pet.id} companionOn={state.enabled} best={best} motion={motion}
+                  active={team.includes(pet.id)} teamSize={team.length} companionOn={state.enabled} best={best} motion={motion}
                 />
               ))}
             </section>
@@ -114,7 +121,7 @@ function Settings({ settings, enabled, hasActive }: { settings: PetSettings; ena
   return (
     <div className="space-y-3 rounded-2xl border border-slate-200 bg-white p-5 shadow-sm">
       <h2 className="text-base font-extrabold">Companion settings</h2>
-      <Toggle label="Show my companion" hint={hasActive ? "A pet keeps you company while you learn." : "Unlock a pet to choose a companion."} checked={enabled && hasActive} onChange={(v) => hasActive && setPetEnabled(v)} />
+      <Toggle label="Show my pets" hint={hasActive ? "Your active pets keep you company while you learn." : "Unlock a pet to choose a companion."} checked={enabled && hasActive} onChange={(v) => hasActive && setPetEnabled(v)} />
       <Segmented<PetSettings["animations"]> label="Animations" value={settings.animations} onChange={(animations) => patchPetSettings({ animations })} options={[["full", "Full"], ["reduced", "Reduced"], ["off", "Off"]]} />
       <Toggle label="Follow and react to my cursor" checked={settings.cursor} onChange={(cursor) => patchPetSettings({ cursor })} />
       <Toggle label="Speech bubbles" checked={settings.speech} onChange={(speech) => patchPetSettings({ speech })} />
@@ -125,9 +132,9 @@ function Settings({ settings, enabled, hasActive }: { settings: PetSettings; ena
   );
 }
 
-type CardProps = { pet: PetDefinition; unlocked: boolean; unlockedAt?: string; active: boolean; companionOn: boolean; best: number; motion: ReturnType<typeof effectiveMotion> };
+type CardProps = { pet: PetDefinition; unlocked: boolean; unlockedAt?: string; active: boolean; /** How many pets are active now. */ teamSize: number; companionOn: boolean; best: number; motion: ReturnType<typeof effectiveMotion> };
 
-function PetCard({ pet, unlocked, unlockedAt, active, companionOn, best, motion }: CardProps) {
+function PetCard({ pet, unlocked, unlockedAt, active, teamSize, companionOn, best, motion }: CardProps) {
   const rarity = RARITIES[pet.rarity];
   const [anim, setAnim] = useState<PetAnim>("idle");
   const timer = useRef<number | null>(null);
@@ -145,7 +152,7 @@ function PetCard({ pet, unlocked, unlockedAt, active, companionOn, best, motion 
     <article className={`flex flex-col rounded-2xl border bg-white p-4 shadow-sm ${active ? "border-brand ring-2 ring-brand/30" : "border-slate-200"}`} aria-label={`${pet.name}, ${unlocked ? "unlocked" : "locked"}`}>
       <div className="flex items-start justify-between gap-2">
         <span className="rounded-full px-2 py-0.5 text-[11px] font-bold text-white" style={{ background: rarity.color }}>{rarity.label}</span>
-        {active ? <span className="rounded-full bg-blue-100 px-2 py-0.5 text-[11px] font-bold text-blue-800">✓ Active companion</span>
+        {active ? <span className="rounded-full bg-blue-100 px-2 py-0.5 text-[11px] font-bold text-blue-800">✓ Active</span>
           : unlocked ? <span className="rounded-full bg-slate-100 px-2 py-0.5 text-[11px] font-bold text-slate-700">Unlocked</span>
           : <span className="rounded-full bg-slate-100 px-2 py-0.5 text-[11px] font-bold text-slate-700">🔒 Locked</span>}
       </div>
@@ -167,8 +174,14 @@ function PetCard({ pet, unlocked, unlockedAt, active, companionOn, best, motion 
             ))}
           </div>
           <div className="mt-auto pt-4">
-            {active ? <p className="text-xs text-mute">{companionOn ? "Playing on every page." : "Selected, but the companion is turned off."}</p>
-              : <button type="button" onClick={() => selectPet(pet.id)} className="w-full rounded-xl bg-brand px-4 py-2 text-sm font-bold text-white hover:brightness-110">Choose {pet.name}</button>}
+            {active ? (
+              <>
+                <p className="mb-2 text-xs text-mute">{companionOn ? "Playing on every page." : "Selected, but the companion is turned off."}</p>
+                <button type="button" onClick={() => togglePet(pet.id)} disabled={teamSize <= 1} title={teamSize <= 1 ? "Keep at least one pet, or turn the companion off in settings" : undefined} className="w-full rounded-xl border border-slate-300 px-4 py-2 text-sm font-bold text-navy hover:border-brand hover:text-brand disabled:cursor-not-allowed disabled:opacity-50">Remove from my pets</button>
+              </>
+            ) : (
+              <button type="button" onClick={() => togglePet(pet.id)} disabled={teamSize >= MAX_ACTIVE_PETS} className="w-full rounded-xl bg-brand px-4 py-2 text-sm font-bold text-white hover:brightness-110 disabled:cursor-not-allowed disabled:opacity-50">{teamSize >= MAX_ACTIVE_PETS ? `Team full (${MAX_ACTIVE_PETS}/${MAX_ACTIVE_PETS})` : teamSize === 0 ? `Choose ${pet.name}` : `Add ${pet.name} to my pets`}</button>
+            )}
             {unlockedAt && <p className="mt-2 text-[11px] text-mute">Unlocked {new Date(unlockedAt).toLocaleDateString("en-US", { month: "short", day: "numeric", year: "numeric" })}</p>}
           </div>
         </>

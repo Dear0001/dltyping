@@ -27,7 +27,7 @@ export function effectiveMotion(setting: PetSettings["animations"], systemReduce
 }
 
 export default function PetCompanion() {
-  const { state, hydrated, active } = usePetState();
+  const { state, hydrated, active, actives } = usePetState();
   const pathname = usePathname();
   const systemReduced = useSystemReducedMotion();
   if (!hydrated || !active) return null;
@@ -35,20 +35,21 @@ export default function PetCompanion() {
   const show = state.enabled && !isPetHiddenRoute(pathname);
   return (
     <>
-      {show && <PetStage key={active.id} def={active} settings={state.settings} motion={effectiveMotion(state.settings.animations, systemReduced)} typingRoute={typingRoute} />}
-      <PetControls name={active.name} enabled={state.enabled} />
+      {show && actives.map((pet, index) => <PetStage key={pet.id} def={pet} index={index} settings={state.settings} motion={effectiveMotion(state.settings.animations, systemReduced)} typingRoute={typingRoute} />)}
+      <PetControls name={actives.length > 1 ? `${actives.length} pets are` : `${active.name} is`} enabled={state.enabled} />
     </>
   );
 }
 
-type StageProps = { def: PetDefinition; settings: PetSettings; motion: MotionMode; typingRoute: boolean };
+type StageProps = { def: PetDefinition; /** Position in the active team: spreads the pets out when they first appear. */ index: number; settings: PetSettings; motion: MotionMode; typingRoute: boolean };
 
-function PetStage({ def, settings, motion, typingRoute }: StageProps) {
+function PetStage({ def, index, settings, motion, typingRoute }: StageProps) {
   const rootRef = useRef<HTMLDivElement>(null);
   const bodyRef = useRef<HTMLDivElement>(null);
   const spriteRef = useRef<HTMLDivElement>(null);
   const bubbleRef = useRef<HTMLDivElement>(null);
   const fxRef = useRef<HTMLDivElement>(null);
+  const startIndex = useRef(index); // only used for the first position, so reordering the team never moves a pet
   const live = useRef({ settings, motion, typingRoute });
   useEffect(() => {
     live.current = { settings, motion, typingRoute };
@@ -59,7 +60,7 @@ function PetStage({ def, settings, motion, typingRoute }: StageProps) {
     if (!root || !body || !sprite || !bubble || !fx) return;
     const rand = Math.random;
     const sizeNow = () => Math.min(PET_SIZES[live.current.settings.size], window.innerWidth < 520 ? MOBILE_MAX_SIZE : 999);
-    const brain = createBrain(def, Math.max(8, window.innerWidth * 0.25), rand);
+    const brain = createBrain(def, Math.max(8, window.innerWidth * Math.min(0.9, 0.2 + 0.17 * startIndex.current)), rand);
     const pointer = { x: 0, y: 0, active: false, at: 0 };
     const queue: PetEvent[] = [];
     let typingUntil = 0;
@@ -68,7 +69,7 @@ function PetStage({ def, settings, motion, typingRoute }: StageProps) {
     let lift = 0;
     const drag = { on: false, offX: 0, offY: 0, moved: false, lastX: 0, tilt: 0 };
     let justDragged = 0;
-    const applied = { tf: "", air: NaN, x: NaN, anim: "", blink: false, face: 0, look: NaN, lookY: NaN, size: 0, quiet: false, hidden: false };
+    const applied = { tf: "", air: NaN, x: NaN, anim: "", blink: false, face: 0, look: NaN, lookY: NaN, size: 0, quiet: false, hidden: false, trick: "" };
     let sayId = 0, fxId = 0;
 
     const rectPad = (touch: boolean) => (touch ? 16 : 6);
@@ -163,6 +164,8 @@ function PetStage({ def, settings, motion, typingRoute }: StageProps) {
       if (tf !== applied.tf) { body.style.transform = tf; applied.tf = tf; }
       if (size !== applied.size) { root.style.setProperty("--pet-size", `${size}px`); applied.size = size; }
       if (brain.anim !== applied.anim) { sprite.dataset.anim = brain.anim; applied.anim = brain.anim; }
+      const trick = brain.trick ?? "";
+      if (trick !== applied.trick) { if (trick) sprite.dataset.trick = trick; else delete sprite.dataset.trick; applied.trick = trick; }
       const blink = brain.blinking > 0;
       if (blink !== applied.blink) { if (blink) sprite.dataset.blink = "1"; else delete sprite.dataset.blink; applied.blink = blink; }
       if (brain.face !== applied.face) { sprite.style.setProperty("--face", String(brain.face)); applied.face = brain.face; }
@@ -252,7 +255,7 @@ function PetControls({ name, enabled }: { name: string; enabled: boolean }) {
     <div ref={ref} className="pet-ctl">
       {open && (
         <div className="pet-ctl-menu" role="menu" aria-label="Pet companion">
-          <small>{name} {enabled ? "is keeping you company" : "is resting"}</small>
+          <small>{name} {enabled ? "keeping you company" : "resting"}</small>
           <button type="button" role="menuitem" onClick={() => { setPetEnabled(!enabled); setOpen(false); }}>{enabled ? "🙈 Hide companion" : "👀 Show companion"}</button>
           <Link href="/pets" role="menuitem" onClick={() => setOpen(false)}>🐾 Pet collection</Link>
         </div>

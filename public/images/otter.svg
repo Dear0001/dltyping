@@ -1,0 +1,38 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100" width="100" height="100">
+  <g class="otter">
+    <!-- Thick tail -->
+    <path class="tail" d="M 66 80 Q 90 84 94 66 Q 96 58 90 60 Q 86 72 66 70 Z" fill="#7c4a21" />
+    <!-- Feet -->
+    <ellipse cx="38" cy="92" rx="9" ry="4.5" fill="#5b3416" />
+    <ellipse cx="62" cy="92" rx="9" ry="4.5" fill="#5b3416" />
+    <!-- Body -->
+    <ellipse class="body" cx="50" cy="70" rx="22" ry="22" fill="#8b5a2b" />
+    <ellipse cx="50" cy="74" rx="14" ry="16" fill="#f3dcb8" />
+    <!-- Little paws holding a shell -->
+    <ellipse cx="42" cy="72" rx="5" ry="4" fill="#7c4a21" />
+    <ellipse cx="58" cy="72" rx="5" ry="4" fill="#7c4a21" />
+    <path d="M 44 70 Q 50 60 56 70 Z" fill="#fbcfe8" stroke="#f472b6" stroke-width="1" />
+    <!-- Head -->
+    <g class="head">
+      <circle class="ear-left" cx="31" cy="31" r="6" fill="#8b5a2b" />
+      <circle class="ear-right" cx="69" cy="31" r="6" fill="#8b5a2b" />
+      <ellipse cx="50" cy="44" rx="23" ry="19" fill="#8b5a2b" />
+      <ellipse cx="50" cy="52" rx="15" ry="11" fill="#f3dcb8" />
+      <g class="eyes">
+        <circle cx="40" cy="42" r="3.2" fill="#1c1917" />
+        <circle cx="60" cy="42" r="3.2" fill="#1c1917" />
+        <circle cx="41" cy="41" r="1" fill="#ffffff" />
+        <circle cx="61" cy="41" r="1" fill="#ffffff" />
+      </g>
+      <ellipse class="nose" cx="50" cy="49" rx="4" ry="2.8" fill="#1c1917" />
+      <path d="M 45 54 Q 50 58 55 54" stroke="#1c1917" stroke-width="1.5" fill="none" stroke-linecap="round" />
+      <!-- Whiskers -->
+      <g stroke="#fff7ed" stroke-width="0.9" stroke-linecap="round" opacity="0.9">
+        <path d="M 38 51 L 30 49" /><path d="M 38 54 L 30 56" />
+        <path d="M 62 51 L 70 49" /><path d="M 62 54 L 70 56" />
+      </g>
+      <circle cx="34" cy="50" r="3" fill="#f9a8d4" opacity="0.5" />
+      <circle cx="66" cy="50" r="3" fill="#f9a8d4" opacity="0.5" />
+    </g>
+  </g>
+</svg>

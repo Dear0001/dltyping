@@ -1,0 +1,37 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100" width="100" height="100">
+  <g class="phoenix">
+    <!-- Long flame tail feathers -->
+    <g class="tail">
+      <path d="M 52 74 Q 70 96 92 90 Q 78 84 76 74 Z" fill="#dc2626" />
+      <path d="M 52 72 Q 66 90 84 98 Q 72 84 72 72 Z" fill="#f97316" />
+      <path d="M 50 74 Q 60 92 70 100 Q 62 86 64 72 Z" fill="#fbbf24" />
+    </g>
+    <!-- Wings -->
+    <path class="wing-left" d="M 34 54 Q 4 46 8 18 Q 22 30 30 38 Q 18 28 18 12 Q 36 24 44 44 Z" fill="#f97316" />
+    <path class="wing-right" d="M 66 54 Q 96 46 92 18 Q 78 30 70 38 Q 82 28 82 12 Q 64 24 56 44 Z" fill="#f97316" />
+    <path d="M 36 52 Q 18 46 16 30 Q 28 38 38 48 Z" fill="#fbbf24" opacity="0.85" />
+    <path d="M 64 52 Q 82 46 84 30 Q 72 38 62 48 Z" fill="#fbbf24" opacity="0.85" />
+    <!-- Feet -->
+    <path d="M 42 84 L 42 92 M 38 92 L 46 92 M 58 84 L 58 92 M 54 92 L 62 92" stroke="#b45309" stroke-width="2.4" stroke-linecap="round" fill="none" />
+    <!-- Body -->
+    <ellipse class="body" cx="50" cy="66" rx="19" ry="21" fill="#dc2626" />
+    <ellipse cx="50" cy="70" rx="12" ry="15" fill="#fbbf24" />
+    <path d="M 42 64 Q 50 58 58 64 Q 50 62 42 64 Z" fill="#fde047" />
+    <!-- Head -->
+    <g class="head">
+      <!-- Fire crest -->
+      <path d="M 44 26 Q 40 12 46 6 Q 48 16 50 20 Q 52 10 58 4 Q 58 16 56 26 Z" fill="#f97316" />
+      <path d="M 47 26 Q 46 16 50 10 Q 51 18 53 26 Z" fill="#fde047" />
+      <circle cx="50" cy="40" r="17" fill="#dc2626" />
+      <circle cx="50" cy="44" r="12" fill="#fb923c" />
+      <g class="eyes">
+        <circle cx="42" cy="38" r="3.2" fill="#1c1917" />
+        <circle cx="58" cy="38" r="3.2" fill="#1c1917" />
+        <circle cx="43" cy="37" r="1" fill="#ffffff" />
+        <circle cx="59" cy="37" r="1" fill="#ffffff" />
+      </g>
+      <!-- Beak -->
+      <path class="nose" d="M 45 46 L 55 46 L 50 54 Z" fill="#fbbf24" stroke="#b45309" stroke-width="1" stroke-linejoin="round" />
+    </g>
+  </g>
+</svg>

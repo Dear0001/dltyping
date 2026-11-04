@@ -15,8 +15,7 @@
 .pet-art svg .flipper-left,.pet-art svg .flipper-right{transform-origin:50% 0%}
 .pet-art svg .head{transform-origin:50% 100%}
 .pet-art svg .eyes{transform-origin:50% 50%}
-[data-pet=puppy] .pet-art svg :is(.ear-left,.ear-right){transform-origin:50% 0%}
-[data-pet=dragon] .pet-art svg .tail,[data-pet=starlight] .pet-art svg .tail,[data-pet=fox] .pet-art svg .tail{transform-origin:0% 50%}
+[data-pet=cosmo] .pet-art svg .tail,[data-pet=phoenix] .pet-art svg .tail{transform-origin:0% 50%}
 
 /* Eyes and head follow the cursor. `translate`/`rotate` are separate from `transform`, so they combine with the animations below. */
 .pet-art svg .eyes{translate:calc(var(--look,0) * 2.6px) calc(var(--lookY,0) * 1.6px)}
@@ -39,7 +38,6 @@
 .pet-sprite[data-move=waddle]:is([data-anim=walk],[data-anim=follow]) .pet-art{animation:pet-waddle-sway .72s ease-in-out infinite,pet-waddle-bob .36s ease-in-out infinite}
 .pet-sprite[data-move=wobble]:is([data-anim=walk],[data-anim=follow],[data-anim=run]) .pet-art{animation:pet-wobble .9s ease-in-out infinite}
 /* Penguins belly-slide when they run. */
-.pet-sprite[data-pet=penguin][data-anim=run] .pet-art{animation:pet-slide .5s ease-in-out infinite;transform:rotate(calc(var(--face,1) * 78deg)) translateY(8%)}
 
 /* Cat: a low, stretched stalk. Dog/fox: quick, bouncy trot. */
 .pet-sprite[data-move=prowl]:is([data-anim=walk],[data-anim=follow]) .pet-art{animation:pet-prowl 1s ease-in-out infinite}
@@ -112,11 +110,11 @@
 .pet-sprite[data-anim=pounce] .pet-art svg .leg-back{animation:none;rotate:48deg}
 .pet-sprite[data-anim=pounce] .pet-art svg .tail{animation:none;rotate:-20deg}
 /* Cats groom when they sit: head dips down to lick a paw. */
-.pet-sprite[data-pet=cat][data-anim=sit] .pet-art svg .head{animation:pet-groom 3.2s ease-in-out infinite}
+.pet-sprite[data-pet=mochi][data-anim=sit] .pet-art svg .head{animation:pet-groom 3.2s ease-in-out infinite}
 /* Sleeping: tail curled over the body. */
 .pet-sprite[data-view=side][data-anim=sleep] .pet-art svg .tail{animation:none;rotate:78deg}
 .pet-sprite[data-view=side][data-anim=sleep] .pet-art svg .head{rotate:16deg;translate:0 9px}
-.pet-sprite[data-pet=cat][data-anim=sit] .pet-art svg .tail{animation:none;rotate:42deg}
+.pet-sprite[data-pet=mochi][data-anim=sit] .pet-art svg .tail{animation:none;rotate:42deg}
 @keyframes pet-stalk{0%,100%{transform:scale(1.1,.84) translateY(1%)}50%{transform:scale(1.1,.82) translateY(-1%) rotate(calc(var(--face,1) * 1.5deg))}}
 @keyframes pet-crouch-wiggle{0%,100%{transform:scale(1.12,.78) translateX(-2.5%) rotate(calc(var(--face,1) * -1.5deg))}50%{transform:scale(1.12,.78) translateX(2.5%) rotate(calc(var(--face,1) * 1.5deg))}}
 @keyframes pet-pounce{0%{transform:scale(1.1,.88)}35%{transform:translateY(-34%) rotate(calc(var(--face,1) * -12deg)) scale(1.18,.9)}70%{transform:translateY(-6%) rotate(calc(var(--face,1) * 15deg)) scale(1.12,.92)}100%{transform:scale(1.05,.95)}}
@@ -154,7 +152,7 @@
 .pet-art svg .tail{animation:pet-tail-sway 3s ease-in-out infinite}
 .pet-sprite:is([data-anim=happy],[data-anim=excited],[data-anim=celebrate],[data-anim=follow]) .pet-art svg .tail{animation:pet-tail-wag .26s ease-in-out infinite}
 .pet-sprite:is([data-anim=sleep],[data-anim=sit]) .pet-art svg .tail{animation-duration:5s}
-[data-pet=bunny] .pet-art svg .tail,[data-pet=egg] .pet-art svg .tail{animation:none}
+[data-pet=snowy] .pet-art svg .tail{animation:none}
 @keyframes pet-tail-sway{0%,100%{rotate:-5deg}50%{rotate:7deg}}
 @keyframes pet-tail-wag{0%,100%{rotate:-16deg}50%{rotate:18deg}}
 
@@ -163,10 +161,8 @@
 .pet-sprite:is([data-anim=happy],[data-anim=excited],[data-anim=celebrate],[data-anim=startled]) .pet-art svg .ear-left{animation:pet-ear-wiggle .3s ease-in-out infinite}
 .pet-sprite:is([data-anim=happy],[data-anim=excited],[data-anim=celebrate],[data-anim=startled]) .pet-art svg .ear-right{animation:pet-ear-wiggle .3s ease-in-out infinite reverse}
 /* Resting bunny lets its ears droop. */
-.pet-sprite[data-pet=bunny]:is([data-anim=sit],[data-anim=sleep]) .pet-art svg .ear-left{animation:none;rotate:-24deg}
-.pet-sprite[data-pet=bunny]:is([data-anim=sit],[data-anim=sleep]) .pet-art svg .ear-right{animation:none;rotate:24deg}
-[data-pet=puppy] .pet-art svg :is(.ear-left,.ear-right){animation:pet-ear-flop 1.6s ease-in-out infinite}
-.pet-sprite[data-pet=puppy]:is([data-anim=walk],[data-anim=run],[data-anim=follow]) .pet-art svg :is(.ear-left,.ear-right){animation:pet-ear-flop .3s ease-in-out infinite}
+.pet-sprite[data-pet=snowy]:is([data-anim=sit],[data-anim=sleep]) .pet-art svg .ear-left{animation:none;rotate:-24deg}
+.pet-sprite[data-pet=snowy]:is([data-anim=sit],[data-anim=sleep]) .pet-art svg .ear-right{animation:none;rotate:24deg}
 @keyframes pet-ear-twitch{0%,86%,100%{rotate:0deg}90%{rotate:-9deg}94%{rotate:5deg}}
 @keyframes pet-ear-wiggle{0%,100%{rotate:-11deg}50%{rotate:11deg}}
 @keyframes pet-ear-flop{0%,100%{rotate:-3deg}50%{rotate:5deg}}
@@ -179,19 +175,12 @@
 @keyframes pet-wing-flap-l{0%,100%{rotate:6deg}50%{rotate:-26deg}}
 @keyframes pet-wing-flap-r{0%,100%{rotate:-6deg}50%{rotate:26deg}}
 
-.pet-sprite[data-pet=penguin]:is([data-anim=happy],[data-anim=excited],[data-anim=celebrate],[data-anim=stretch],[data-anim=jump]) .pet-art svg .flipper-left{animation:pet-flap-l .22s ease-in-out infinite}
-.pet-sprite[data-pet=penguin]:is([data-anim=happy],[data-anim=excited],[data-anim=celebrate],[data-anim=stretch],[data-anim=jump]) .pet-art svg .flipper-right{animation:pet-flap-r .22s ease-in-out infinite}
-.pet-sprite[data-pet=penguin]:is([data-anim=walk],[data-anim=follow]) .pet-art svg .flipper-left{animation:pet-flap-l .72s ease-in-out infinite}
-.pet-sprite[data-pet=penguin]:is([data-anim=walk],[data-anim=follow]) .pet-art svg .flipper-right{animation:pet-flap-r .72s ease-in-out infinite}
-.pet-sprite[data-pet=penguin]:is([data-anim=walk],[data-anim=follow],[data-anim=run]) .pet-art svg .foot-left{animation:pet-step .72s ease-in-out infinite}
-.pet-sprite[data-pet=penguin]:is([data-anim=walk],[data-anim=follow],[data-anim=run]) .pet-art svg .foot-right{animation:pet-step .72s ease-in-out -.36s infinite}
 @keyframes pet-flap-l{0%,100%{rotate:4deg}50%{rotate:-34deg}}
 @keyframes pet-flap-r{0%,100%{rotate:-4deg}50%{rotate:34deg}}
 @keyframes pet-step{0%,100%{translate:0 0}50%{translate:0 -4px}}
-.pet-sprite[data-pet=penguin]{--leg-a:5deg}
 
 /* Bunny nose twitch while idle. */
-[data-pet=bunny] .pet-art svg .nose{transform-box:fill-box;transform-origin:50% 50%;animation:pet-sniff 2.6s ease-in-out infinite}
+[data-pet=snowy] .pet-art svg .nose{transform-box:fill-box;transform-origin:50% 50%;animation:pet-sniff 2.6s ease-in-out infinite}
 @keyframes pet-sniff{0%,60%,100%{scale:1}70%{scale:1.25 .8}80%{scale:1}85%{scale:1.2 .85}}
 
 /* Sleeping: floating z's. */
@@ -254,3 +243,64 @@ html[data-pet-hover],html[data-pet-hover] body{cursor:url("data:image/svg+xml,%3
 html[data-pet-hover],html[data-pet-hover] body{cursor:grab}
 html[data-pet-drag],html[data-pet-drag] *{cursor:grabbing!important;user-select:none}
 html[data-pet-drag] .pet-body{filter:drop-shadow(0 10px 8px rgb(15 23 42 / .25))}
+
+/* ---------- Signature tricks ----------
+   The companion sets data-trick="<id>" while a pet performs one of its own tricks (see `tricks` in the catalog).
+   Each trick has its own motion, so no two pets idle the same way. Reduced-motion and off modes never start tricks. */
+.pet-sprite[data-trick] .pet-art{transform-origin:50% 100%}
+.pet-sprite[data-trick=loaf] .pet-art{animation:pet-t-loaf 6s ease-in-out 1}
+.pet-sprite[data-trick=knead] .pet-art{animation:pet-t-knead .55s ease-in-out infinite}
+.pet-sprite[data-trick=binky] .pet-art{animation:pet-t-binky .85s ease-out 1}
+.pet-sprite[data-trick=munch] .pet-art svg .head{animation:pet-t-nod .5s ease-in-out infinite}
+.pet-sprite[data-trick=tail-chase] .pet-art{transform-origin:50% 60%;animation:pet-t-spin 2.4s ease-in-out 1}
+.pet-sprite[data-trick=barrel-roll] .pet-art{transform-origin:50% 55%;animation:pet-t-spin 1.6s ease-in-out 1}
+.pet-sprite[data-trick=rear] .pet-art{animation:pet-t-rear 1.5s ease-in-out 1}
+.pet-sprite[data-trick=twirl] .pet-art{animation:pet-t-twirl 2s ease-in-out 1;filter:drop-shadow(0 0 6px #f0abfc)}
+.pet-sprite[data-trick=roar] .pet-art{animation:pet-t-roar 1.8s ease-in-out 1}
+.pet-sprite[data-trick=loop] .pet-art{transform-origin:50% 50%;animation:pet-t-loop 1.9s ease-in-out 1}
+.pet-sprite[data-trick=blaze] .pet-art{animation:pet-t-blaze 2.4s ease-in-out 1}
+.pet-sprite[data-trick=vanish] .pet-art{animation:pet-t-vanish 3.5s ease-in-out 1}
+.pet-sprite[data-trick=spook] .pet-art{animation:pet-t-spook 1.9s ease-in-out 1}
+.pet-sprite[data-trick=trumpet] .pet-art{animation:pet-t-trumpet 1.6s ease-in-out 1}
+.pet-sprite[data-trick=trumpet] .pet-art svg .trunk{transform-box:fill-box;transform-origin:50% 0%;animation:pet-t-trunk 1.6s ease-in-out 1}
+.pet-sprite[data-trick=ear-flap] .pet-art{animation:pet-t-hover 2.4s ease-in-out 1}
+.pet-sprite[data-trick=ear-flap] .pet-art svg :is(.ear-left,.ear-right){transform-box:fill-box;animation:pet-t-ear .22s ease-in-out infinite alternate}
+.pet-sprite[data-trick=shiver] .pet-art{animation:pet-t-shiver .09s linear infinite}
+.pet-sprite[data-trick=melt] .pet-art{animation:pet-t-melt 3.5s ease-in-out 1}
+.pet-sprite[data-trick=moonglow] .pet-art{animation:pet-t-glow 4s ease-in-out 1}
+.pet-sprite[data-trick=moonleap] .pet-art{animation:pet-t-moonleap 1.6s ease-in-out 1}
+.pet-sprite[data-trick=screech] .pet-art{animation:pet-t-roar 1.6s ease-in-out 1}
+.pet-sprite[data-trick=screech] .pet-art svg .wing-left{animation:pet-wing-flap-l .25s ease-in-out infinite}
+.pet-sprite[data-trick=screech] .pet-art svg .wing-right{animation:pet-wing-flap-r .25s ease-in-out infinite}
+.pet-sprite[data-trick=dive] .pet-art{animation:pet-t-dive 1.9s ease-in-out 1}
+
+/* Always-on traits that set a few pets apart */
+.pet-sprite[data-pet=boo]:is([data-anim=idle],[data-anim=blink]) .pet-art{animation:pet-t-float 2.6s ease-in-out infinite}
+.pet-sprite[data-pet=boo] .pet-art svg{opacity:.92}
+.pet-sprite[data-pet=dumbo]:is([data-anim=walk],[data-anim=follow]) .pet-art svg :is(.ear-left,.ear-right){transform-box:fill-box;animation:pet-t-ear .9s ease-in-out infinite alternate}
+[data-pet=dumbo] .pet-art svg .ear-left{transform-origin:100% 35%}
+[data-pet=dumbo] .pet-art svg .ear-right{transform-origin:0% 35%}
+[data-pet=dumbo] .pet-art svg .ear-right{--ear-dir:-1}
+
+@keyframes pet-t-loaf{0%,100%{transform:none}14%,86%{transform:scale(1.16,.74)}}
+@keyframes pet-t-knead{0%,100%{transform:scale(1.02,.98)}50%{transform:scale(.98,1.03)}}
+@keyframes pet-t-binky{0%{transform:none}30%{transform:translateY(-38%) rotate(-22deg)}58%{transform:translateY(-34%) rotate(22deg)}85%{transform:translateY(-4%) rotate(0)}100%{transform:none}}
+@keyframes pet-t-nod{0%,100%{transform:none}50%{transform:translateY(5%) rotate(7deg)}}
+@keyframes pet-t-spin{0%{transform:rotate(0)}100%{transform:rotate(720deg)}}
+@keyframes pet-t-rear{0%,100%{transform:none}25%,70%{transform:rotate(-24deg) translateY(-6%) scale(1.08)}}
+@keyframes pet-t-twirl{0%,100%{transform:scaleX(1)}12%{transform:scaleX(.05)}25%{transform:scaleX(-1)}37%{transform:scaleX(.05)}50%{transform:scaleX(1)}62%{transform:scaleX(.05)}75%{transform:scaleX(-1)}87%{transform:scaleX(.05)}}
+@keyframes pet-t-roar{0%,100%{transform:none}12%{transform:scale(1.3) rotate(-5deg)}28%{transform:scale(1.26) rotate(5deg)}44%{transform:scale(1.3) rotate(-5deg)}60%{transform:scale(1.26) rotate(4deg)}78%{transform:scale(1.12)}}
+@keyframes pet-t-loop{0%{transform:translateY(0) rotate(0)}50%{transform:translateY(-52%) rotate(180deg)}100%{transform:translateY(0) rotate(360deg)}}
+@keyframes pet-t-blaze{0%,100%{transform:none;filter:none}20%,60%{transform:scale(1.25);filter:brightness(1.35) drop-shadow(0 0 10px #fbbf24)}40%{transform:scale(1.1);filter:brightness(1.2) drop-shadow(0 0 6px #f97316)}}
+@keyframes pet-t-vanish{0%{opacity:1}18%,80%{opacity:.04}90%{opacity:1;transform:scale(1.28)}100%{opacity:1;transform:none}}
+@keyframes pet-t-spook{0%,100%{transform:none}14%{transform:scale(1.42) rotate(-7deg)}30%{transform:scale(1.32) rotate(7deg)}46%{transform:scale(1.42) rotate(-5deg)}70%{transform:scale(1.15)}}
+@keyframes pet-t-trumpet{0%,100%{transform:none}25%,75%{transform:rotate(-9deg) scale(1.1)}}
+@keyframes pet-t-trunk{0%,100%{transform:none}25%,75%{transform:rotate(-28deg) scaleY(1.25)}}
+@keyframes pet-t-hover{0%,100%{transform:none}25%,75%{transform:translateY(-14%)}}
+@keyframes pet-t-ear{from{transform:rotate(0) scaleX(1)}to{transform:rotate(calc(var(--ear-dir,1) * 22deg)) scaleX(.78)}}
+@keyframes pet-t-shiver{0%,100%{transform:translateX(0)}25%{transform:translateX(-3.5%)}75%{transform:translateX(3.5%)}}
+@keyframes pet-t-melt{0%,100%{transform:none}30%,70%{transform:scale(1.22,.5)}}
+@keyframes pet-t-glow{0%,100%{filter:none}30%,70%{filter:brightness(1.18) drop-shadow(0 0 12px #fde047)}50%{filter:brightness(.82) drop-shadow(0 0 4px #818cf8)}}
+@keyframes pet-t-moonleap{0%,100%{transform:none}50%{transform:translateY(-130%) scale(.94,1.1)}}
+@keyframes pet-t-dive{0%,100%{transform:none}28%{transform:translateY(-42%) rotate(-8deg)}58%{transform:translateY(6%) rotate(30deg) scale(.92)}80%{transform:translateY(-6%) rotate(8deg)}}
+@keyframes pet-t-float{0%,100%{transform:translateY(0)}50%{transform:translateY(-6%)}}

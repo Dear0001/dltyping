@@ -75,6 +75,8 @@ export type BrainState = {
   mouse: boolean;
   /** Dashes still to run in a burst of zoomies. */
   zoom: number;
+  /** Id of the signature trick being performed (see `tricks` in the catalog), or null. */
+  trick: string | null;
 };
 
 const TRANSIENT: Partial<Record<PetAnim, number>> = { jump: 0.85, stretch: 1.5, startled: 0.7, happy: 1.25, excited: 1.9, celebrate: 2.9 };
@@ -85,6 +87,8 @@ const VERTICAL_WEIGHT = 0.4;
 /** Friendly, curious pets notice the cursor from further away. */
 export const noticeRadius = (def: PetDefinition) => (NOTICE_BASE + NOTICE_CURIOSITY * def.traits.curiosity) * (0.6 + 1.2 * def.traits.friendliness * def.traits.curiosity);
 const SLEEP_AFTER = 28;
+/** Chance that an idle moment becomes one of the pet's signature tricks. */
+const TRICK_CHANCE = 0.22;
 const range = (rand: Rand, lo: number, hi: number) => lo + rand() * (hi - lo);
 const clamp = (v: number, lo: number, hi: number) => Math.min(hi, Math.max(lo, v));
 
@@ -92,7 +96,7 @@ export function createBrain(def: PetDefinition, x: number, rand: Rand): BrainSta
   return {
     x, vx: 0, face: 1, anim: "idle", animT: 0, animDur: 0, goal: null, idleFor: 0, nextIdle: range(rand, def.idle[0], def.idle[1]),
     sinceInput: 0, look: 0, lookY: 0, lookGoal: 0, lookHold: 0, noticeCd: 0, noticed: false, closeFlag: false, outT: 0, followT: 0,
-    arrived: false, blinkT: range(rand, 1.5, 4), blinking: 0, speechCd: 0, say: null, fx: null, lastReaction: -1, counter: 0, protect: false, air: 0, cruise: 0, stalkPhase: "move", phaseT: 0, phaseDur: 0, mouse: false, zoom: 0,
+    arrived: false, blinkT: range(rand, 1.5, 4), blinking: 0, speechCd: 0, say: null, fx: null, lastReaction: -1, counter: 0, protect: false, air: 0, cruise: 0, stalkPhase: "move", phaseT: 0, phaseDur: 0, mouse: false, zoom: 0, trick: null,
   };
 }
 
@@ -121,6 +125,7 @@ function setAnim(s: BrainState, def: PetDefinition, anim: PetAnim, motion: Motio
   else if (motion === "reduced" && anim !== "sit" && anim !== "sleep") want = "idle";
   const resolved = resolveAnim(def, want);
   if (resolved === s.anim && duration === undefined) return;
+  s.trick = null; // any change of animation ends a trick; startTrick sets it again right after
   s.anim = resolved;
   s.animT = 0;
   s.animDur = duration ?? TRANSIENT[resolved] ?? 0;
@@ -140,6 +145,7 @@ function emoji(s: BrainState, symbol: string) {
 }
 
 function settle(s: BrainState, def: PetDefinition, rand: Rand) {
+  s.trick = null;
   s.anim = "idle";
   s.animT = 0;
   s.animDur = 0;
@@ -340,6 +346,7 @@ export function stepBrain(s: BrainState, def: PetDefinition, inp: StepInput, ran
   if (s.protect && !(s.animDur > 0)) s.protect = false;
   if (s.animDur > 0 && s.animT >= s.animDur) {
     s.protect = false;
+    s.trick = null;
     if (s.anim === "sit" || s.anim === "sleep") settle(s, def, rand);
     // Arrived next to the cursor: stand by it. Otherwise keep walking toward the goal.
     else if (s.goal?.kind === "follow" && s.arrived) { s.anim = "idle"; s.animT = 0; s.animDur = 0; }
@@ -365,13 +372,25 @@ export function stepBrain(s: BrainState, def: PetDefinition, inp: StepInput, ran
     ];
     const total = options.reduce((a, [, w]) => a + w, 0);
     let roll = rand() * total;
-    const choice = options.find(([, w]) => (roll -= w) < 0)?.[0] ?? "look";
+    let choice = options.find(([, w]) => (roll -= w) < 0)?.[0] ?? "look";
+    // Signature tricks are a separate small roll, so they never crowd out a pet's core habits (stalking, zoomies...).
+    // They are visible moves, so they only run at full motion.
+    if (inp.motion === "full" && def.tricks.length && rand() < TRICK_CHANCE) {
+      let pick = rand() * def.tricks.reduce((a, t) => a + t.weight, 0);
+      choice = `trick:${(def.tricks.find((t) => (pick -= t.weight) < 0) ?? def.tricks[0]).id}`;
+    }
     s.idleFor = 0;
     s.nextIdle = range(rand, def.idle[0], def.idle[1]);
     if (choice === "wander") {
       const dir = rand() < 0.5 ? -1 : 1;
       s.goal = { kind: "wander", x: clamp(s.x + dir * range(rand, 110, 420), inp.minX, inp.maxX) };
       s.cruise = range(rand, inp.size * 0.5, inp.size * 2); // flyers pick a new height for each trip
+    } else if (choice.startsWith("trick:")) {
+      const trick = def.tricks.find((t) => `trick:${t.id}` === choice)!;
+      setAnim(s, def, trick.anim, inp.motion, trick.seconds);
+      s.trick = trick.id;
+      emoji(s, trick.emoji);
+      if (trick.say) speak(s, trick.say, rand, inp.speech);
     } else if (choice === "mouse") {
       const dir = rand() < 0.5 ? -1 : 1;
       startStalk(s, rand, clamp(s.x + dir * range(rand, 120, 230), inp.minX, inp.maxX), true);

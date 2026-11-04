@@ -1,0 +1,215 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 600 700" width="100%" height="100%">
+  <defs>
+    <!-- Soft 3D Shading Gradients -->
+    <radialGradient id="furWhite" cx="50%" cy="35%" r="60%">
+      <stop offset="0%" stop-color="#FFFFFF" />
+      <stop offset="70%" stop-color="#FDF5F0" />
+      <stop offset="100%" stop-color="#F2DDD5" />
+    </radialGradient>
+
+    <radialGradient id="bodyShade" cx="50%" cy="30%" r="65%">
+      <stop offset="0%" stop-color="#FFFDFB" />
+      <stop offset="65%" stop-color="#F8E7DF" />
+      <stop offset="100%" stop-color="#E8CEC2" />
+    </radialGradient>
+
+    <linearGradient id="earPink" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#FF6B5B" />
+      <stop offset="60%" stop-color="#F4796B" />
+      <stop offset="100%" stop-color="#E5989B" />
+    </linearGradient>
+
+    <radialGradient id="patchOrange" cx="50%" cy="50%" r="50%">
+      <stop offset="0%" stop-color="#FFAD60" stop-opacity="0.9" />
+      <stop offset="60%" stop-color="#FFBE7B" stop-opacity="0.7" />
+      <stop offset="100%" stop-color="#FFD6A5" stop-opacity="0" />
+    </radialGradient>
+
+    <radialGradient id="patchYellow" cx="50%" cy="50%" r="50%">
+      <stop offset="0%" stop-color="#FFD175" stop-opacity="0.85" />
+      <stop offset="65%" stop-color="#FFE19C" stop-opacity="0.6" />
+      <stop offset="100%" stop-color="#FFF0C9" stop-opacity="0" />
+    </radialGradient>
+
+    <radialGradient id="eyeIris" cx="50%" cy="65%" r="55%">
+      <stop offset="0%" stop-color="#E67E22" />
+      <stop offset="55%" stop-color="#B8560F" />
+      <stop offset="85%" stop-color="#6E2C00" />
+      <stop offset="100%" stop-color="#3E1700" />
+    </radialGradient>
+
+    <linearGradient id="nosePink" x1="0%" y1="0%" x2="0%" y2="100%">
+      <stop offset="0%" stop-color="#FFA6B8" />
+      <stop offset="100%" stop-color="#E86F88" />
+    </linearGradient>
+
+    <filter id="softShadow" x="-15%" y="-15%" width="130%" height="130%">
+      <feDropShadow dx="0" dy="10" stdDeviation="12" flood-color="#A66B56" flood-opacity="0.25" />
+    </filter>
+
+    <filter id="eyeShadow" x="-10%" y="-10%" width="120%" height="120%">
+      <feDropShadow dx="0" dy="3" stdDeviation="3" flood-color="#7A4938" flood-opacity="0.35" />
+    </filter>
+  </defs>
+
+  <!-- ================= BODY & LEGS ================= -->
+  <g id="body-group" class="body" filter="url(#softShadow)">
+    <!-- Back Haunches -->
+    <ellipse cx="240" cy="545" rx="52" ry="70" fill="url(#bodyShade)" transform="rotate(-12 240 545)" />
+    <ellipse cx="365" cy="545" rx="52" ry="70" fill="url(#bodyShade)" transform="rotate(12 365 545)" />
+
+    <!-- Back Haunch Orange Patches -->
+    <ellipse cx="205" cy="535" rx="25" ry="45" fill="url(#patchOrange)" transform="rotate(-10 205 535)" />
+    <ellipse cx="400" cy="535" rx="25" ry="45" fill="url(#patchOrange)" transform="rotate(10 400 535)" />
+
+    <!-- Back Paws -->
+    <g id="back-left-paw">
+      <ellipse cx="195" cy="605" rx="28" ry="20" fill="url(#bodyShade)" />
+      <ellipse cx="182" cy="608" rx="12" ry="15" fill="url(#furWhite)" />
+      <ellipse cx="200" cy="612" rx="13" ry="16" fill="url(#furWhite)" />
+    </g>
+    <g id="back-right-paw">
+      <ellipse cx="410" cy="605" rx="28" ry="20" fill="url(#bodyShade)" />
+      <ellipse cx="422" cy="608" rx="12" ry="15" fill="url(#furWhite)" />
+      <ellipse cx="405" cy="612" rx="13" ry="16" fill="url(#furWhite)" />
+    </g>
+
+    <!-- Main Torso -->
+    <path d="M 245,400 C 215,460 215,550 230,600 L 375,600 C 390,550 390,460 360,400 Z" fill="url(#bodyShade)" />
+
+    <!-- Chest / Belly Highlight -->
+    <ellipse cx="302" cy="500" rx="55" ry="70" fill="url(#furWhite)" opacity="0.7" />
+
+    <!-- Front Left Leg -->
+    <path d="M 232,465 C 230,520 232,575 230,615 L 282,615 C 280,575 282,530 285,495 Z" fill="url(#furWhite)" />
+    <!-- Front Left Leg Patch -->
+    <ellipse cx="250" cy="542" rx="22" ry="20" fill="url(#patchOrange)" transform="rotate(15 250 542)" />
+
+    <!-- Front Right Leg -->
+    <path d="M 372,465 C 374,520 372,575 374,615 L 322,615 C 324,575 322,530 319,495 Z" fill="url(#furWhite)" />
+    <!-- Front Right Leg Patch -->
+    <ellipse cx="355" cy="545" rx="22" ry="20" fill="url(#patchOrange)" transform="rotate(-20 355 545)" />
+
+    <!-- Front Left Paw (Viewer's Left) -->
+    <g id="front-left-paw">
+      <ellipse cx="252" cy="625" rx="36" ry="22" fill="url(#bodyShade)" />
+      <ellipse cx="230" cy="626" rx="14" ry="18" fill="url(#furWhite)" />
+      <ellipse cx="252" cy="630" rx="15" ry="19" fill="url(#furWhite)" />
+      <ellipse cx="274" cy="626" rx="14" ry="18" fill="url(#furWhite)" />
+    </g>
+
+    <!-- Front Right Paw (Viewer's Right) -->
+    <g id="front-right-paw">
+      <ellipse cx="354" cy="625" rx="36" ry="22" fill="url(#bodyShade)" />
+      <ellipse cx="332" cy="626" rx="14" ry="18" fill="url(#furWhite)" />
+      <ellipse cx="354" cy="630" rx="15" ry="19" fill="url(#furWhite)" />
+      <ellipse cx="376" cy="626" rx="14" ry="18" fill="url(#furWhite)" />
+    </g>
+  </g>
+
+  <!-- ================= HEAD & EARS ================= -->
+  <g id="head-group" class="head" filter="url(#softShadow)">
+    <!-- Left Ear (Viewer's Left) -->
+    <path d="M 162,265 C 125,180 120,100 140,85 C 160,70 235,115 280,165 Z" fill="url(#furWhite)" />
+    <!-- Left Ear Orange Spot -->
+    <ellipse cx="212" cy="115" rx="22" ry="14" fill="url(#patchYellow)" transform="rotate(32 212 115)" />
+    <!-- Left Inner Ear -->
+    <path d="M 172,240 C 142,180 138,118 150,105 C 162,95 215,135 245,175 C 225,205 195,235 172,240 Z" fill="url(#earPink)" />
+    <!-- Left Ear Fluffy Edge -->
+    <path d="M 245,175 L 232,182 L 242,190 L 228,196 L 236,205 L 220,212 L 225,222 L 172,240 Z" fill="url(#furWhite)" opacity="0.85" />
+
+    <!-- Right Ear (Viewer's Right) -->
+    <path d="M 442,255 C 478,165 480,85 458,68 C 436,52 360,105 318,160 Z" fill="url(#furWhite)" />
+    <!-- Right Ear Orange Spot -->
+    <ellipse cx="385" cy="95" rx="22" ry="12" fill="url(#patchOrange)" transform="rotate(-30 385 95)" />
+    <!-- Right Inner Ear -->
+    <path d="M 430,230 C 458,168 462,105 448,92 C 435,80 382,125 355,168 C 375,198 405,225 430,230 Z" fill="url(#earPink)" />
+    <!-- Right Ear Fluffy Edge -->
+    <path d="M 355,168 L 368,175 L 358,184 L 372,190 L 364,200 L 380,206 L 375,216 L 430,230 Z" fill="url(#furWhite)" opacity="0.85" />
+
+    <!-- Cheek Fur Tufts (Left) -->
+    <path d="M 168,325 L 146,320 L 162,338 L 144,344 L 164,354 L 150,362 L 172,368 L 160,376 L 185,382 Z" fill="url(#furWhite)" />
+    <!-- Cheek Fur Tufts (Right) -->
+    <path d="M 436,315 L 460,305 L 444,326 L 462,332 L 440,344 L 456,352 L 432,360 L 446,368 L 420,375 Z" fill="url(#furWhite)" />
+
+    <!-- Top Head Fur Tuft -->
+    <path d="M 275,152 L 282,138 L 292,148 L 302,136 L 312,148 L 322,139 L 328,152 Z" fill="url(#furWhite)" />
+
+    <!-- Main Head Shape -->
+    <path d="M 302,145 C 210,145 158,215 158,310 C 158,385 205,425 302,425 C 399,425 446,385 446,310 C 446,215 394,145 302,145 Z" fill="url(#furWhite)" />
+
+    <!-- Forehead & Cheek Markings -->
+    <!-- Top Forehead Clover/Butterfly Spot -->
+    <ellipse cx="285" cy="182" rx="24" ry="20" fill="url(#patchYellow)" transform="rotate(-15 285 182)" />
+    <ellipse cx="318" cy="182" rx="24" ry="20" fill="url(#patchYellow)" transform="rotate(15 318 182)" />
+    <!-- Center Forehead Vertical Teardrop Spot -->
+    <path d="M 282,218 C 282,205 320,205 320,218 C 320,242 310,268 301,268 C 292,268 282,242 282,218 Z" fill="url(#patchOrange)" />
+    <!-- Left Cheek Orange Spot -->
+    <ellipse cx="176" cy="335" rx="22" ry="34" fill="url(#patchOrange)" transform="rotate(8 176 335)" />
+    <!-- Right Cheek Yellow Spot -->
+    <ellipse cx="426" cy="298" rx="24" ry="38" fill="url(#patchYellow)" transform="rotate(-10 426 298)" />
+
+    <!-- Eyebrows -->
+    <path d="M 205,260 Q 232,240 262,252" fill="none" stroke="#F39C55" stroke-width="5.5" stroke-linecap="round" />
+    <path d="M 342,244 Q 372,232 398,255" fill="none" stroke="#F39C55" stroke-width="5.5" stroke-linecap="round" />
+
+    <!-- ================= EYES ================= -->
+    <!-- Left Eye (Viewer's Left) -->
+    <g id="left-eye" class="eyes" filter="url(#eyeShadow)">
+      <!-- Eye Socket / Sclera -->
+      <ellipse cx="238" cy="316" rx="42" ry="45" fill="#FFFDFB" stroke="#D2A695" stroke-width="2" />
+      <!-- Amber Iris -->
+      <ellipse cx="240" cy="317" rx="36" ry="39" fill="url(#eyeIris)" />
+      <!-- Dark Pupil -->
+      <ellipse cx="242" cy="317" rx="24" ry="27" fill="#140904" />
+      <!-- Main Catchlight -->
+      <ellipse cx="226" cy="298" rx="9" ry="12" fill="#FFFFFF" transform="rotate(-20 226 298)" />
+      <!-- Secondary Catchlight -->
+      <circle cx="256" cy="334" r="3.5" fill="#FFFFFF" opacity="0.8" />
+      <!-- Upper Eyelid Rim -->
+      <path d="M 196,312 A 42,45 0 0,1 280,312" fill="none" stroke="#5C3324" stroke-width="3.5" stroke-linecap="round" />
+    </g>
+
+    <!-- Right Eye (Viewer's Right) -->
+    <g id="right-eye" class="eyes" filter="url(#eyeShadow)">
+      <!-- Eye Socket / Sclera -->
+      <ellipse cx="368" cy="310" rx="43" ry="46" fill="#FFFDFB" stroke="#D2A695" stroke-width="2" />
+      <!-- Amber Iris -->
+      <ellipse cx="366" cy="311" rx="37" ry="40" fill="url(#eyeIris)" />
+      <!-- Dark Pupil -->
+      <ellipse cx="364" cy="311" rx="25" ry="28" fill="#140904" />
+      <!-- Main Catchlight -->
+      <ellipse cx="380" cy="294" rx="10" ry="13" fill="#FFFFFF" transform="rotate(25 380 294)" />
+      <!-- Secondary Catchlight -->
+      <circle cx="348" cy="328" r="3.5" fill="#FFFFFF" opacity="0.8" />
+      <!-- Upper Eyelid Rim -->
+      <path d="M 325,306 A 43,46 0 0,1 411,306" fill="none" stroke="#5C3324" stroke-width="3.5" stroke-linecap="round" />
+    </g>
+
+    <!-- ================= MUZZLE, NOSE & MOUTH ================= -->
+    <g id="muzzle">
+      <!-- Open Mouth Cavity -->
+      <path d="M 290,362 Q 302,385 314,362 Z" fill="#6E1E2A" />
+      <!-- Pink Tongue -->
+      <path d="M 294,368 Q 302,379 310,368 Q 302,364 294,368 Z" fill="#EB5E73" />
+
+      <!-- Puffy Muzzle Cheeks -->
+      <ellipse cx="282" cy="352" rx="26" ry="18" fill="url(#furWhite)" />
+      <ellipse cx="322" cy="352" rx="26" ry="18" fill="url(#furWhite)" />
+
+      <!-- Smile Line -->
+      <path d="M 256,356 Q 282,372 302,356 Q 322,372 348,356" fill="none" stroke="#C89688" stroke-width="3" stroke-linecap="round" />
+
+      <!-- Cute Pink Nose -->
+      <path d="M 288,336 C 288,330 316,330 316,336 C 316,343 306,350 302,350 C 298,350 288,343 288,336 Z" fill="url(#nosePink)" />
+      <!-- Nose Highlight -->
+      <ellipse cx="299" cy="335" rx="6" ry="2.5" fill="#FFD1DC" opacity="0.7" />
+
+      <!-- Whisker Dots -->
+      <circle cx="278" cy="348" r="1.8" fill="#CFA598" />
+      <circle cx="270" cy="354" r="1.5" fill="#CFA598" />
+      <circle cx="326" cy="348" r="1.8" fill="#CFA598" />
+      <circle cx="334" cy="354" r="1.5" fill="#CFA598" />
+    </g>
+  </g>
+</svg>

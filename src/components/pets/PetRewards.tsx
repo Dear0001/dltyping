@@ -9,7 +9,7 @@ import { useTypingProgress } from "@/hooks/useTypingProgress";
 import { getPet, RARITIES } from "@/lib/pets/pet-catalog";
 import { emitPetEvent } from "@/lib/pets/pet-events";
 import { evaluateRewards } from "@/lib/pets/pet-rewards";
-import { dismissPending, grantAllPets, readPetState, revokeAccountGrants, selectPet, writePetState } from "@/lib/pets/pet-storage";
+import { activatePet, activeIds, dismissPending, grantAllPets, readPetState, revokeAccountGrants, writePetState } from "@/lib/pets/pet-storage";
 
 // Fixed burst directions, so rendering stays pure.
 const CONFETTI = ["🎉", "⭐", "✨", "💙", "🎊", "🌟", "💫", "🎈"].map((symbol, i) => {
@@ -18,7 +18,7 @@ const CONFETTI = ["🎉", "⭐", "✨", "💙", "🎊", "🌟", "💫", "🎈"].
 });
 
 /**
- * Grants pets from real saved sessions and announces them. It runs when saved sessions change,
+ * Grants pets from real saved sessions (only while signed in) and announces them. It runs when saved sessions change,
  * never on page load alone: opening or refreshing the site cannot create a reward, and a pet
  * that was already granted is never granted again.
  */
@@ -36,17 +36,17 @@ export default function PetRewards() {
   }, [allPets, account.status, hydrated]);
 
   useEffect(() => {
-    if (!hydrated) return;
+    if (!hydrated || account.status !== "user") return; // streak rewards need an account
     const result = evaluateRewards(readPetState(), store.sessions, new Date());
     if (!result.unlocked.length) return;
     writePetState(result.state);
     emitPetEvent({ type: "unlock" });
-  }, [store.sessions, hydrated]);
+  }, [store.sessions, hydrated, account.status]);
 
   const pet = getPet(state.pending[0]);
   if (!hydrated || !pet) return null;
   const rarity = RARITIES[pet.rarity];
-  const isActive = state.active === pet.id;
+  const isActive = activeIds(state).includes(pet.id);
 
   return (
     <div className="pet-toast" role="status" aria-live="polite">
@@ -61,7 +61,7 @@ export default function PetRewards() {
       <p className="mt-1 text-sm text-slate-600">You reached a {pet.unlockStreak}-day practice streak. {pet.tagline}</p>
       {state.pending.length > 1 && <p className="mt-1 text-xs text-slate-500">{state.pending.length - 1} more waiting after this one.</p>}
       <div className="mt-3 flex flex-wrap gap-2">
-        {!isActive && <button type="button" className="rounded-xl bg-brand px-4 py-2 text-sm font-bold text-white hover:brightness-110" onClick={() => { selectPet(pet.id); dismissPending(pet.id); }}>Make it my companion</button>}
+        {!isActive && <button type="button" className="rounded-xl bg-brand px-4 py-2 text-sm font-bold text-white hover:brightness-110" onClick={() => { activatePet(pet.id); dismissPending(pet.id); }}>Add to my pets</button>}
         <Link href="/pets" className="rounded-xl border border-slate-200 px-4 py-2 text-sm font-bold hover:border-brand hover:text-brand" onClick={() => dismissPending(pet.id)}>See collection</Link>
         <button type="button" className="rounded-xl px-3 py-2 text-sm font-semibold text-slate-500 hover:text-navy" onClick={() => dismissPending(pet.id)}>{isActive ? "Great!" : "Later"}</button>
       </div>

@@ -7,6 +7,7 @@ import DashboardShell from "@/components/dashboard/DashboardShell";
 import { BarChart, ChartCard, ComparisonBars, LineChart, type ChartPoint } from "@/components/dashboard/PerformanceChart";
 import StatCard from "@/components/dashboard/StatCard";
 import { useUserProgress } from "@/hooks/use-stored-value";
+import { useAccount } from "@/lib/account";
 import { useNow, useTypingProgress } from "@/hooks/useTypingProgress";
 import { buildDashboard, formatDuration, RANGES, type RangeId } from "@/lib/progress/progress-analytics";
 import { clearProgress } from "@/lib/progress/progress-storage";
@@ -14,6 +15,7 @@ import { clearProgress } from "@/lib/progress/progress-storage";
 export default function DashboardOverview() {
   const { store, hydrated, isEmpty } = useTypingProgress();
   const userProgress = useUserProgress();
+  const signedIn = useAccount().status === "user";
   const [range, setRange] = useState<RangeId>("30d");
   const now = useNow();
   const data = useMemo(() => buildDashboard(store, range, now), [store, range, now]);
@@ -59,7 +61,9 @@ export default function DashboardOverview() {
             <StatCard icon="⏱️" label="Practice time" value={none(formatDuration(data.overview.practiceSeconds))} accent="sky" hint={`in ${rangeLabel}`} />
             <StatCard icon="📘" label="Completed lessons" value={lessonsDone} hint="All time, from the Learn path" accent="navy" tooltip="Lessons you marked complete in the Learn curriculum. Not limited by the time range." />
             <StatCard icon="🎮" label="Completed games" value={none(data.overview.gamesCompleted)} hint={`runs in ${rangeLabel}`} />
-            <StatCard icon="🔥" label="Daily streak" value={data.streak} unit={data.streak === 1 ? "day" : "days"} accent="sky" hint={data.streak ? "Keep it going today" : "Practice today to start one"} tooltip="Consecutive days with a finished session of 20+ correct characters. Today or yesterday keeps it current. Streaks unlock pets." />
+            {signedIn
+              ? <StatCard icon="🔥" label="Daily streak" value={data.streak} unit={data.streak === 1 ? "day" : "days"} accent="sky" hint={data.streak ? "Keep it going today" : "Practice today to start one"} tooltip="Consecutive days with a finished session of 20+ correct characters. Today or yesterday keeps it current. Streaks unlock pets." />
+              : <StatCard icon="🔒" label="Daily streak" value="Locked" accent="sky" hint="Sign in to unlock streaks" tooltip="Streaks and the pets they unlock are for signed-in accounts. Use Sign in at the top of the page; your practice on this device counts once you do." />}
           </section>
 
           {!hasData && (

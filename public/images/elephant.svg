@@ -1,0 +1,35 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100" width="100" height="100">
+  <g class="elephant">
+    <path class="tail" d="M 70 76 Q 84 78 84 90 M 84 90 L 82 94 M 84 90 L 86 94" stroke="#94a3b8" stroke-width="3" fill="none" stroke-linecap="round" />
+    <!-- Legs -->
+    <rect x="30" y="80" width="14" height="14" rx="6" fill="#7b8ba1" />
+    <rect x="56" y="80" width="14" height="14" rx="6" fill="#7b8ba1" />
+    <!-- Body -->
+    <ellipse class="body" cx="50" cy="70" rx="24" ry="20" fill="#94a3b8" />
+    <ellipse cx="50" cy="76" rx="14" ry="12" fill="#b6c2d2" />
+    <!-- Head -->
+    <g class="head">
+      <!-- Big floppy ears -->
+      <g class="ear-left">
+        <ellipse cx="22" cy="40" rx="17" ry="20" fill="#94a3b8" />
+        <ellipse cx="23" cy="41" rx="11" ry="14" fill="#f9a8d4" opacity="0.8" />
+      </g>
+      <g class="ear-right">
+        <ellipse cx="78" cy="40" rx="17" ry="20" fill="#94a3b8" />
+        <ellipse cx="77" cy="41" rx="11" ry="14" fill="#f9a8d4" opacity="0.8" />
+      </g>
+      <circle cx="50" cy="42" r="21" fill="#a3b1c4" />
+      <!-- Trunk -->
+      <path class="trunk" d="M 44 50 Q 44 72 54 76 Q 62 78 62 70 M 56 50 Q 56 64 54 66" stroke="#a3b1c4" stroke-width="9" fill="none" stroke-linecap="round" />
+      <path d="M 46 56 L 56 56 M 47 62 L 56 62" stroke="#8494aa" stroke-width="1.2" stroke-linecap="round" />
+      <g class="eyes">
+        <circle cx="41" cy="39" r="3.2" fill="#1c1917" />
+        <circle cx="59" cy="39" r="3.2" fill="#1c1917" />
+        <circle cx="42" cy="38" r="1" fill="#ffffff" />
+        <circle cx="60" cy="38" r="1" fill="#ffffff" />
+      </g>
+      <circle cx="36" cy="48" r="3" fill="#f9a8d4" opacity="0.5" />
+      <circle cx="64" cy="48" r="3" fill="#f9a8d4" opacity="0.5" />
+    </g>
+  </g>
+</svg>

@@ -7,6 +7,7 @@ import ContinueCard from "@/components/learn/ContinueCard";
 import { secondaryBtn } from "@/components/games/shared/GameDialog";
 import { curricula, levelLabels, levelColors, courseProgress, getAllLessons } from "@/data/curriculum";
 import { useUserProgress } from "@/hooks/use-stored-value";
+import { useAccount } from "@/lib/account";
 import { levelFromXp, xpForLevel, LEVEL_TITLES } from "@/lib/local-progress";
 import type { Language } from "@/types";
 
@@ -49,6 +50,8 @@ function XpBar({ xp }: { xp: number }) {
 }
 
 function StreakBadge({ streak }: { streak: number }) {
+  const signedIn = useAccount().status === "user";
+  if (!signedIn) return <span className="inline-flex items-center gap-1.5 rounded-full bg-slate-100 px-3 py-1.5 text-xs font-bold text-mute ring-1 ring-slate-200">🔒 Sign in to unlock streaks</span>;
   if (!streak) return null;
   return (
     <span className="inline-flex items-center gap-1.5 rounded-full bg-amber-50 px-3 py-1.5 text-xs font-bold text-amber-700 ring-1 ring-amber-200">
