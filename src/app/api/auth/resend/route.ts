@@ -1,6 +1,7 @@
 import { assertSameOrigin, clientIp, throttle } from "@/lib/auth";
 import { prisma } from "@/lib/db";
 import { issueVerification } from "@/lib/verification";
+import { CODE_TTL_MS } from "@/lib/verification-core";
 
 const EMAIL = /^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/;
 
@@ -17,5 +18,5 @@ export async function POST(request: Request) {
 
   const user = await prisma.users.findUnique({ where: { email: raw } });
   const result = user && !user.email_verified_at ? await issueVerification(user.id, user.email, user.name) : null;
-  return Response.json({ ok: true, ...(result?.devCode && { devCode: result.devCode }) });
+  return Response.json({ ok: true, expiresIn: CODE_TTL_MS / 1000, ...(result?.devCode && { devCode: result.devCode }) });
 }

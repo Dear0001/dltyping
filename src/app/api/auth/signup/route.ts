@@ -1,6 +1,7 @@
 import { assertSameOrigin, clientIp, hashPassword, parseCredentials, parseName, throttle } from "@/lib/auth";
 import { prisma } from "@/lib/db";
 import { issueVerification } from "@/lib/verification";
+import { CODE_TTL_MS } from "@/lib/verification-core";
 
 export async function POST(request: Request) {
   if (!(await assertSameOrigin(request))) return Response.json({ error: "Bad request" }, { status: 400 });
@@ -28,7 +29,7 @@ export async function POST(request: Request) {
       : await prisma.users.create({ data: { email: creds.email, password_hash, name } });
     const { sent: emailSent, devCode } = await issueVerification(user.id, user.email, name);
     // No session yet: the account only works once the emailed code has been entered.
-    return Response.json({ pendingVerification: true, email: user.email, emailSent, ...(devCode && { devCode }) }, { status: 201 });
+    return Response.json({ pendingVerification: true, email: user.email, emailSent, expiresIn: CODE_TTL_MS / 1000, ...(devCode && { devCode }) }, { status: 201 });
   } catch (error) {
     if (typeof error === "object" && error !== null && "code" in error && (error as { code: string }).code === "P2002") {
       return Response.json({ error: "An account with this email already exists. Sign in instead." }, { status: 409 });

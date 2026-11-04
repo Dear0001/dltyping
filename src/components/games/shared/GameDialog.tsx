@@ -1,9 +1,10 @@
 "use client";
 
+import Image from "next/image";
 import Link from "next/link";
 import { useEffect, useRef } from "react";
 
-export function GameDialog({ title, subtitle, icon, children, onEscape, wide }: { title: string; subtitle?: string; icon?: string; children: React.ReactNode; onEscape?: () => void; wide?: boolean }) {
+export function GameDialog({ title, subtitle, icon, logo, children, onEscape, wide }: { title: string; subtitle?: string; icon?: string; /** Show the DL Typing logo above the title instead of an emoji icon. */ logo?: boolean; children: React.ReactNode; onEscape?: () => void; wide?: boolean }) {
   const ref = useRef<HTMLDivElement>(null);
   const escape = useRef(onEscape);
   useEffect(() => {
@@ -31,7 +32,8 @@ export function GameDialog({ title, subtitle, icon, children, onEscape, wide }: 
   return <div className="fixed inset-0 z-50 flex items-center justify-center overflow-y-auto bg-navy/60 p-4 backdrop-blur-sm">
     <div ref={ref} role="dialog" aria-modal="true" aria-labelledby="gm-dialog-title" className={`my-auto w-full ${wide ? "max-w-2xl" : "max-w-md"} rounded-3xl bg-white p-6 shadow-2xl sm:p-8`}>
       <div className="mb-5 text-center">
-        {icon && <div className="mb-2 text-5xl" aria-hidden="true">{icon}</div>}
+        {logo && <Image src="/icon.svg" alt="" width={64} height={64} unoptimized priority className="mx-auto mb-3 h-16 w-16 rounded-2xl shadow-sm" />}
+        {!logo && icon && <div className="mb-2 text-5xl" aria-hidden="true">{icon}</div>}
         <h2 id="gm-dialog-title" className="text-2xl font-extrabold text-navy">{title}</h2>
         {subtitle && <p className="mt-1 text-sm text-mute">{subtitle}</p>}
       </div>

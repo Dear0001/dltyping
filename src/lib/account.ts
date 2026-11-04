@@ -33,13 +33,13 @@ export async function refreshAccount() {
  * `error` is a message to show, or null on success. `verify` means the account exists but its email is not confirmed yet:
  * "sent" = a link was just emailed, "not-sent" = it could not be emailed, "unverified" = tried to sign in before confirming.
  */
-export type AuthResult = { error: string | null; verify?: "sent" | "not-sent" | "unverified"; /** Development only: the verification code, when the email could not be delivered. */ devCode?: string };
+export type AuthResult = { error: string | null; verify?: "sent" | "not-sent" | "unverified"; /** Development only: the verification code, when the email could not be delivered. */ devCode?: string; /** Seconds until the emailed code expires. */ expiresIn?: number };
 
 export async function authenticate(mode: "login" | "signup", email: string, password: string, name?: string): Promise<AuthResult> {
   try {
     const res = await fetch(`/api/auth/${mode}`, { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ email, password, name, deviceId: getDeviceId() }) });
-    const data = (await res.json().catch(() => ({}))) as { error?: string; code?: string; user?: { email: string; name?: string | null }; pendingVerification?: boolean; emailSent?: boolean; devCode?: string };
-    if (res.ok && data.pendingVerification) return { error: null, verify: data.emailSent === false ? "not-sent" : "sent", devCode: data.devCode };
+    const data = (await res.json().catch(() => ({}))) as { error?: string; code?: string; user?: { email: string; name?: string | null }; pendingVerification?: boolean; emailSent?: boolean; devCode?: string; expiresIn?: number };
+    if (res.ok && data.pendingVerification) return { error: null, verify: data.emailSent === false ? "not-sent" : "sent", devCode: data.devCode, expiresIn: data.expiresIn };
     if (res.status === 403 && data.code === "unverified") return { error: data.error ?? "Please verify your email first.", verify: "unverified" };
     if (!res.ok || !data.user) return { error: data.error ?? "Something went wrong. Please try again." };
     set({ status: "user", email: data.user.email, name: data.user.name });
@@ -52,11 +52,11 @@ export async function authenticate(mode: "login" | "signup", email: string, pass
 }
 
 /** Asks for a fresh verification code. `error` is a message, or null on success; `devCode` is development-only (see AuthResult). */
-export async function resendVerification(email: string): Promise<{ error: string | null; devCode?: string }> {
+export async function resendVerification(email: string): Promise<{ error: string | null; devCode?: string; expiresIn?: number }> {
   try {
     const res = await fetch("/api/auth/resend", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ email }) });
-    const data = (await res.json().catch(() => ({}))) as { error?: string; devCode?: string };
-    if (res.ok) return { error: null, devCode: data.devCode };
+    const data = (await res.json().catch(() => ({}))) as { error?: string; devCode?: string; expiresIn?: number };
+    if (res.ok) return { error: null, devCode: data.devCode, expiresIn: data.expiresIn };
     return { error: data.error ?? "Could not send the email. Please try again." };
   } catch {
     return { error: "Network error. Check your connection and try again." };

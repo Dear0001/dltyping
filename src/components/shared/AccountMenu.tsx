@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
+import OtpInput from "@/components/shared/OtpInput";
 import { GameDialog, primaryBtn, secondaryBtn } from "@/components/games/shared/GameDialog";
 import { useLocale } from "@/components/shared/LocaleProvider";
 import { authenticate, resendVerification, signOut, useAccount, verifyEmailCode } from "@/lib/account";
@@ -21,6 +22,8 @@ export default function AccountMenu() {
   const [code, setCode] = useState("");
   const [devCode, setDevCode] = useState<string | null>(null); // development only: shown when the email could not be delivered
   const [cooldown, setCooldown] = useState(0);
+  const [expiresAt, setExpiresAt] = useState<number | null>(null); // when the emailed code stops working (ms)
+  const [now, setNow] = useState(() => Date.now());
   const [info, setInfo] = useState<string | null>(null);
 
   useEffect(() => {
@@ -29,11 +32,25 @@ export default function AccountMenu() {
     return () => window.clearTimeout(id);
   }, [cooldown]);
 
+  useEffect(() => {
+    if (!expiresAt) return;
+    const id = window.setInterval(() => setNow(Date.now()), 1000);
+    return () => window.clearInterval(id);
+  }, [expiresAt]);
+  function startCountdown(seconds = 600) {
+    const t = Date.now();
+    setNow(t);
+    setExpiresAt(t + seconds * 1000);
+  }
+  const secondsLeft = expiresAt ? Math.max(0, Math.ceil((expiresAt - now) / 1000)) : null;
+  const expired = secondsLeft === 0;
+
   function close() {
     setOpen(false);
     setPending(null);
     setCode("");
     setDevCode(null);
+    setExpiresAt(null);
     setInfo(null);
     setError(null);
   }
@@ -48,6 +65,7 @@ export default function AccountMenu() {
     if (result.error) return setError(result.error);
     setDevCode(result.devCode ?? null);
     setCode("");
+    startCountdown(result.expiresIn);
     setInfo(result.devCode ? "The email could not be delivered (dev mode). Use the code below." : "Sent! Check your inbox (and your spam folder).");
     setCooldown(30);
   }
@@ -66,6 +84,7 @@ export default function AccountMenu() {
     setPending(null);
     setCode("");
     setDevCode(null);
+    setExpiresAt(null);
     setMode("login");
     setInfo("Email verified! Sign in with your password to continue.");
   }
@@ -81,6 +100,7 @@ export default function AccountMenu() {
     if (result.verify) {
       setDevCode(result.devCode ?? null);
       setCode("");
+      if (result.verify === "unverified") setExpiresAt(null); else startCountdown(result.expiresIn);
       setPending({ email: email.trim().toLowerCase(), state: result.verify });
       if (result.verify === "sent") setCooldown(30);
       return;
@@ -98,20 +118,21 @@ export default function AccountMenu() {
   }
   return <>
     <button type="button" className={`${primaryBtn} whitespace-nowrap !px-4 !py-2 !text-xs`} onClick={() => { setMode("login"); setError(null); setOpen(true); }}>{t("auth.signIn")}</button>
-    {open && pending && <GameDialog title="Enter your code" subtitle={pending.state === "sent" ? `We emailed a 6-digit code to ${pending.email}.` : pending.state === "unverified" ? `${pending.email} isn't verified yet.` : `Your account was created, but we couldn't email ${pending.email}.`} icon="📧" onEscape={close}>
+    {open && pending && <GameDialog title="Enter your code" subtitle={pending.state === "sent" ? `We emailed a 6-digit code to ${pending.email}.` : pending.state === "unverified" ? `${pending.email} isn't verified yet.` : `Your account was created, but we couldn't email ${pending.email}.`} logo onEscape={close}>
       <form onSubmit={confirmCode} className="space-y-3">
-        <p className="text-center text-sm text-mute">{pending.state === "sent" ? "Enter the code to verify your email, then sign in. It works for 10 minutes." : "Press “Send code” to get a new 6-digit code."}</p>
-        <input data-autofocus aria-label="6-digit verification code" inputMode="numeric" autoComplete="one-time-code" pattern="\d{6}" maxLength={6} placeholder="••••••" value={code} onChange={(e) => setCode(e.target.value.replace(/\D/g, "").slice(0, 6))} className="w-full rounded-xl border border-slate-300 px-3 py-3 text-center text-2xl font-bold tracking-[0.5em] text-navy" />
+        <p className="text-center text-sm text-mute">{pending.state === "sent" ? "Enter the code to verify your email, then sign in." : "Press “Send code” to get a new 6-digit code."}</p>
+        <OtpInput autoFocus value={code} onChange={setCode} disabled={busy || expired} />
+        {secondsLeft !== null && <p role="timer" aria-live="off" className={`text-center text-sm font-semibold ${expired ? "text-bad" : secondsLeft <= 60 ? "text-amber-700" : "text-mute"}`}>{expired ? "This code has expired. Request a new one." : `Code expires in ${Math.floor(secondsLeft / 60)}:${String(secondsLeft % 60).padStart(2, "0")}`}</p>}
         {devCode && <p className="rounded-xl bg-amber-50 px-3 py-2 text-center text-sm font-semibold text-amber-800">Dev only: email not delivered. Your code is <button type="button" className="font-extrabold underline" onClick={() => setCode(devCode)}>{devCode}</button> (click to fill)</p>}
         {error && <p role="alert" className="rounded-xl bg-red-50 px-3 py-2 text-sm font-semibold text-bad">{error}</p>}
         {info && <p role="status" className="rounded-xl bg-green-50 px-3 py-2 text-sm font-semibold text-green-700">{info}</p>}
-        <button type="submit" disabled={busy || code.length !== 6} className={`${primaryBtn} w-full disabled:opacity-60`}>{busy ? "Checking…" : "Verify"}</button>
+        <button type="submit" disabled={busy || expired || code.length !== 6} className={`${primaryBtn} w-full disabled:opacity-60`}>{busy ? "Checking…" : "Verify"}</button>
         <button type="button" disabled={busy || cooldown > 0} onClick={() => void resend()} className={`${secondaryBtn} w-full disabled:opacity-60`}>{cooldown > 0 ? `Resend code (${cooldown}s)` : pending.state === "sent" ? "Resend code" : "Send code"}</button>
-        <button type="button" className="w-full text-center text-xs font-semibold text-mute underline" onClick={() => { setPending(null); setCode(""); setDevCode(null); setMode("login"); setError(null); setInfo(null); }}>Back to sign in</button>
+        <button type="button" className="w-full text-center text-xs font-semibold text-mute underline" onClick={() => { setPending(null); setCode(""); setDevCode(null); setExpiresAt(null); setMode("login"); setError(null); setInfo(null); }}>Back to sign in</button>
         <button type="button" className="w-full text-center text-xs font-semibold text-mute underline" onClick={close}>Continue without an account</button>
       </form>
     </GameDialog>}
-    {open && !pending && <GameDialog title={mode === "login" ? "Sign in" : "Create account"} subtitle="Optional — sync your scores and progress across devices." icon="☁️" onEscape={close}>
+    {open && !pending && <GameDialog title={mode === "login" ? "Sign in" : "Create account"} subtitle="Optional — sync your scores and progress across devices." logo onEscape={close}>
       <form onSubmit={submit} className="space-y-3">
         {mode === "signup" && <label className="block text-xs font-bold uppercase tracking-wider text-mute">Name
           <input data-autofocus type="text" required maxLength={50} autoComplete="name" value={name} onChange={(e) => setName(e.target.value)} className="mt-1 w-full rounded-xl border border-slate-300 px-3 py-2.5 text-sm normal-case text-navy" />
