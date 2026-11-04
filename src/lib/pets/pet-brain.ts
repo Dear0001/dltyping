@@ -29,7 +29,8 @@ export type StepInput = {
   events: readonly PetEvent[];
 };
 
-type Goal = { kind: "wander" | "follow" | "flee"; x: number } | null;
+type Goal = { kind: "wander" | "follow" | "flee" | "stalk" | "pounce" | "tag" | "dash"; x: number } | null;
+type StalkPhase = "move" | "freeze" | "wiggle";
 
 export type BrainState = {
   /** Left edge of the pet, in viewport px. */
@@ -64,6 +65,16 @@ export type BrainState = {
   counter: number;
   /** A celebration or encouragement is playing: quiet mode must not cut it short. */
   protect: boolean;
+  /** Flying pets: current height (px) above their ground line, and the height they are cruising at. */
+  air: number;
+  cruise: number;
+  /** Stalking: which part of the creep-freeze-wiggle-pounce cycle, and how long it has lasted. `mouse` = pouncing on something invisible. */
+  stalkPhase: StalkPhase;
+  phaseT: number;
+  phaseDur: number;
+  mouse: boolean;
+  /** Dashes still to run in a burst of zoomies. */
+  zoom: number;
 };
 
 const TRANSIENT: Partial<Record<PetAnim, number>> = { jump: 0.85, stretch: 1.5, startled: 0.7, happy: 1.25, excited: 1.9, celebrate: 2.9 };
@@ -81,11 +92,27 @@ export function createBrain(def: PetDefinition, x: number, rand: Rand): BrainSta
   return {
     x, vx: 0, face: 1, anim: "idle", animT: 0, animDur: 0, goal: null, idleFor: 0, nextIdle: range(rand, def.idle[0], def.idle[1]),
     sinceInput: 0, look: 0, lookY: 0, lookGoal: 0, lookHold: 0, noticeCd: 0, noticed: false, closeFlag: false, outT: 0, followT: 0,
-    arrived: false, blinkT: range(rand, 1.5, 4), blinking: 0, speechCd: 0, say: null, fx: null, lastReaction: -1, counter: 0, protect: false,
+    arrived: false, blinkT: range(rand, 1.5, 4), blinking: 0, speechCd: 0, say: null, fx: null, lastReaction: -1, counter: 0, protect: false, air: 0, cruise: 0, stalkPhase: "move", phaseT: 0, phaseDur: 0, mouse: false, zoom: 0,
   };
 }
 
-const isLocomotion = (a: PetAnim) => a === "walk" || a === "run" || a === "follow";
+const isLocomotion = (a: PetAnim) => a === "walk" || a === "run" || a === "follow" || a === "stalk" || a === "crouch" || a === "pounce";
+const isChase = (g: Goal) => g !== null && (g.kind === "follow" || g.kind === "stalk" || g.kind === "tag");
+
+function startStalk(s: BrainState, rand: Rand, x: number, mouse: boolean) {
+  s.goal = { kind: "stalk", x };
+  s.stalkPhase = mouse ? "freeze" : "move";
+  s.phaseT = 0;
+  s.phaseDur = mouse ? range(rand, 0.9, 1.5) : range(rand, 1, 1.9);
+  s.mouse = mouse;
+  s.followT = 0;
+  s.arrived = false;
+}
+function beginPhase(s: BrainState, phase: StalkPhase, dur: number) {
+  s.stalkPhase = phase;
+  s.phaseT = 0;
+  s.phaseDur = dur;
+}
 
 function setAnim(s: BrainState, def: PetDefinition, anim: PetAnim, motion: MotionMode, duration?: number) {
   // Reduced motion keeps calm poses only; off keeps the pet still.
@@ -170,12 +197,22 @@ function noticePointer(s: BrainState, def: PetDefinition, inp: StepInput, rand: 
     flee: t.shyness * 0.9,
     play: t.playfulness * 0.35,
     ignore: (1 - t.curiosity) * 0.6 + 0.05,
+    stalk: def.quirks?.includes("stalk") ? 1.8 : 0,
+    tag: def.quirks?.includes("tag") ? 1.8 : 0,
   };
-  const total = weights.follow + weights.flee + weights.play + weights.ignore;
+  const total = Object.values(weights).reduce((sum, w) => sum + w, 0);
   let roll = rand() * total;
   const pick = (Object.keys(weights) as (keyof typeof weights)[]).find((k) => (roll -= weights[k]) < 0) ?? "ignore";
   if (pick === "follow") {
     s.goal = { kind: "follow", x: px };
+    s.followT = 0;
+    s.arrived = false;
+    speak(s, def.speech.follow, rand, inp.speech);
+  } else if (pick === "stalk") {
+    startStalk(s, rand, clamp(px - inp.size / 2, inp.minX, inp.maxX), false);
+    speak(s, def.speech.follow, rand, inp.speech);
+  } else if (pick === "tag") {
+    s.goal = { kind: "tag", x: clamp(px - inp.size / 2, inp.minX, inp.maxX) };
     s.followT = 0;
     s.arrived = false;
     speak(s, def.speech.follow, rand, inp.speech);
@@ -218,7 +255,7 @@ export function stepBrain(s: BrainState, def: PetDefinition, inp: StepInput, ran
   let lookTarget: number | null = null;
   if (p && cursorOn) {
     const dx = p.x - centerX;
-    const dy = p.y - inp.centerY;
+    const dy = p.y - (inp.centerY - s.air);
     const d = Math.hypot(dx, dy);
     const near = Math.hypot(dx, dy * VERTICAL_WEIGHT);
     const notice = noticeRadius(def);
@@ -249,10 +286,16 @@ export function stepBrain(s: BrainState, def: PetDefinition, inp: StepInput, ran
     } else {
       s.noticed = false;
       s.closeFlag = false;
-      if (s.goal?.kind === "follow") {
+      if (isChase(s.goal) && !s.mouse) {
         s.outT += dt;
         if (s.outT > 2.2) { s.goal = null; s.arrived = false; } // The cursor left: watch it go, then give up.
       }
+    }
+    // A stalking or tag-playing pet keeps its eye on where the cursor is now.
+    if (((s.goal?.kind === "stalk" && !s.mouse) || s.goal?.kind === "tag") && p.active) {
+      s.goal.x = clamp(p.x - inp.size / 2, inp.minX, inp.maxX);
+      s.followT += dt;
+      if (s.followT > 24) { s.goal = null; s.arrived = false; setAnim(s, def, "sit", inp.motion, 4); }
     }
     if (s.goal?.kind === "follow" && p.active) {
       const side = centerX < p.x ? -1 : 1;
@@ -263,8 +306,25 @@ export function stepBrain(s: BrainState, def: PetDefinition, inp: StepInput, ran
       s.followT += dt;
       if (s.followT > 22) { s.goal = null; s.arrived = false; setAnim(s, def, "sit", inp.motion, 4); }
     }
-  } else if (s.goal?.kind === "follow") {
+  } else if (isChase(s.goal) && !s.mouse) {
     s.goal = null;
+  }
+
+  // ---- Stalk cycle: creep, freeze, wiggle, pounce -----------------------------
+  if (s.goal?.kind === "stalk") {
+    s.phaseT += dt;
+    const dist = Math.abs(s.goal.x - s.x);
+    if (!s.mouse && s.stalkPhase !== "wiggle" && dist < inp.size * 2 + 80) beginPhase(s, "wiggle", range(rand, 0.8, 1.1));
+    else if (s.stalkPhase === "move" && !s.mouse && s.phaseT >= s.phaseDur) beginPhase(s, "freeze", range(rand, 0.5, 1.1));
+    else if (s.stalkPhase === "freeze" && s.phaseT >= s.phaseDur) {
+      if (s.mouse) beginPhase(s, "wiggle", 0.8);
+      else beginPhase(s, "move", range(rand, 1, 1.9));
+    } else if (s.stalkPhase === "wiggle" && s.phaseT >= s.phaseDur) {
+      s.goal = { kind: "pounce", x: s.goal.x };
+      s.mouse = false;
+      s.followT = 0;
+      setAnim(s, def, "pounce", inp.motion);
+    }
   }
 
   // ---- Quiet (typing) --------------------------------------------------------
@@ -292,7 +352,7 @@ export function stepBrain(s: BrainState, def: PetDefinition, inp: StepInput, ran
   if (free && s.idleFor >= s.nextIdle) {
     const t = def.traits;
     const can = (a: PetAnim) => def.anims.includes(a);
-    const asleepOk = s.sinceInput > SLEEP_AFTER;
+    const asleepOk = s.sinceInput > (def.sleepAfter ?? SLEEP_AFTER);
     const options: [string, number][] = [
       ["wander", moves ? 2.2 + 5 * t.energy : 0],
       ["sit", can("sit") ? 1.1 : 0],
@@ -300,6 +360,8 @@ export function stepBrain(s: BrainState, def: PetDefinition, inp: StepInput, ran
       ["look", 1.6],
       ["play", can("jump") && inp.motion !== "off" ? 0.7 * t.playfulness : 0],
       ["sleep", asleepOk && can("sleep") ? 5 * t.sleepiness : 0],
+      ["mouse", moves && def.quirks?.includes("mouse") ? 1.3 : 0],
+      ["zoomies", moves && def.quirks?.includes("zoomies") ? 0.5 : 0],
     ];
     const total = options.reduce((a, [, w]) => a + w, 0);
     let roll = rand() * total;
@@ -309,6 +371,15 @@ export function stepBrain(s: BrainState, def: PetDefinition, inp: StepInput, ran
     if (choice === "wander") {
       const dir = rand() < 0.5 ? -1 : 1;
       s.goal = { kind: "wander", x: clamp(s.x + dir * range(rand, 110, 420), inp.minX, inp.maxX) };
+      s.cruise = range(rand, inp.size * 0.5, inp.size * 2); // flyers pick a new height for each trip
+    } else if (choice === "mouse") {
+      const dir = rand() < 0.5 ? -1 : 1;
+      startStalk(s, rand, clamp(s.x + dir * range(rand, 120, 230), inp.minX, inp.maxX), true);
+    } else if (choice === "zoomies") {
+      const dir = rand() < 0.5 ? -1 : 1;
+      s.zoom = 1 + Math.floor(rand() * 3);
+      s.goal = { kind: "dash", x: clamp(s.x + dir * range(rand, 260, 520), inp.minX, inp.maxX) };
+      emoji(s, "💨");
     } else if (choice === "sit") setAnim(s, def, "sit", inp.motion, range(rand, 3, 7));
     else if (choice === "stretch") setAnim(s, def, "stretch", inp.motion);
     else if (choice === "play") setAnim(s, def, rand() < 0.5 ? "jump" : "excited", inp.motion);
@@ -320,9 +391,23 @@ export function stepBrain(s: BrainState, def: PetDefinition, inp: StepInput, ran
   const g = s.goal;
   if (g && moves) {
     const dx = g.x - s.x;
-    const speed = def.speed * (g.kind === "flee" ? 2.2 : g.kind === "follow" ? (Math.abs(dx) > 260 ? 1.8 : 1.25) : 0.55 + 0.7 * def.traits.energy);
-    const stop = g.kind === "wander" ? 5 : g.kind === "flee" ? 8 : 6;
-    if (Math.abs(dx) <= stop) {
+    const frozen = g.kind === "stalk" && s.stalkPhase !== "move";
+    let speed = def.speed * (g.kind === "pounce" ? 3.4 : g.kind === "tag" ? 2.1 : g.kind === "dash" ? 2.6 : g.kind === "stalk" ? 1.25 : g.kind === "flee" ? 2.2 : g.kind === "follow" ? (Math.abs(dx) > 260 ? 1.8 : 1.25) : 0.55 + 0.7 * def.traits.energy);
+    // Travel in step with the gait: a bunny covers ground only while airborne, a penguin surges with each waddle step.
+    if (def.locomotion === "hop") {
+      const period = s.anim === "run" ? 0.4 : 0.62, ph = (s.animT % period) / period;
+      speed *= ph < 0.9 ? 1.7 * Math.sin((Math.PI * ph) / 0.9) : 0.04;
+    } else if (def.locomotion === "waddle" && s.anim !== "run") {
+      speed *= 0.84 + 0.32 * Math.abs(Math.cos((Math.PI * s.animT) / 0.72)); // a gentle push on each step, never a stop-start
+    }
+    const stop = g.kind === "wander" ? 5 : g.kind === "flee" || g.kind === "pounce" || g.kind === "tag" ? 10 : 6;
+    if (frozen) {
+      // Crouched and still: ease to a stop, ready to spring.
+      s.vx *= Math.max(0, 1 - 14 * dt);
+      s.x = clamp(s.x + s.vx * dt, inp.minX, inp.maxX);
+      const crouch = resolveAnim(def, "crouch");
+      if (s.anim !== crouch) { s.anim = crouch; s.animT = 0; s.animDur = 0; }
+    } else if (Math.abs(dx) <= stop) {
       const wasFollow = g.kind === "follow";
       if (!wasFollow) s.goal = null;
       // Ease to a halt rather than stopping dead.
@@ -334,6 +419,19 @@ export function stepBrain(s: BrainState, def: PetDefinition, inp: StepInput, ran
         s.idleFor = 0;
         s.nextIdle = range(rand, def.idle[0], def.idle[1]);
         if (g.kind === "flee") lookTarget = lookTarget ?? 0;
+        if (g.kind === "pounce" && def.pounce) {
+          // Landed: act casual, or celebrate the catch.
+          setAnim(s, def, def.pounce.anim, inp.motion, TRANSIENT[def.pounce.anim] ?? 3);
+          emoji(s, def.pounce.emoji);
+          if (def.pounce.say) speak(s, def.pounce.say, rand, inp.speech, true);
+        } else if (g.kind === "tag") {
+          // Touched the cursor: now run!
+          emoji(s, "💨");
+          startFlee(s, def, inp, rand, g.x + inp.size / 2, s.x + inp.size / 2);
+        } else if (g.kind === "dash" && s.zoom > 0) {
+          s.zoom -= 1;
+          s.goal = { kind: "dash", x: clamp(s.x + (g.x >= s.x ? -1 : 1) * range(rand, 260, 520), inp.minX, inp.maxX) };
+        }
       }
     } else {
       s.arrived = false;
@@ -347,7 +445,7 @@ export function stepBrain(s: BrainState, def: PetDefinition, inp: StepInput, ran
       const reacting = s.animDur > 0 && !isLocomotion(s.anim);
       if (!reacting || s.anim === "startled") {
         if (s.anim !== "startled") {
-          const target: PetAnim = g.kind === "flee" ? "run" : g.kind === "follow" ? (speed > def.speed * 1.5 ? "run" : "follow") : "walk";
+          const target: PetAnim = g.kind === "flee" || g.kind === "tag" || g.kind === "dash" ? "run" : g.kind === "pounce" ? "pounce" : g.kind === "stalk" ? "stalk" : g.kind === "follow" ? (speed > def.speed * 1.5 ? "run" : "follow") : "walk";
           const resolved = resolveAnim(def, target);
           if (s.anim !== resolved) { s.anim = resolved; s.animT = 0; s.animDur = 0; }
         }
@@ -360,6 +458,18 @@ export function stepBrain(s: BrainState, def: PetDefinition, inp: StepInput, ran
     if (!g && isLocomotion(s.anim) && s.animDur === 0) settle(s, def, rand);
   }
   if (Math.abs(s.vx) > 6) s.face = s.vx > 0 ? 1 : -1;
+
+  // ---- Flight: take off to travel, come back down to rest --------------------
+  if (def.locomotion === "fly" && inp.motion !== "off") {
+    let airGoal = 0;
+    if (moves && s.goal && !inp.quiet) {
+      airGoal = s.goal.kind === "flee" ? inp.size * 2.4 : s.cruise || inp.size;
+      // Chasing a cursor: fly up to its height (never below the ground line).
+      if (s.goal.kind === "follow" && p) airGoal = clamp(inp.centerY - p.y, inp.size * 0.3, inp.size * 3.2);
+    }
+    s.air += (airGoal - s.air) * Math.min(1, dt * (airGoal > s.air ? 2.4 : 1.6));
+    if (airGoal === 0 && s.air < 0.5) s.air = 0;
+  } else s.air = 0;
 
   // ---- Look (eyes and head), smoothed ---------------------------------------
   if (lookTarget !== null) s.lookGoal = lookTarget;

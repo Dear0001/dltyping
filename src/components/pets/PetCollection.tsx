@@ -14,6 +14,7 @@ import { currentStreak, longestStreak, QUALIFYING_MIN_CORRECT } from "@/lib/prog
 const PREVIEW_ANIMS: { anim: PetAnim; label: string }[] = [
   { anim: "walk", label: "Walk" }, { anim: "run", label: "Run" }, { anim: "jump", label: "Jump" }, { anim: "sit", label: "Sit" },
   { anim: "stretch", label: "Stretch" }, { anim: "happy", label: "Happy" }, { anim: "excited", label: "Excited" }, { anim: "sleep", label: "Sleep" }, { anim: "celebrate", label: "Celebrate" },
+  { anim: "stalk", label: "Stalk" }, { anim: "crouch", label: "Crouch" }, { anim: "pounce", label: "Pounce" },
 ];
 
 export default function PetCollection() {

@@ -1,29 +1,49 @@
 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100" width="100" height="100">
   <g class="baby-puppy">
+    <!-- Far legs (darker) -->
+    <g class="leg-left leg-back">
+      <ellipse cx="33" cy="68" rx="7.5" ry="9" fill="#e3d3ad" />
+      <path d="M 28.5 70 L 37.5 70 L 36.3 91 L 29.7 91 Z" fill="#e3d3ad" stroke="#e3d3ad" stroke-width="1.5" stroke-linejoin="round" />
+      <rect x="28.8" y="88" width="12" height="7.5" rx="3.7" fill="#cfae7c" />
+    </g>
+    <g class="leg-right leg-front">
+      <ellipse cx="49" cy="68" rx="7.5" ry="9" fill="#e3d3ad" />
+      <path d="M 44.5 70 L 53.5 70 L 52.3 91 L 45.7 91 Z" fill="#e3d3ad" stroke="#e3d3ad" stroke-width="1.5" stroke-linejoin="round" />
+      <rect x="44.8" y="88" width="12" height="7.5" rx="3.7" fill="#cfae7c" />
+    </g>
+
     <!-- Tail -->
-    <path class="tail" d="M 65 80 Q 80 70 75 55" stroke="#d4a373" stroke-width="6" stroke-linecap="round" fill="none" />
-    
+    <path class="tail" d="M 16 56 Q 3 52 8 34" stroke="#d4a373" stroke-width="7" stroke-linecap="round" fill="none" />
+
     <!-- Body -->
-    <ellipse class="body" cx="50" cy="70" rx="20" ry="25" fill="#faedcd" />
-    
+    <ellipse class="body" cx="40" cy="62" rx="28" ry="18" fill="#faedcd" />
+    <ellipse cx="32" cy="55" rx="13" ry="9" fill="#d4a373" />
+
+    <!-- Near legs, drawn over the body so they join it -->
+    <g class="leg-right leg-back">
+      <ellipse cx="20" cy="68" rx="7.5" ry="9" fill="#faedcd" />
+      <path d="M 15.5 70 L 24.5 70 L 23.3 91 L 16.7 91 Z" fill="#faedcd" stroke="#faedcd" stroke-width="1.5" stroke-linejoin="round" />
+      <rect x="15.8" y="88" width="12" height="7.5" rx="3.7" fill="#e2c391" />
+    </g>
+    <g class="leg-left leg-front">
+      <ellipse cx="62" cy="68" rx="7.5" ry="9" fill="#faedcd" />
+      <path d="M 57.5 70 L 66.5 70 L 65.3 91 L 58.7 91 Z" fill="#faedcd" stroke="#faedcd" stroke-width="1.5" stroke-linejoin="round" />
+      <rect x="57.8" y="88" width="12" height="7.5" rx="3.7" fill="#e2c391" />
+    </g>
+
     <!-- Head -->
     <g class="head">
-      <!-- Ears -->
-      <ellipse class="ear-left" cx="26" cy="48" rx="8" ry="18" fill="#8b5a2b" />
-      <ellipse class="ear-right" cx="74" cy="48" rx="8" ry="18" fill="#8b5a2b" />
-      
-      <!-- Face -->
-      <circle cx="50" cy="45" r="22" fill="#faedcd" />
-      <circle class="eye-patch" cx="60" cy="40" r="10" fill="#d4a373" />
-      
-      <!-- Eyes & Nose -->
+      <ellipse class="ear-right" cx="84" cy="36" rx="6" ry="12" fill="#6f4520" />
+      <circle cx="72" cy="44" r="17" fill="#faedcd" />
+      <circle class="eye-patch" cx="78" cy="39" r="8" fill="#d4a373" />
+      <ellipse cx="86" cy="52" rx="10" ry="7" fill="#faedcd" />
+      <ellipse class="ear-left" cx="62" cy="46" rx="7" ry="15" fill="#8b5a2b" />
       <g class="eyes">
-        <circle cx="40" cy="42" r="3.5" fill="#111111" />
-        <circle cx="39" cy="41" r="1" fill="#ffffff" />
-        <circle cx="60" cy="42" r="3.5" fill="#111111" />
-        <circle cx="59" cy="41" r="1" fill="#ffffff" />
+        <circle cx="68" cy="41" r="3.5" fill="#111111" /><circle cx="67" cy="40" r="1" fill="#ffffff" />
+        <circle cx="80" cy="41" r="3.5" fill="#111111" /><circle cx="79" cy="40" r="1" fill="#ffffff" />
       </g>
-      <ellipse class="nose" cx="50" cy="50" rx="5" ry="3.5" fill="#111111" />
+      <ellipse class="nose" cx="94" cy="49" rx="4" ry="3" fill="#111111" />
+      <path d="M 84 56 Q 89 59 93 55" stroke="#111111" stroke-width="1.8" fill="none" stroke-linecap="round" />
     </g>
   </g>
 </svg>

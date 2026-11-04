@@ -35,10 +35,25 @@
 .pet-sprite[data-move=walk][data-anim=run] .pet-art{animation:pet-walk .34s ease-in-out infinite}
 .pet-sprite[data-move=hop]:is([data-anim=walk],[data-anim=follow]) .pet-art{animation:pet-hop .62s ease-in-out infinite}
 .pet-sprite[data-move=hop][data-anim=run] .pet-art{animation:pet-hop .4s ease-in-out infinite}
-.pet-sprite[data-move=waddle]:is([data-anim=walk],[data-anim=follow]) .pet-art{animation:pet-waddle .72s ease-in-out infinite}
+/* Waddle: sway side to side once per cycle, bob up on every step (twice per cycle). Separate properties so the two never fight. */
+.pet-sprite[data-move=waddle]:is([data-anim=walk],[data-anim=follow]) .pet-art{animation:pet-waddle-sway .72s ease-in-out infinite,pet-waddle-bob .36s ease-in-out infinite}
 .pet-sprite[data-move=wobble]:is([data-anim=walk],[data-anim=follow],[data-anim=run]) .pet-art{animation:pet-wobble .9s ease-in-out infinite}
 /* Penguins belly-slide when they run. */
 .pet-sprite[data-pet=penguin][data-anim=run] .pet-art{animation:pet-slide .5s ease-in-out infinite;transform:rotate(calc(var(--face,1) * 78deg)) translateY(8%)}
+
+/* Cat: a low, stretched stalk. Dog/fox: quick, bouncy trot. */
+.pet-sprite[data-move=prowl]:is([data-anim=walk],[data-anim=follow]) .pet-art{animation:pet-prowl 1s ease-in-out infinite}
+.pet-sprite[data-move=prowl][data-anim=run] .pet-art{animation:pet-pounce .42s ease-in-out infinite}
+.pet-sprite[data-move=trot]:is([data-anim=walk],[data-anim=follow]) .pet-art{animation:pet-trot .4s ease-in-out infinite}
+.pet-sprite[data-move=trot][data-anim=run] .pet-art{animation:pet-gallop .3s ease-in-out infinite}
+/* Dragons fly: hover with flapping wings and a forward lean while airborne; on the ground they walk. */
+.pet-sprite[data-move=fly]:is([data-anim=walk],[data-anim=follow]) .pet-art,.pet-sprite[data-move=fly][data-air]:is([data-anim=idle],[data-anim=blink],[data-anim=sit]) .pet-art{animation:pet-fly 1.1s ease-in-out infinite}
+.pet-sprite[data-move=fly][data-anim=run] .pet-art{animation:pet-fly .6s ease-in-out infinite}
+.pet-sprite[data-move=fly][data-air] .pet-art svg .wing-left{animation:pet-wing-flap-l .3s ease-in-out infinite}
+.pet-sprite[data-move=fly][data-air] .pet-art svg .wing-right{animation:pet-wing-flap-r .3s ease-in-out infinite}
+.pet-sprite[data-move=fly][data-air][data-anim=run] .pet-art svg .wing-left{animation-duration:.18s}
+.pet-sprite[data-move=fly][data-air][data-anim=run] .pet-art svg .wing-right{animation-duration:.18s}
+.pet-sprite[data-move=fly][data-air] .pet-art svg .tail{animation-duration:1.1s}
 
 .pet-sprite[data-anim=jump] .pet-art{animation:pet-jump .85s cubic-bezier(.3,.7,.4,1) 1}
 .pet-sprite[data-anim=stretch] .pet-art{animation:pet-stretch 1.5s ease-in-out 1}
@@ -50,8 +65,15 @@
 
 @keyframes pet-breathe{50%{transform:scale(1.018,.982)}}
 @keyframes pet-breathe-sit{50%{transform:scale(1.03,.915)}}
+@keyframes pet-prowl{0%,100%{transform:scale(1.07,.92) translateY(1%) rotate(calc(var(--face,1) * 1deg))}50%{transform:scale(1.03,.96) translateY(-1%) rotate(calc(var(--face,1) * -1deg))}}
+@keyframes pet-pounce{0%,100%{transform:scale(1.14,.86)}50%{transform:scale(1.02,1) translateY(-8%) rotate(calc(var(--face,1) * 3deg))}}
+@keyframes pet-trot{0%,100%{transform:translateY(0) rotate(-3deg)}25%{transform:translateY(-7%) rotate(0)}50%{transform:translateY(0) rotate(3deg)}75%{transform:translateY(-7%) rotate(0)}}
+@keyframes pet-gallop{0%,100%{transform:translateY(0) scale(1.1,.9) rotate(calc(var(--face,1) * -4deg))}50%{transform:translateY(-14%) scale(.94,1.06) rotate(calc(var(--face,1) * 4deg))}}
+@keyframes pet-fly{0%,100%{transform:translateY(3%) rotate(calc(var(--face,1) * 4deg))}50%{transform:translateY(-6%) rotate(calc(var(--face,1) * 7deg))}}
 @keyframes pet-walk{0%,100%{transform:rotate(-2.5deg) translateY(0)}50%{transform:rotate(2.5deg) translateY(-4%)}}
 @keyframes pet-hop{0%,100%{transform:translateY(0) scale(1.07,.92)}45%{transform:translateY(-22%) scale(.95,1.08)}}
+@keyframes pet-waddle-sway{0%,100%{rotate:-7deg}50%{rotate:7deg}}
+@keyframes pet-waddle-bob{0%,100%{translate:0 0}50%{translate:0 -3.5%}}
 @keyframes pet-waddle{0%,100%{transform:rotate(-8deg) translateY(0)}50%{transform:rotate(8deg) translateY(-3%)}}
 @keyframes pet-wobble{0%,100%{transform:rotate(-7deg)}50%{transform:rotate(7deg) translateY(-2%)}}
 @keyframes pet-slide{50%{transform:rotate(calc(var(--face,1) * 78deg)) translateY(8%) scaleX(.97)}}
@@ -61,6 +83,72 @@
 @keyframes pet-excited{0%,100%{transform:translateY(0) scale(1.05,.95)}50%{transform:translateY(-18%) scale(.96,1.06)}}
 @keyframes pet-startle{0%{transform:none}20%{transform:translateY(-30%) scale(.9,1.14)}45%{transform:translateY(0) scale(1.08,.9) rotate(-4deg)}70%{transform:rotate(4deg)}100%{transform:none}}
 @keyframes pet-celebrate{0%,100%{transform:none}30%{transform:translateY(-45%) rotate(0)}50%{transform:translateY(-45%) rotate(360deg)}75%{transform:translateY(0) scale(1.08,.92)}}
+
+/* ---------- Side-view (four-legged) pets: face the way they walk ---------- */
+.pet-sprite[data-view=side] .pet-art svg{scale:var(--face,1) 1}
+.pet-sprite[data-view=side] .pet-art svg .tail{transform-origin:100% 100%}
+/* The art is mirrored when facing left, so the eye and head offsets are mirrored back to keep following the cursor. */
+.pet-sprite[data-view=side] .pet-art svg .eyes{translate:calc(var(--look,0) * var(--face,1) * 2.6px) calc(var(--lookY,0) * 1.6px)}
+.pet-sprite[data-view=side] .pet-art svg .head{translate:calc(var(--look,0) * var(--face,1) * 1.4px) 0;rotate:calc(var(--look,0) * var(--face,1) * 3.5deg)}
+.pet-sprite[data-view=side]{--leg-a:22deg}
+.pet-sprite[data-view=side][data-move=prowl]{--leg-a:18deg}
+.pet-sprite[data-view=side][data-move=trot]{--leg-a:30deg}
+/* Four legs fold under the body when lying down. */
+.pet-sprite[data-view=side]:is([data-anim=sit],[data-anim=sleep]) .pet-art svg :is(.leg-left,.leg-right){scale:1 .3}
+
+/* ---------- Hunters: stalk, crouch, pounce ---------- */
+/* Creeping: low to the ground, slow deliberate steps, ears back, tail low. */
+.pet-sprite[data-anim=stalk] .pet-art{transform:scale(1.1,.84);animation:pet-stalk 1.3s ease-in-out infinite}
+.pet-sprite[data-anim=stalk]{--leg-t:1.3s;--leg-a:11deg}
+/* Frozen, rear wiggling, ready to spring. */
+.pet-sprite[data-anim=crouch] .pet-art{animation:pet-crouch-wiggle .3s ease-in-out infinite}
+.pet-sprite:is([data-anim=stalk],[data-anim=crouch]) .pet-art svg :is(.leg-left,.leg-right){scale:1 .72}
+.pet-sprite:is([data-anim=stalk],[data-anim=crouch]) .pet-art svg .head{translate:0 5px;rotate:6deg}
+.pet-sprite:is([data-anim=stalk],[data-anim=crouch]) .pet-art svg :is(.ear-left,.ear-right){animation:none;rotate:-22deg}
+.pet-sprite:is([data-anim=stalk],[data-anim=crouch]) .pet-art svg .tail{animation:pet-tail-twitch .5s ease-in-out infinite}
+/* Airborne: stretched out, front legs reaching forward, back legs kicking back, nose dipping on the way down. */
+.pet-sprite[data-anim=pounce] .pet-art{animation:pet-pounce .7s ease-in-out infinite}
+.pet-sprite[data-anim=pounce] .pet-art svg .leg-front{animation:none;rotate:-48deg}
+.pet-sprite[data-anim=pounce] .pet-art svg .leg-back{animation:none;rotate:48deg}
+.pet-sprite[data-anim=pounce] .pet-art svg .tail{animation:none;rotate:-20deg}
+/* Cats groom when they sit: head dips down to lick a paw. */
+.pet-sprite[data-pet=cat][data-anim=sit] .pet-art svg .head{animation:pet-groom 3.2s ease-in-out infinite}
+/* Sleeping: tail curled over the body. */
+.pet-sprite[data-view=side][data-anim=sleep] .pet-art svg .tail{animation:none;rotate:78deg}
+.pet-sprite[data-view=side][data-anim=sleep] .pet-art svg .head{rotate:16deg;translate:0 9px}
+.pet-sprite[data-pet=cat][data-anim=sit] .pet-art svg .tail{animation:none;rotate:42deg}
+@keyframes pet-stalk{0%,100%{transform:scale(1.1,.84) translateY(1%)}50%{transform:scale(1.1,.82) translateY(-1%) rotate(calc(var(--face,1) * 1.5deg))}}
+@keyframes pet-crouch-wiggle{0%,100%{transform:scale(1.12,.78) translateX(-2.5%) rotate(calc(var(--face,1) * -1.5deg))}50%{transform:scale(1.12,.78) translateX(2.5%) rotate(calc(var(--face,1) * 1.5deg))}}
+@keyframes pet-pounce{0%{transform:scale(1.1,.88)}35%{transform:translateY(-34%) rotate(calc(var(--face,1) * -12deg)) scale(1.18,.9)}70%{transform:translateY(-6%) rotate(calc(var(--face,1) * 15deg)) scale(1.12,.92)}100%{transform:scale(1.05,.95)}}
+@keyframes pet-tail-twitch{0%,100%{rotate:-4deg}50%{rotate:14deg}}
+@keyframes pet-groom{0%,25%,100%{transform:none}35%,70%{transform:translate(8%,20%) rotate(16deg)}50%{transform:translate(8%,22%) rotate(20deg)}}
+
+/* ---------- Legs ---------- */
+.pet-art svg :is(.leg-left,.leg-right){transform-box:fill-box;transform-origin:50% 0%}
+.pet-sprite{--leg-t:.56s;--leg-a:20deg}
+.pet-sprite[data-move=prowl]{--leg-t:1s;--leg-a:14deg}
+.pet-sprite[data-move=trot]{--leg-t:.4s;--leg-a:26deg}
+.pet-sprite[data-move=waddle]{--leg-t:.72s;--leg-a:13deg}
+.pet-sprite[data-move=wobble]{--leg-t:.9s;--leg-a:10deg}
+.pet-sprite[data-move=hop]{--leg-t:.62s}
+/* Walking: opposite legs swing in turn. Running swings faster and wider. */
+.pet-sprite:is([data-anim=walk],[data-anim=follow],[data-anim=run],[data-anim=stalk]) .pet-art svg :is(.leg-left,.leg-right){animation:pet-leg var(--leg-t) ease-in-out infinite}
+.pet-sprite:is([data-anim=walk],[data-anim=follow],[data-anim=run],[data-anim=stalk]) .pet-art svg .leg-right{animation-delay:calc(var(--leg-t) / -2)}
+.pet-sprite[data-anim=run] .pet-art svg :is(.leg-left,.leg-right){animation-duration:calc(var(--leg-t) * .55)}
+.pet-sprite[data-anim=run]{--leg-a:30deg}
+/* Hopping: both hind legs push off together. */
+.pet-sprite[data-move=hop]:is([data-anim=walk],[data-anim=follow],[data-anim=run]) .pet-art svg :is(.leg-left,.leg-right){animation-name:pet-leg-hop;animation-delay:0s}
+.pet-sprite[data-move=hop][data-anim=run] .pet-art svg :is(.leg-left,.leg-right){animation-duration:.4s}
+/* Excited and jumping: little kicks. */
+.pet-sprite:is([data-anim=excited],[data-anim=jump],[data-anim=celebrate],[data-anim=startled]) .pet-art svg :is(.leg-left,.leg-right){animation:pet-leg-hop .38s ease-in-out infinite}
+/* Sitting or sleeping: legs fold up under the body. */
+.pet-sprite:is([data-anim=sit],[data-anim=sleep]) .pet-art svg :is(.leg-left,.leg-right){scale:1 .35}
+/* Flying: legs hang loose and tuck in. */
+.pet-sprite[data-move=fly][data-air] .pet-art svg :is(.leg-left,.leg-right){animation:pet-leg-dangle 1.1s ease-in-out infinite;scale:.9 .75}
+.pet-sprite[data-move=fly][data-air] .pet-art svg .leg-right{animation-delay:-.55s}
+@keyframes pet-leg{0%,100%{rotate:calc(var(--leg-a) * -1)}50%{rotate:var(--leg-a)}}
+@keyframes pet-leg-hop{0%,100%{scale:1 .8}45%{scale:.92 1.22}}
+@keyframes pet-leg-dangle{0%,100%{rotate:-9deg}50%{rotate:9deg}}
 
 /* ---------- Part animations ---------- */
 .pet-art svg .tail{animation:pet-tail-sway 3s ease-in-out infinite}
@@ -96,10 +184,11 @@
 .pet-sprite[data-pet=penguin]:is([data-anim=walk],[data-anim=follow]) .pet-art svg .flipper-left{animation:pet-flap-l .72s ease-in-out infinite}
 .pet-sprite[data-pet=penguin]:is([data-anim=walk],[data-anim=follow]) .pet-art svg .flipper-right{animation:pet-flap-r .72s ease-in-out infinite}
 .pet-sprite[data-pet=penguin]:is([data-anim=walk],[data-anim=follow],[data-anim=run]) .pet-art svg .foot-left{animation:pet-step .72s ease-in-out infinite}
-.pet-sprite[data-pet=penguin]:is([data-anim=walk],[data-anim=follow],[data-anim=run]) .pet-art svg .foot-right{animation:pet-step .72s ease-in-out infinite reverse}
+.pet-sprite[data-pet=penguin]:is([data-anim=walk],[data-anim=follow],[data-anim=run]) .pet-art svg .foot-right{animation:pet-step .72s ease-in-out -.36s infinite}
 @keyframes pet-flap-l{0%,100%{rotate:4deg}50%{rotate:-34deg}}
 @keyframes pet-flap-r{0%,100%{rotate:-4deg}50%{rotate:34deg}}
-@keyframes pet-step{50%{translate:0 -3px}}
+@keyframes pet-step{0%,100%{translate:0 0}50%{translate:0 -4px}}
+.pet-sprite[data-pet=penguin]{--leg-a:5deg}
 
 /* Bunny nose twitch while idle. */
 [data-pet=bunny] .pet-art svg .nose{transform-box:fill-box;transform-origin:50% 50%;animation:pet-sniff 2.6s ease-in-out infinite}
@@ -122,7 +211,7 @@
 .pet-root.is-quiet{opacity:.5}
 .pet-root.is-hidden{opacity:0}
 .pet-body{position:relative;width:var(--pet-size,84px);height:var(--pet-size,84px);will-change:transform}
-.pet-shadow{position:absolute;left:18%;right:18%;bottom:-3%;height:9%;border-radius:50%;background:rgb(15 23 42 / .16);filter:blur(2px)}
+.pet-shadow{position:absolute;left:18%;right:18%;bottom:-3%;height:9%;border-radius:50%;background:rgb(15 23 42 / .16);filter:blur(2px);translate:0 calc(var(--air,0) * 1px);scale:max(.45, calc(1 - var(--air,0) / 320));opacity:max(.3, calc(1 - var(--air,0) / 260))}
 .pet-bubble{position:absolute;bottom:calc(100% + 4px);left:50%;max-width:11rem;width:max-content;padding:6px 10px;border-radius:12px;background:#fff;color:#0f172a;border:1px solid #dbe3ee;box-shadow:0 6px 18px rgb(15 23 42 / .14);font:600 12px/1.3 Arial,Helvetica,sans-serif;text-align:center;opacity:0;transform:translate(calc(-50% + var(--bshift,0px)),6px) scale(.92);transition:opacity .2s,transform .2s;pointer-events:none;z-index:2}
 .pet-bubble.show{opacity:1;transform:translate(calc(-50% + var(--bshift,0px)),0) scale(1)}
 .pet-bubble::after{content:"";position:absolute;top:100%;left:calc(50% - var(--bshift,0px));width:9px;height:9px;margin:-5px 0 0 -4.5px;background:#fff;border-right:1px solid #dbe3ee;border-bottom:1px solid #dbe3ee;transform:rotate(45deg)}
@@ -160,3 +249,8 @@ html[data-pet-hover],html[data-pet-hover] body{cursor:url("data:image/svg+xml,%3
   .pet-emoji{animation-duration:.01s}
   .pet-bubble{transition:none}
 }
+
+/* Grab and carry the companion */
+html[data-pet-hover],html[data-pet-hover] body{cursor:grab}
+html[data-pet-drag],html[data-pet-drag] *{cursor:grabbing!important;user-select:none}
+html[data-pet-drag] .pet-body{filter:drop-shadow(0 10px 8px rgb(15 23 42 / .25))}

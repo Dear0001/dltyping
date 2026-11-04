@@ -64,13 +64,18 @@ function PetStage({ def, settings, motion, typingRoute }: StageProps) {
     const queue: PetEvent[] = [];
     let typingUntil = 0;
     let raf = 0, last = 0, hoverOn = false;
-    const applied = { x: NaN, anim: "", blink: false, face: 0, look: NaN, lookY: NaN, size: 0, quiet: false, hidden: false };
+    // Height above the ground line (0 = standing on the bottom edge). Dragging changes it; roaming keeps it.
+    let lift = 0;
+    const drag = { on: false, offX: 0, offY: 0, moved: false, lastX: 0, tilt: 0 };
+    let justDragged = 0;
+    const applied = { tf: "", air: NaN, x: NaN, anim: "", blink: false, face: 0, look: NaN, lookY: NaN, size: 0, quiet: false, hidden: false };
     let sayId = 0, fxId = 0;
 
     const rectPad = (touch: boolean) => (touch ? 16 : 6);
     const insidePet = (cx: number, cy: number, pad: number) => {
       const size = sizeNow();
-      return cx >= brain.x - pad && cx <= brain.x + size + pad && cy >= window.innerHeight - 10 - size - pad && cy <= window.innerHeight - 10 + pad;
+      const bottom = window.innerHeight - 10 - lift - brain.air;
+      return cx >= brain.x - pad && cx <= brain.x + size + pad && cy >= bottom - size - pad && cy <= bottom + pad;
     };
     const setHover = (on: boolean) => {
       if (on === hoverOn) return;
@@ -82,12 +87,34 @@ function PetStage({ def, settings, motion, typingRoute }: StageProps) {
     // Passive listeners only: the pet never blocks, delays or cancels the page's own input.
     const onMove = (e: PointerEvent) => {
       if (e.pointerType === "touch") return;
+      if (drag.on) { pointer.x = e.clientX; pointer.y = e.clientY; pointer.active = false; pointer.at = performance.now(); drag.moved = true; return; }
       pointer.x = e.clientX; pointer.y = e.clientY; pointer.active = true; pointer.at = performance.now();
       const target = e.target instanceof Element ? e.target : null;
       setHover(insidePet(e.clientX, e.clientY, rectPad(false)) && !(target?.closest(INTERACTIVE_SELECTOR)));
     };
+    const onDown = (e: PointerEvent) => {
+      if (e.pointerType === "touch" || e.button !== 0) return;
+      const target = e.target instanceof Element ? e.target : null;
+      if (target?.closest(INTERACTIVE_SELECTOR) || !insidePet(e.clientX, e.clientY, rectPad(false))) return;
+      const size = sizeNow();
+      drag.on = true; drag.moved = false; drag.tilt = 0; drag.lastX = e.clientX;
+      drag.offX = e.clientX - brain.x;
+      drag.offY = e.clientY - (window.innerHeight - 10 - lift - size);
+      pointer.x = e.clientX; pointer.y = e.clientY; pointer.active = false;
+      brain.goal = null; brain.vx = 0;
+      e.preventDefault(); // no text selection while carrying the pet
+      document.documentElement.setAttribute("data-pet-drag", "");
+    };
+    const onUp = () => {
+      if (!drag.on) return;
+      const moved = drag.moved;
+      drag.on = false;
+      document.documentElement.removeAttribute("data-pet-drag");
+      if (moved) { justDragged = performance.now(); queue.push({ type: "click" }); } // a happy reaction on being put down
+    };
     const onLeave = () => { pointer.active = false; setHover(false); };
     const onClick = (e: MouseEvent) => {
+      if (performance.now() - justDragged < 250) return; // the release of a drag is not a click on the pet
       const target = e.target instanceof Element ? e.target : null;
       // A button or link under the pet was clicked: that click belongs to it. Text areas are fine, since the click still reaches them.
       if (target?.closest(ACTION_SELECTOR)) return;
@@ -108,17 +135,32 @@ function PetStage({ def, settings, motion, typingRoute }: StageProps) {
       const cfg = live.current;
       const size = sizeNow();
       if (pointer.active && t - pointer.at > 4000) pointer.active = false; // a still cursor stops counting as attention
+      lift = Math.min(lift, Math.max(0, window.innerHeight - 10 - size)); // keep it on screen after a resize
+      if (drag.on) {
+        brain.x = Math.min(Math.max(pointer.x - drag.offX, 0), Math.max(0, window.innerWidth - size));
+        lift = Math.min(Math.max(window.innerHeight - 10 - size - (pointer.y - drag.offY), 0), Math.max(0, window.innerHeight - 10 - size));
+        const want = Math.max(-28, Math.min(28, (pointer.x - drag.lastX) * 1.6 + Math.sin(t / 130) * 5));
+        drag.lastX = pointer.x;
+        drag.tilt += (want - drag.tilt) * Math.min(1, dt * 10);
+        brain.vx = 0; brain.goal = null; brain.air = 0;
+        brain.anim = "idle"; brain.animT = 0; brain.animDur = 0;
+      } else if (Math.abs(drag.tilt) > 0.2) drag.tilt *= Math.max(0, 1 - 10 * dt);
+      else drag.tilt = 0;
       const typing = cfg.typingRoute && cfg.settings.whileTyping !== "stay" && t < typingUntil;
       const quiet = typing && cfg.settings.whileTyping === "quiet";
       const hidden = typing && cfg.settings.whileTyping === "hide";
-      stepBrain(brain, def, {
-        dt, pointer: pointer.active ? { x: pointer.x, y: pointer.y, active: true } : null, centerY: window.innerHeight - 10 - size / 2, size,
+      if (!drag.on) stepBrain(brain, def, {
+        dt, pointer: pointer.active ? { x: pointer.x, y: pointer.y, active: true } : null, centerY: window.innerHeight - 10 - lift - size / 2, size,
         minX: 8, maxX: Math.max(8, window.innerWidth - size - 8), motion: cfg.motion, quiet, cursor: cfg.settings.cursor, speech: cfg.settings.speech, events: queue.splice(0),
       }, rand);
 
+      brain.air = Math.min(brain.air, Math.max(0, window.innerHeight - 10 - size - lift)); // never fly off the top of the screen
       // ---- Apply to the DOM only what changed ----
       const x = Math.round(brain.x * 10) / 10;
-      if (x !== applied.x) { body.style.transform = `translate3d(${x}px,0,0)`; applied.x = x; }
+      const air = Math.round(brain.air * 10) / 10;
+      if (air !== applied.air) { root.style.setProperty("--air", String(air)); sprite.toggleAttribute("data-air", air > 4); applied.air = air; }
+      const tf = `translate3d(${x}px,${-Math.round((lift + air) * 10) / 10}px,0) rotate(${Math.round(drag.tilt * 10) / 10}deg)`;
+      if (tf !== applied.tf) { body.style.transform = tf; applied.tf = tf; }
       if (size !== applied.size) { root.style.setProperty("--pet-size", `${size}px`); applied.size = size; }
       if (brain.anim !== applied.anim) { sprite.dataset.anim = brain.anim; applied.anim = brain.anim; }
       const blink = brain.blinking > 0;
@@ -156,6 +198,9 @@ function PetStage({ def, settings, motion, typingRoute }: StageProps) {
     const onVisibility = () => { if (document.hidden) cancelAnimationFrame(raf); else start(); };
     window.addEventListener("pointermove", onMove, { passive: true });
     window.addEventListener("click", onClick, { passive: true });
+    window.addEventListener("pointerdown", onDown); // not passive: it cancels text selection when the pet is grabbed
+    window.addEventListener("pointerup", onUp);
+    window.addEventListener("pointercancel", onUp);
     // Capture phase: still sees keys if a page handler stops propagation.
     window.addEventListener("keydown", onKey, { passive: true, capture: true });
     document.documentElement.addEventListener("mouseleave", onLeave);
@@ -167,6 +212,10 @@ function PetStage({ def, settings, motion, typingRoute }: StageProps) {
       unsubscribe();
       window.removeEventListener("pointermove", onMove);
       window.removeEventListener("click", onClick);
+      window.removeEventListener("pointerdown", onDown);
+      window.removeEventListener("pointerup", onUp);
+      window.removeEventListener("pointercancel", onUp);
+      document.documentElement.removeAttribute("data-pet-drag");
       window.removeEventListener("keydown", onKey, { capture: true });
       document.documentElement.removeEventListener("mouseleave", onLeave);
       window.removeEventListener("blur", onLeave);

@@ -35,7 +35,7 @@ const PetSprite = forwardRef<HTMLDivElement, Props>(function PetSprite({ def, an
     <div
       ref={ref}
       className={`pet-sprite ${silhouette ? "is-silhouette" : ""} ${className}`}
-      data-pet={def.id} data-anim={anim} data-move={def.locomotion} data-motion={motion} data-aura={def.aura}
+      data-pet={def.id} data-anim={anim} data-move={def.locomotion} data-view={def.view ?? "front"} data-motion={motion} data-aura={def.aura}
       aria-hidden="true"
     >
       {markup ? (

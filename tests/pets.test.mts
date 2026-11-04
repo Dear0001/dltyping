@@ -78,7 +78,7 @@ test("pets wander on their own, stay in bounds and never teleport", () => {
     for (let seed = 1; seed <= 6; seed++) {
       let prev = 300;
       const { maxStep, def } = run(id, seed, 120, { each: (b) => { minX = Math.min(minX, b.x); maxX = Math.max(maxX, b.x); travelled += Math.abs(b.x - prev); prev = b.x; } });
-      assert.ok(maxStep <= def.speed * 2.2 * FRAME * 1.15 + 0.01, `${id} step ${maxStep.toFixed(2)}px/frame`);
+      assert.ok(maxStep <= def.speed * 3.5 * FRAME * 1.15 + 0.01, `${id} step ${maxStep.toFixed(2)}px/frame`);
       moved++;
     }
     assert.ok(minX >= base.minX - 0.01 && maxX <= base.maxX + 0.01, `${id} stays in bounds`);
@@ -126,6 +126,39 @@ test("puppy rushes to the cursor; bunny rarely does; cat is in between", () => {
   assert.ok(bunny <= 0.35, `bunny ${bunny}`);
   assert.ok(cat > bunny && cat < puppy + 0.01, `cat ${cat}`);
   assert.ok(puppy > fox, `puppy ${puppy} fox ${fox}`);
+});
+
+test("cat stalks the cursor: creeps, freezes, wiggles, then pounces and acts casual", () => {
+  const r = rate("cat", cursorAt(560), 60, (_b, h) => h.anims.has("stalk") && h.anims.has("crouch") && h.anims.has("pounce"));
+  assert.ok(r >= 0.5, `stalk-and-pounce rate ${r}`);
+  // Never stalks at full tilt: while creeping it is far slower than its pounce.
+  const def = pet("cat"), rand = rng(11), b = createBrain(def, 100, rand);
+  let creepMax = 0, pounceMax = 0;
+  for (let i = 0; i < 40 * 60; i++) {
+    const before = b.x;
+    stepBrain(b, def, { ...base, dt: FRAME, pointer: { x: 700, y: CY, active: true }, events: [] }, rand);
+    const v = Math.abs(b.x - before) / FRAME;
+    if (b.anim === "stalk") creepMax = Math.max(creepMax, v);
+    if (b.anim === "pounce") pounceMax = Math.max(pounceMax, v);
+  }
+  assert.ok(creepMax <= def.speed * 1.4, `creep ${creepMax.toFixed(0)}px/s`);
+  if (pounceMax > 0) assert.ok(pounceMax > creepMax, `pounce ${pounceMax.toFixed(0)} faster than creep ${creepMax.toFixed(0)}`);
+});
+
+test("cat and fox pounce on invisible prey while alone; the fox plays tag with the cursor", () => {
+  for (const id of ["cat", "fox"]) {
+    let pounced = 0;
+    for (let seed = 1; seed <= 12; seed++) {
+      const seen = new Set<string>();
+      run(id, seed, 90, { each: (b) => seen.add(b.anim) });
+      if (seen.has("crouch") && seen.has("pounce")) pounced++;
+    }
+    assert.ok(pounced >= 6, `${id} pounced in ${pounced}/12 runs`);
+  }
+  const tag = rate("fox", cursorAt(520), 20, (_b, h) => h.anims.has("run") && h.minDist < SIZE);
+  assert.ok(tag >= 0.3, `fox touches the cursor ${tag}`);
+  const zoom = (() => { let n = 0; for (let seed = 1; seed <= 12; seed++) { let dashed = false; run("cat", seed, 120, { each: (b) => { if (b.goal?.kind === "dash") dashed = true; } }); if (dashed) n++; } return n; })();
+  assert.ok(zoom >= 3, `cat zoomies in ${zoom}/12 runs`);
 });
 
 test("a following puppy arrives next to the cursor and celebrates", () => {

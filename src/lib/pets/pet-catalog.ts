@@ -12,11 +12,22 @@ export const RARITIES: Record<Rarity, { label: string; color: string; order: num
   special: { label: "Special", color: "#be185d", order: 4 },
 };
 
-export const PET_ANIMS = ["idle", "blink", "walk", "run", "jump", "sit", "sleep", "stretch", "happy", "excited", "follow", "startled", "celebrate"] as const;
+export const PET_ANIMS = ["idle", "blink", "walk", "run", "jump", "sit", "sleep", "stretch", "happy", "excited", "follow", "startled", "celebrate", "stalk", "crouch", "pounce"] as const;
 export type PetAnim = (typeof PET_ANIMS)[number];
 
 /** How the pet travels: drives the CSS body motion. */
-export type Locomotion = "walk" | "hop" | "waddle" | "wobble";
+export type Locomotion = "walk" | "prowl" | "trot" | "hop" | "waddle" | "wobble" | "fly";
+
+/** Signature behaviours that come from how the real animal acts. The behaviour engine reads these. */
+export type Quirk =
+  /** Creeps toward the cursor in stop-start bursts, wiggles, then pounces. */
+  | "stalk"
+  /** Freezes, then pounces on something invisible. */
+  | "mouse"
+  /** Sudden bursts of racing back and forth. */
+  | "zoomies"
+  /** Rushes to the cursor, touches it, then bolts away. */
+  | "tag";
 
 /** 0 to 1 personality dials. The behaviour engine turns these into choices. */
 export type PetTraits = {
@@ -52,6 +63,13 @@ export type PetDefinition = {
   /** Short bullet list shown on the collection card. */
   behaviors: string[];
   locomotion: Locomotion;
+  quirks?: readonly Quirk[];
+  /** How it acts after a pounce lands. */
+  pounce?: { anim: PetAnim; emoji: string; say?: string[] };
+  /** Seconds of stillness before it dozes off (default 28). */
+  sleepAfter?: number;
+  /** "side" art is drawn in profile (four-legged walkers) and is mirrored to face the direction of travel. */
+  view?: "front" | "side";
   /** Walking speed in px/s. */
   speed: number;
   traits: PetTraits;
@@ -93,11 +111,13 @@ export const PETS: readonly PetDefinition[] = [
   {
     id: "cat", name: "Baby Cat", file: "cat.svg", rarity: "common", unlockStreak: 3,
     tagline: "Slow, graceful and a little bit nosy.",
-    personality: "A calm cat that strolls, stretches and cleans its paws. It stalks your cursor when it feels like it.",
-    behaviors: ["Stretches and sits to clean its paws", "Chases the cursor", "Jumps when clicked", "Shows hearts and paws"],
-    locomotion: "walk", speed: 46,
+    personality: "A true cat: it stalks your cursor low to the ground, freezes, wiggles its rear and pounces, then acts like it meant to do that. It grooms, naps often and gets sudden zoomies.",
+    behaviors: ["Stalks your cursor, then pounces", "Pounces on invisible bugs", "Sudden zoomies", "Grooms its paws and naps a lot"],
+    view: "side", locomotion: "prowl", speed: 46,
+    quirks: ["stalk", "mouse", "zoomies"], sleepAfter: 16,
+    pounce: { anim: "sit", emoji: "😼", say: ["I meant to do that.", "*grooms casually*", "Got you!"] },
     traits: { curiosity: 0.85, friendliness: 0.6, shyness: 0.15, playfulness: 0.7, energy: 0.45, sleepiness: 0.5 },
-    anims: ["idle", "blink", "walk", "run", "jump", "sit", "sleep", "stretch", "happy", "excited", "follow", "startled", "celebrate"],
+    anims: ["idle", "blink", "walk", "run", "jump", "sit", "sleep", "stretch", "happy", "excited", "follow", "startled", "celebrate", "stalk", "crouch", "pounce"],
     followArrive: "sit", followDistance: 56, idle: [3, 8],
     clickReactions: [
       { anim: "jump", emoji: "🐾", say: "Mew!" },
@@ -114,7 +134,7 @@ export const PETS: readonly PetDefinition[] = [
     tagline: "Bursting with energy and love.",
     personality: "An eager puppy that bounds after your cursor, wags constantly and gets overexcited about every win.",
     behaviors: ["Runs straight to the cursor", "Wags its tail", "Sits and tilts its head", "Cheers when you finish lessons"],
-    locomotion: "walk", speed: 92,
+    view: "side", locomotion: "trot", speed: 92,
     traits: { curiosity: 0.9, friendliness: 0.98, shyness: 0.03, playfulness: 0.9, energy: 0.85, sleepiness: 0.35 },
     anims: ["idle", "blink", "walk", "run", "jump", "sit", "sleep", "stretch", "happy", "excited", "follow", "startled", "celebrate"],
     followArrive: "excited", followDistance: 34, idle: [2, 5],
@@ -171,8 +191,8 @@ export const PETS: readonly PetDefinition[] = [
     id: "dragon", name: "Baby Dragon", file: "dragon.svg", rarity: "epic", unlockStreak: 30,
     tagline: "A rare fantasy friend with tiny wings.",
     personality: "A proud little dragon. It flaps its wings when excited, stretches like a lion and loves to show off a spark of fire.",
-    behaviors: ["Flaps its wings", "Stretches wings wide", "Swishes its tail", "Puffs sparks when clicked"],
-    locomotion: "walk", speed: 56,
+    behaviors: ["Flies around the page instead of walking", "Lands to rest and nap", "Swishes its tail", "Puffs sparks when clicked"],
+    locomotion: "fly", speed: 56,
     traits: { curiosity: 0.6, friendliness: 0.5, shyness: 0.15, playfulness: 0.55, energy: 0.5, sleepiness: 0.45 },
     anims: ["idle", "blink", "walk", "run", "jump", "sit", "sleep", "stretch", "happy", "excited", "follow", "startled", "celebrate"],
     followArrive: "sit", followDistance: 70, idle: [3, 8],
@@ -189,11 +209,13 @@ export const PETS: readonly PetDefinition[] = [
   {
     id: "fox", name: "Sunset Fox", file: "fox.svg", rarity: "legendary", unlockStreak: 60,
     tagline: "Quick, clever and glowing.",
-    personality: "A clever fox that keeps its distance, pounces suddenly and darts around. It plays tag better than anyone.",
-    behaviors: ["Keeps a sly distance", "Pounces", "Darts around", "Golden glow"],
-    locomotion: "walk", speed: 84, aura: "gold",
+    personality: "A clever, wary fox. It listens, then dives nose-first onto invisible mice, plays tag by dashing up to your cursor and bolting away, and curls its tail over its nose to sleep.",
+    behaviors: ["Listens, then mouse-pounces", "Plays tag with your cursor", "Keeps a sly distance", "Curls up to sleep", "Golden glow"],
+    view: "side", locomotion: "trot", speed: 84,
+    quirks: ["mouse", "tag"],
+    pounce: { anim: "happy", emoji: "🐭", say: ["Gotcha!", "Mouse? What mouse?"] }, aura: "gold",
     traits: { curiosity: 0.9, friendliness: 0.5, shyness: 0.5, playfulness: 0.85, energy: 0.75, sleepiness: 0.3 },
-    anims: ["idle", "blink", "walk", "run", "jump", "sit", "sleep", "stretch", "happy", "excited", "follow", "startled", "celebrate"],
+    anims: ["idle", "blink", "walk", "run", "jump", "sit", "sleep", "stretch", "happy", "excited", "follow", "startled", "celebrate", "crouch", "pounce"],
     followArrive: "sit", followDistance: 130, idle: [2, 6],
     clickReactions: [
       { anim: "jump", emoji: "🍂", say: "Pounce!" },
@@ -209,8 +231,8 @@ export const PETS: readonly PetDefinition[] = [
     id: "starlight", name: "Starlight Dragon", file: "dragon.svg", rarity: "special", unlockStreak: 100,
     tagline: "Exclusive reward for 100 days of dedication.",
     personality: "A dazzling dragon made of night sky. Calm and wise, it twinkles as it glides and cheers louder than anyone.",
-    behaviors: ["Glides with a twinkling aura", "Flaps starry wings", "Exclusive 100-day reward"],
-    locomotion: "walk", speed: 60, aura: "stars",
+    behaviors: ["Soars with a twinkling aura", "Flies high and lands to rest", "Exclusive 100-day reward"],
+    locomotion: "fly", speed: 60, aura: "stars",
     palette: { "#2a9d8f": "#6d28d9", "#a8dadc": "#f9a8d4", "#e9c46a": "#fde047", "#264653": "#1e1b4b" },
     traits: { curiosity: 0.7, friendliness: 0.6, shyness: 0.1, playfulness: 0.6, energy: 0.5, sleepiness: 0.35 },
     anims: ["idle", "blink", "walk", "run", "jump", "sit", "sleep", "stretch", "happy", "excited", "follow", "startled", "celebrate"],
@@ -233,7 +255,7 @@ export const getPet = (id: string | null | undefined): PetDefinition | null => (
 /** Where an unsupported animation falls back to. A pet's own `fallback` wins. */
 const DEFAULT_FALLBACK: Record<PetAnim, PetAnim> = {
   idle: "idle", blink: "idle", walk: "idle", run: "walk", jump: "happy", sit: "idle", sleep: "idle", stretch: "idle",
-  happy: "idle", excited: "happy", follow: "walk", startled: "jump", celebrate: "excited",
+  happy: "idle", excited: "happy", follow: "walk", startled: "jump", celebrate: "excited", stalk: "walk", crouch: "idle", pounce: "jump",
 };
 
 /** The animation this pet actually plays for a requested state. */

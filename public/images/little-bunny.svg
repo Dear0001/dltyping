@@ -1,29 +1,38 @@
 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100" width="100" height="100">
   <g class="little-bunny">
     <!-- Tail -->
-    <circle class="tail" cx="75" cy="75" r="9" fill="#f0f0f0" />
-    
+    <circle class="tail" cx="76" cy="76" r="9" fill="#f5f5f5" stroke="#dde1e7" stroke-width="1.2" />
+
+    <!-- Hind legs: big thigh and long flat foot, like a real rabbit -->
+    <g class="leg-left">
+      <ellipse cx="31" cy="80" rx="9" ry="11" fill="#ffffff" stroke="#dde1e7" stroke-width="1.2" />
+      <ellipse cx="29" cy="93" rx="12" ry="4.8" fill="#f5f5f5" stroke="#dde1e7" stroke-width="1.2" />
+    </g>
+    <g class="leg-right">
+      <ellipse cx="69" cy="80" rx="9" ry="11" fill="#ffffff" stroke="#dde1e7" stroke-width="1.2" />
+      <ellipse cx="71" cy="93" rx="12" ry="4.8" fill="#f5f5f5" stroke="#dde1e7" stroke-width="1.2" />
+    </g>
+
     <!-- Body -->
-    <circle class="body" cx="50" cy="70" r="22" fill="#ffffff" />
-    
+    <circle class="body" cx="50" cy="70" r="22" fill="#ffffff" stroke="#dde1e7" stroke-width="1.2" />
+
+    <!-- Front paws -->
+    <rect x="39" y="80" width="8" height="13" rx="4" fill="#ffffff" stroke="#dde1e7" stroke-width="1.2" />
+    <rect x="53" y="80" width="8" height="13" rx="4" fill="#ffffff" stroke="#dde1e7" stroke-width="1.2" />
+
     <!-- Head -->
     <g class="head">
-      <!-- Ears -->
       <g class="ear-left">
-        <ellipse cx="38" cy="25" rx="7" ry="22" fill="#ffffff" />
+        <ellipse cx="38" cy="25" rx="7" ry="22" fill="#ffffff" stroke="#dde1e7" stroke-width="1.2" />
         <ellipse cx="38" cy="27" rx="3.5" ry="14" fill="#ffb6c1" />
       </g>
       <g class="ear-right">
-        <ellipse cx="62" cy="25" rx="7" ry="22" fill="#ffffff" />
+        <ellipse cx="62" cy="25" rx="7" ry="22" fill="#ffffff" stroke="#dde1e7" stroke-width="1.2" />
         <ellipse cx="62" cy="27" rx="3.5" ry="14" fill="#ffb6c1" />
       </g>
-      
-      <!-- Face -->
-      <circle cx="50" cy="50" r="20" fill="#ffffff" />
+      <circle cx="50" cy="50" r="20" fill="#ffffff" stroke="#dde1e7" stroke-width="1.2" />
       <circle class="blush-left" cx="35" cy="53" r="4" fill="#ffe4e1" />
       <circle class="blush-right" cx="65" cy="53" r="4" fill="#ffe4e1" />
-      
-      <!-- Eyes & Nose -->
       <g class="eyes">
         <circle cx="41" cy="47" r="3" fill="#111111" />
         <circle cx="59" cy="47" r="3" fill="#111111" />
