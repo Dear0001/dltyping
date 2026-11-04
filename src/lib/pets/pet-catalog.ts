@@ -50,7 +50,57 @@ export type PetTraits = {
  * The brain picks one now and then, plays `anim` for `seconds`, shows the emoji and says a line. The sprite carries
  * `data-trick="<id>"` while it runs, so the CSS can give each trick its own motion. Ids are unique across all pets.
  */
-export type Trick = { id: string; anim: PetAnim; seconds: number; /** Relative chance against other idle choices. */ weight: number; emoji: string; say?: readonly string[] };
+export type Trick = { id: string; anim: PetAnim; seconds: number; /** Relative chance against other idle choices. */ weight: number; emoji: string; say?: readonly string[]; /** Also shoots the pet's magic bolt (needs `magic`). */ bolt?: boolean };
+
+/**
+ * A legendary pet's ultimate: a seven-second cinematic (charge, magic circle, beam, impact, finale) drawn over the page.
+ * It is purely visual and never blocks the page. Only plays with full animations.
+ */
+export type Ultimate = {
+  name: string;
+  /** Main glow colour and the bright core/accent colour. */
+  color: string;
+  color2: string;
+  /** Where the attack leaves the pet, as % of the sprite (art facing right, front view). */
+  mouth: { x: number; y: number };
+  /** Which way the beam goes: toward the side with more room, the way the pet faces (side-view art), or always right. */
+  aim: "room" | "face" | "right";
+  beam: "solid" | "rainbow" | "waves" | "none";
+  /** How the aftermath looks: falling snow, rising embers, aurora curtains, comets, gale, sun rays or spirit flames. */
+  finale: "blizzard" | "embers" | "aurora" | "comets" | "gale" | "sunburst" | "spirit";
+  /** Glyphs swirling around the pet and filling the finale. */
+  glyphs: readonly string[];
+  say: readonly string[];
+  /** Seconds before the ultimate can be cast again (counted after it ends). */
+  cooldown?: number;
+  /** The pet transforms during its ultimate. "tails": tails grow long, magic tails wrap around it. "frost": it grows into a crowned frost-wing form. */
+  transform?: "tails" | "frost" | "galaxy";
+  /** How high (in pet sizes) the pet rises into the air while casting. */
+  lift?: number;
+  /** How much bigger the pet becomes while transformed (art scales from its feet). */
+  grow?: number;
+};
+
+/** A signature spell with its own cinematic (see PetAbility). Played from the pet menu or the Pets page. */
+export type Ability = {
+  /** Names the cinematic that PetAbility draws (see its switch). */
+  id: string;
+  name: string;
+  /** One line shown in menus. */
+  blurb: string;
+  seconds: number;
+  /** The pose the pet holds while casting. */
+  anim: PetAnim;
+  say: readonly string[];
+  /** Seconds before the skill can be cast again (counted after it ends). Default 0. */
+  cooldown?: number;
+};
+
+/** Particles a pet gives off while in an animation: `every` is the gap in ms. Key "fly" means airborne. */
+export type Ambient = Partial<Record<PetAnim | "fly", { glyphs: readonly string[]; every: number; /** Left behind in the page (a trail) instead of floating with the pet. */ world?: boolean }>>;
+
+/** A magic attack: a harmless bolt that flies out of the pet in the direction it faces. */
+export type Magic = { name: string; /** Projectile symbol. */ emoji: string; /** Glow colour of the bolt and its trail. */ color: string };
 
 export type ClickReaction = { anim: PetAnim; emoji: string; say?: string };
 export type PetSpeech = { click: string[]; celebrate: string[]; encourage: string[]; follow: string[]; flee: string[]; wake: string[] };
@@ -95,6 +145,19 @@ export type PetDefinition = {
   clickReactions: ClickReaction[];
   speech: PetSpeech;
   aura?: "gold" | "stars";
+  /** Legendary pets can cast this on click, on a win and now and then on their own. */
+  magic?: Magic;
+  /** Legendary only: the cinematic ultimate (menu, or click the pet five times quickly). */
+  ultimate?: Ultimate;
+  /**
+   * Key-to-cast: pressing a key casts its skill (an ability id, or "ultimate"). Pets with this have no cast buttons.
+   * Keys are ignored while typing in a field and on the typing pages, where letters belong to the lesson or game.
+   */
+  keyCast?: Readonly<Record<string, string>>;
+  /** Extra spells, each with its own cinematic. */
+  abilities?: readonly Ability[];
+  /** Star dust, trails and other particles for the pet's movement states. */
+  ambient?: Ambient;
 };
 
 const ALL = ["idle", "blink", "walk", "run", "jump", "sit", "sleep", "stretch", "happy", "excited", "follow", "startled", "celebrate"] as const;
@@ -361,7 +424,9 @@ export const PETS: readonly PetDefinition[] = [
     tagline: "Brave, proud and golden.",
     personality: "A proud little lion with a mighty mane. It prowls with its chin up, stalks your cursor before pouncing, and roars at every milestone.",
     behaviors: ["Prowls proudly", "Stalks, then pounces", "Mighty tiny roar", "Golden glow"],
-    locomotion: "prowl", speed: 56, aura: "gold",
+    locomotion: "prowl", speed: 56, aura: "gold", magic: { name: "Roar Wave", emoji: "⚡", color: "#fbbf24" },
+    keyCast: { l: "ultimate" },
+    ultimate: { name: "Solar Roar", color: "#fbbf24", color2: "#fff3c4", mouth: { x: 50, y: 55 }, aim: "room", beam: "waves", finale: "sunburst", glyphs: ["✦", "☀️", "✧"], say: ["SOLAR ROAR!", "Bow to the sun!"] },
     quirks: ["stalk"],
     pounce: { anim: "excited", emoji: "🦁", say: ["Roar!", "Got you!"] },
     traits: { curiosity: 0.7, friendliness: 0.6, shyness: 0.05, playfulness: 0.6, energy: 0.55, sleepiness: 0.4 },
@@ -385,7 +450,9 @@ export const PETS: readonly PetDefinition[] = [
     tagline: "A dragon woven from the night sky.",
     personality: "A calm, wise dragon with a coat of deep space. It glides among the stars, flaps its wings when excited and loves to show off a spark of fire.",
     behaviors: ["Flies around the page", "Lands to rest and nap", "Twinkling star aura", "Puffs sparks when clicked"],
-    locomotion: "fly", speed: 60, aura: "stars",
+    locomotion: "fly", speed: 60, aura: "stars", magic: { name: "Dragon Fire", emoji: "🔥", color: "#fb923c" },
+    keyCast: { m: "ultimate" },
+    ultimate: { name: "Starfire Nova", color: "#f97316", color2: "#fde68a", mouth: { x: 50, y: 51 }, aim: "room", beam: "solid", finale: "embers", glyphs: ["🔥", "✦", "✧"], say: ["STARFIRE NOVA!", "Burn like a star!"] },
     palette: { "#2a9d8f": "#4338ca", "#a8dadc": "#a5b4fc", "#e9c46a": "#fcd34d", "#264653": "#1e1b4b" },
     traits: { curiosity: 0.6, friendliness: 0.55, shyness: 0.1, playfulness: 0.55, energy: 0.5, sleepiness: 0.4 },
     tricks: [
@@ -408,7 +475,9 @@ export const PETS: readonly PetDefinition[] = [
     tagline: "Part eagle, part lion, all courage.",
     personality: "A proud young griffin with an eagle's eyes and a lion's heart. It soars in wide arcs, screeches at the sky and spreads its wings to show off.",
     behaviors: ["Soars in wide arcs", "Screeches at the sky", "Dives with its wings tucked", "Golden glow"],
-    locomotion: "fly", speed: 72, aura: "gold",
+    locomotion: "fly", speed: 72, aura: "gold", magic: { name: "Wind Slash", emoji: "🌪️", color: "#facc15" },
+    keyCast: { r: "ultimate" },
+    ultimate: { name: "Tempest Talon", color: "#facc15", color2: "#fffbe0", mouth: { x: 51, y: 54 }, aim: "room", beam: "solid", finale: "gale", glyphs: ["🍃", "💨", "✦"], say: ["TEMPEST TALON!", "Feel the storm!"] },
     tricks: [
       { id: "screech", anim: "stretch", seconds: 1.6, weight: 1.2, emoji: "🦅", say: ["SKREEE!", "Hear that?"] },
       { id: "dive", anim: "excited", seconds: 1.9, weight: 1, emoji: "💨", say: ["Diiive!", "Wings tucked!"] },
@@ -424,6 +493,128 @@ export const PETS: readonly PetDefinition[] = [
     speech: {
       click: ["SKREE!", "Watch this!", "*proud chirp*"], celebrate: ["A legendary win!", "Soar higher!"], encourage: ["Fly through it.", "Courage, friend."],
       follow: ["I see you from above."], flee: ["Up, up and away!"], wake: ["*ruffles feathers*"],
+    },
+  },
+  {
+    id: "kira", name: "Kira the Kitsune", file: "kitsune-fox.svg", rarity: "legendary", unlockStreak: 120,
+    tagline: "A nine-tailed spirit fox with foxfire at her fingertips.",
+    personality: "An elegant white kitsune who trots through the page trailing blue foxfire. Playful and a little mischievous, she hurls spirit flames when you click her.",
+    behaviors: ["Casts Foxfire bolts", "Plays tag with your cursor", "Magic halo and sparkles", "Mischievous and graceful"],
+    locomotion: "trot", speed: 82, quirks: ["tag"], sleepAfter: 20, magic: { name: "Foxfire", emoji: "🔥", color: "#60a5fa" },
+    keyCast: { a: "spirit_flame", b: "foxfire_storm", c: "phantom_dash", d: "nine_tail_illusion", e: "ultimate" },
+    abilities: [
+      { id: "spirit_flame", name: "Spirit Flame", blurb: "A blue fireball that flies to its target.", seconds: 1.9, anim: "stretch", cooldown: 1, say: ["Spirit Flame!", "Catch this!"] },
+      { id: "foxfire_storm", name: "Foxfire Storm", blurb: "Foxfire flames orbit Kira in rings of light.", seconds: 3.6, anim: "stretch", cooldown: 3, say: ["Foxfire Storm!", "Dance, little flames."] },
+      { id: "phantom_dash", name: "Phantom Dash", blurb: "She vanishes in a flash and reappears elsewhere, trailing spirit lightning.", seconds: 1.9, anim: "sit", cooldown: 2, say: ["Phantom Dash!", "Too slow."] },
+      { id: "nine_tail_illusion", name: "Nine-Tail Illusion", blurb: "Nine spectral fox clones circle her, then scatter.", seconds: 4.6, anim: "stretch", cooldown: 4, say: ["Nine-Tail Illusion!", "Which one is me?"] },
+    ],
+    ultimate: { name: "Kitsune Ascension", color: "#60a5fa", color2: "#fde68a", mouth: { x: 50, y: 60 }, aim: "room", beam: "none", finale: "spirit", transform: "tails", cooldown: 12, glyphs: ["🔥", "✦", "⚡"], say: ["KITSUNE ASCENSION!", "Spirits, answer me!"] },
+    traits: { curiosity: 0.85, friendliness: 0.55, shyness: 0.3, playfulness: 0.85, energy: 0.7, sleepiness: 0.3 },
+    tricks: [
+      { id: "twirl", anim: "happy", seconds: 2, weight: 0.9, emoji: "🌕", say: ["Nine tails, one spin!", "Watch my tails!"] },
+    ],
+    anims: ALL,
+    followArrive: "sit", followDistance: 100, idle: [2, 6],
+    clickReactions: [
+      { anim: "stretch", emoji: "🔥", say: "Foxfire!" },
+      { anim: "jump", emoji: "✨", say: "Hehe, too slow!" },
+      { anim: "happy", emoji: "💙", say: "*nine tails sway*" },
+    ],
+    speech: {
+      click: ["Foxfire!", "Hehe, too slow!", "*nine tails sway*"], celebrate: ["A spirit-worthy win!", "Nine tails of joy!"], encourage: ["A little mischief, a lot of practice.", "Keep the flame alive."],
+      follow: ["I'm right behind you."], flee: ["Poof!"], wake: ["*soft yawn*"],
+    },
+  },
+  {
+    id: "aurora", name: "Aurora the Magic Unicorn", file: "magical-unicorn.svg", rarity: "legendary", unlockStreak: 180,
+    tagline: "A unicorn whose horn paints the sky.",
+    personality: "A radiant unicorn that glides with light hooves and fires rainbow beams from her horn. Kind to everyone, fierce about your streak.",
+    behaviors: ["Fires Rainbow Beams", "Trots with a flowing mane", "Sparkles when you win", "Twinkling star aura"],
+    locomotion: "trot", view: "side", speed: 80, aura: "stars", magic: { name: "Rainbow Beam", emoji: "🌈", color: "#f0abfc" },
+    keyCast: { u: "ultimate" },
+    ultimate: { name: "Prismatic Aurora", color: "#f0abfc", color2: "#ffffff", mouth: { x: 84, y: 12 }, aim: "face", beam: "rainbow", finale: "aurora", glyphs: ["✦", "✧", "🌈"], say: ["PRISMATIC AURORA!", "Believe in the light!"] },
+    traits: { curiosity: 0.7, friendliness: 0.85, shyness: 0.15, playfulness: 0.7, energy: 0.6, sleepiness: 0.35 },
+    tricks: [
+      { id: "rear", anim: "stretch", seconds: 1.5, weight: 0.9, emoji: "✨", say: ["Neigh!", "Magic!"] },
+    ],
+    anims: ALL,
+    followArrive: "happy", followDistance: 76, idle: [3, 7],
+    clickReactions: [
+      { anim: "stretch", emoji: "🌈", say: "Rainbow beam!" },
+      { anim: "jump", emoji: "✨", say: "Sparkle!" },
+      { anim: "happy", emoji: "💖", say: "Magic is real." },
+    ],
+    speech: {
+      click: ["Rainbow beam!", "Sparkle!", "Magic is real."], celebrate: ["Pure magic!", "The sky is painted for you!"], encourage: ["Believe in your fingers.", "Gallop on, you've got this."],
+      follow: ["Follow the rainbow."], flee: ["Whinny!"], wake: ["*mane swish*"],
+    },
+  },
+  {
+    id: "frostbite", name: "Frostbite the Ice Dragon", file: "dragon-ice.svg", rarity: "legendary", unlockStreak: 210,
+    tagline: "A dragon forged from glacier and winter wind.",
+    personality: "A proud ice dragon that cruises the page on frosty wings. Calm and cool-headed, it breathes shards of ice at anything that distracts you.",
+    behaviors: ["Breathes Frost Shards", "Flies around the page", "Lands to rest and nap", "Magic halo and sparkles"],
+    locomotion: "fly", speed: 62, aura: "stars", magic: { name: "Frost Shard", emoji: "❄️", color: "#7dd3fc" },
+    keyCast: { a: "frost_breath", b: "ice_shield", c: "blizzard_storm", d: "frozen_prison", e: "ultimate" },
+    abilities: [
+      { id: "frost_breath", name: "Frost Breath", blurb: "A cone of freezing air that bursts into frost on impact.", seconds: 3.2, anim: "stretch", say: ["Frost Breath!", "Feel the chill."] },
+      { id: "ice_shield", name: "Ice Shield", blurb: "A dome of ice crystals that cracks and ripples under attack.", seconds: 4.2, anim: "stretch", say: ["Ice Shield!", "Nothing gets through."] },
+      { id: "blizzard_storm", name: "Blizzard Storm", blurb: "A howling snowstorm sweeps across the screen.", seconds: 4.8, anim: "stretch", say: ["Blizzard Storm!", "Winter is here."] },
+      { id: "frozen_prison", name: "Frozen Prison", blurb: "Ice spikes rise into a cage and freeze whatever is inside.", seconds: 4.6, anim: "stretch", say: ["Frozen Prison!", "Frozen solid."] },
+    ],
+    ultimate: { name: "Absolute Zero", color: "#7dd3fc", color2: "#e0f2fe", mouth: { x: 45, y: 54 }, aim: "room", beam: "solid", finale: "blizzard", transform: "frost", grow: 1.55, glyphs: ["❄", "❅", "✦"], say: ["ABSOLUTE ZERO!", "Freeze!"] },
+    traits: { curiosity: 0.55, friendliness: 0.5, shyness: 0.1, playfulness: 0.5, energy: 0.55, sleepiness: 0.4 },
+    tricks: [
+      { id: "loop", anim: "excited", seconds: 1.9, weight: 0.9, emoji: "💎", say: ["Loop-de-loop!", "Wheee, cold air!"] },
+    ],
+    anims: ALL,
+    followArrive: "sit", followDistance: 80, idle: [3, 8],
+    clickReactions: [
+      { anim: "stretch", emoji: "❄️", say: "Frost breath!" },
+      { anim: "jump", emoji: "💎", say: "Cool, right?" },
+      { anim: "happy", emoji: "💙", say: "*icy puff*" },
+    ],
+    speech: {
+      click: ["Frost breath!", "Cool, right?", "*icy puff*"], celebrate: ["A glacial win!", "Ice cold focus!"], encourage: ["Stay cool, keep typing.", "Steady as winter."],
+      follow: ["The frost follows you."], flee: ["Whoosh!"], wake: ["Rrr... five more minutes."],
+    },
+  },
+  {
+    id: "nova", name: "Nova the Galaxy Griffin", file: "galaxy-griffin.svg", rarity: "legendary", unlockStreak: 300,
+    tagline: "A griffin that soars between the stars.",
+    personality: "A griffin with a galaxy for wings. It soars in great arcs and launches comets at the sky when it is excited.",
+    behaviors: ["Launches Comet Strikes", "Soars in wide arcs", "Twinkling star aura", "Golden-violet glow"],
+    locomotion: "fly", speed: 74, aura: "stars", magic: { name: "Comet Strike", emoji: "☄️", color: "#a78bfa" },
+    ultimate: { name: "Supernova Dominion", color: "#a78bfa", color2: "#fde68a", mouth: { x: 82, y: 42 }, aim: "right", beam: "none", finale: "comets", transform: "galaxy", lift: 1.7, glyphs: ["✦", "☄️", "🌠", "✧"], say: ["SUPERNOVA DOMINION!", "Let the galaxy burn!"] },
+    keyCast: { a: "galaxy_bolt", b: "celestial_wings", c: "cosmic_flight", d: "nebula_vortex", e: "starlight_blessing", f: "astral_sight", g: "ultimate" },
+    abilities: [
+      { id: "galaxy_bolt", name: "Galaxy Bolt", blurb: "A cosmic star projectile that bursts on impact.", seconds: 3.4, anim: "stretch", say: ["Galaxy Bolt!", "Stars, gather!"] },
+      { id: "celestial_wings", name: "Celestial Wings", blurb: "A star shield that ripples against attacks.", seconds: 4.2, anim: "stretch", say: ["Celestial Wings!", "Stay close."] },
+      { id: "cosmic_flight", name: "Cosmic Flight", blurb: "Launches through a star portal, trailing galaxy dust.", seconds: 3.6, anim: "run", say: ["Cosmic Flight!", "Hold on to the stars!"] },
+      { id: "nebula_vortex", name: "Nebula Vortex", blurb: "A gravity vortex that pulls in stars, then collapses.", seconds: 4.6, anim: "stretch", say: ["Nebula Vortex!", "Feel the pull."] },
+      { id: "starlight_blessing", name: "Starlight Blessing", blurb: "A warm healing aura and a gentle rain of stars.", seconds: 4.6, anim: "sit", say: ["Starlight Blessing.", "Rest in the light."] },
+      { id: "astral_sight", name: "Astral Sight", blurb: "Galaxy eyes scan the screen and reveal what is hidden.", seconds: 4, anim: "idle", say: ["Astral Sight.", "Nothing hides from the stars."] },
+    ],
+    ambient: {
+      idle: { glyphs: ["✦", "✧"], every: 1900 }, walk: { glyphs: ["✦"], every: 520, world: true }, run: { glyphs: ["✦", "✧", "⭐"], every: 160, world: true },
+      fly: { glyphs: ["✧", "✦", "🌟"], every: 200, world: true }, sleep: { glyphs: ["⭐", "🫧", "✦"], every: 2300 }, happy: { glyphs: ["✨", "✦", "✧"], every: 220 },
+      startled: { glyphs: ["✦", "✧"], every: 90 }, celebrate: { glyphs: ["✨", "🌟", "✦"], every: 110 },
+    },
+    traits: { curiosity: 0.75, friendliness: 0.5, shyness: 0.1, playfulness: 0.55, energy: 0.7, sleepiness: 0.2 },
+    tricks: [
+      { id: "dive", anim: "excited", seconds: 1.9, weight: 0.9, emoji: "🌠", say: ["Diiive!", "Falling star!"] },
+    ],
+    anims: ALL,
+    followArrive: "sit", followDistance: 90, idle: [2, 6],
+    clickReactions: [
+      { anim: "stretch", emoji: "☄️", say: "Comet strike!" },
+      { anim: "jump", emoji: "🌠", say: "Make a wish!" },
+      { anim: "happy", emoji: "💜", say: "*cosmic chirp*" },
+      { anim: "happy", emoji: "💜", say: "*happy star-hum*" },
+    ],
+    speech: {
+      click: ["Comet strike!", "Make a wish!", "*cosmic chirp*"], celebrate: ["A galactic win!", "Shooting star typing!"], encourage: ["Aim for the stars.", "Fly through the night."],
+      follow: ["I see you among the stars."], flee: ["Up and away!"], wake: ["*ruffles starry feathers*"],
     },
   },
   {

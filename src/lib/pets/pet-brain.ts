@@ -61,6 +61,15 @@ export type BrainState = {
   speechCd: number;
   say: { text: string; ttl: number; id: number } | null;
   fx: { emoji: string; id: number } | null;
+  /** A magic bolt was just cast (see `magic` in the catalog). The companion draws it flying out in `face` direction. */
+  bolt: { id: number; face: 1 | -1 } | null;
+  /** An ultimate was just cast; the companion plays the cinematic. `ultT` holds the pet still for its length. */
+  ult: { id: number; face: 1 | -1 } | null;
+  ultT: number;
+  /** An ability was just cast; the companion plays its cinematic. */
+  /** A pending teleport (Phantom Dash): when the cast has `at` seconds left, jump to `x` facing `face`. */
+  tele: { at: number; x: number; face: 1 | -1 } | null;
+  abil: { id: number; key: string; face: 1 | -1; /** Where a flight is headed (viewport x of its centre). */ tx: number } | null;
   lastReaction: number;
   counter: number;
   /** A celebration or encouragement is playing: quiet mode must not cut it short. */
@@ -96,9 +105,12 @@ export function createBrain(def: PetDefinition, x: number, rand: Rand): BrainSta
   return {
     x, vx: 0, face: 1, anim: "idle", animT: 0, animDur: 0, goal: null, idleFor: 0, nextIdle: range(rand, def.idle[0], def.idle[1]),
     sinceInput: 0, look: 0, lookY: 0, lookGoal: 0, lookHold: 0, noticeCd: 0, noticed: false, closeFlag: false, outT: 0, followT: 0,
-    arrived: false, blinkT: range(rand, 1.5, 4), blinking: 0, speechCd: 0, say: null, fx: null, lastReaction: -1, counter: 0, protect: false, air: 0, cruise: 0, stalkPhase: "move", phaseT: 0, phaseDur: 0, mouse: false, zoom: 0, trick: null,
+    arrived: false, blinkT: range(rand, 1.5, 4), blinking: 0, speechCd: 0, say: null, fx: null, bolt: null, ult: null, ultT: 0, abil: null, tele: null, lastReaction: -1, counter: 0, protect: false, air: 0, cruise: 0, stalkPhase: "move", phaseT: 0, phaseDur: 0, mouse: false, zoom: 0, trick: null,
   };
 }
+
+/** Length of an ultimate in seconds (the CSS timeline in ultimate.css is built on it). */
+export const ULTIMATE_SECONDS = 7.2;
 
 const isLocomotion = (a: PetAnim) => a === "walk" || a === "run" || a === "follow" || a === "stalk" || a === "crouch" || a === "pounce";
 const isChase = (g: Goal) => g !== null && (g.kind === "follow" || g.kind === "stalk" || g.kind === "tag");
@@ -144,6 +156,14 @@ function emoji(s: BrainState, symbol: string) {
   s.fx = { emoji: symbol, id: s.counter };
 }
 
+/** Casts the pet\'s magic bolt, if it has one. */
+function cast(s: BrainState, def: PetDefinition) {
+  // Pets with key-cast skills only show a skill when its key is pressed: never on a click, a win or an idle moment.
+  if (!def.magic || def.keyCast) return;
+  s.counter += 1;
+  s.bolt = { id: s.counter, face: s.face };
+}
+
 function settle(s: BrainState, def: PetDefinition, rand: Rand) {
   s.trick = null;
   s.anim = "idle";
@@ -167,6 +187,7 @@ function handleEvent(s: BrainState, def: PetDefinition, ev: PetEvent, inp: StepI
       s.goal = s.goal?.kind === "follow" ? s.goal : null;
       setAnim(s, def, r.anim, inp.motion, TRANSIENT[r.anim] ?? 1.2);
       emoji(s, r.emoji);
+      cast(s, def);
       if (inp.speech && r.say) { s.counter += 1; s.say = { text: r.say, ttl: 2.4, id: s.counter }; s.speechCd = 2; }
       break;
     }
@@ -175,6 +196,7 @@ function handleEvent(s: BrainState, def: PetDefinition, ev: PetEvent, inp: StepI
       setAnim(s, def, "celebrate", inp.motion);
       s.protect = true;
       emoji(s, "🎉");
+      cast(s, def);
       speak(s, def.speech.celebrate, rand, inp.speech, true);
       break;
     case "encourage":
@@ -184,6 +206,49 @@ function handleEvent(s: BrainState, def: PetDefinition, ev: PetEvent, inp: StepI
       emoji(s, ev.good ? "👏" : "💪");
       speak(s, def.speech.encourage, rand, inp.speech, true);
       break;
+    case "ultimate": {
+      if (!def.ultimate || (ev.pet && ev.pet !== def.id) || s.ultT > 0) break;
+      if (inp.motion !== "full") { speak(s, def.speech.click, rand, inp.speech, true); break; }
+      s.goal = null;
+      s.vx = 0;
+      s.ultT = ULTIMATE_SECONDS;
+      setAnim(s, def, "stretch", inp.motion, ULTIMATE_SECONDS);
+      s.protect = true;
+      s.counter += 1;
+      s.ult = { id: s.counter, face: s.face };
+      speak(s, def.ultimate.say, rand, inp.speech, true);
+      break;
+    }
+    case "ability": {
+      const ab = def.abilities?.find((a) => a.id === ev.id);
+      if (!ab || (ev.pet && ev.pet !== def.id) || s.ultT > 0) break;
+      if (inp.motion !== "full") { speak(s, def.speech.click, rand, inp.speech, true); break; }
+      s.counter += 1;
+      s.abil = { id: s.counter, key: ab.id, face: s.face, tx: s.x + inp.size / 2 };
+      speak(s, ab.say, rand, inp.speech, true);
+      if (ab.id === "cosmic_flight") {
+        // A long, high dash toward the side with more room; the pet keeps moving, so it is not held still.
+        const dir = inp.maxX - s.x >= s.x - inp.minX ? 1 : -1;
+        s.goal = { kind: "flee", x: clamp(s.x + dir * 520, inp.minX, inp.maxX) };
+        s.cruise = inp.size * 2.6;
+        s.abil.tx = s.goal.x + inp.size / 2;
+        setAnim(s, def, "run", inp.motion, ab.seconds);
+        break;
+      }
+      s.goal = null;
+      s.vx = 0;
+      s.ultT = ab.seconds;
+      if (ab.id === "phantom_dash") {
+        // Vanish after the crouch, reappear a long way off toward the side with more room.
+        const dir: 1 | -1 = inp.maxX - s.x >= s.x - inp.minX ? 1 : -1;
+        const x = clamp(s.x + dir * Math.min(420, Math.max(220, dir > 0 ? inp.maxX - s.x : s.x - inp.minX)), inp.minX, inp.maxX);
+        s.tele = { at: ab.seconds * 0.55, x, face: dir };
+        s.abil.tx = x + inp.size / 2;
+      }
+      setAnim(s, def, ab.anim, inp.motion, ab.seconds);
+      s.protect = true;
+      break;
+    }
     case "unlock":
       setAnim(s, def, "excited", inp.motion, 2.5);
       s.protect = true;
@@ -251,6 +316,16 @@ export function stepBrain(s: BrainState, def: PetDefinition, inp: StepInput, ran
   s.x = clamp(s.x, inp.minX, Math.max(inp.minX, inp.maxX));
 
   for (const ev of inp.events) handleEvent(s, def, ev, inp, rand);
+
+  // Casting an ultimate: stand still (flyers hover) until the cinematic is over.
+  if (s.ultT > 0) {
+    s.ultT = Math.max(0, s.ultT - dt);
+    if (s.tele && s.ultT <= s.tele.at) { s.x = clamp(s.tele.x, inp.minX, Math.max(inp.minX, inp.maxX)); s.face = s.tele.face; s.tele = null; }
+    s.goal = null;
+    s.vx = 0;
+    s.idleFor = 0;
+    return s;
+  }
 
   const moves = inp.motion === "full";
   const centerX = s.x + inp.size / 2;
@@ -390,6 +465,7 @@ export function stepBrain(s: BrainState, def: PetDefinition, inp: StepInput, ran
       setAnim(s, def, trick.anim, inp.motion, trick.seconds);
       s.trick = trick.id;
       emoji(s, trick.emoji);
+      if (trick.bolt) cast(s, def);
       if (trick.say) speak(s, trick.say, rand, inp.speech);
     } else if (choice === "mouse") {
       const dir = rand() < 0.5 ? -1 : 1;

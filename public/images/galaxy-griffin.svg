@@ -1,0 +1,292 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 800 800" width="100%" height="100%">
+  <defs>
+    <!-- Lavender Body & Fur Gradients -->
+    <linearGradient id="furGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#dfcbf0" />
+      <stop offset="50%" stop-color="#a881cf" />
+      <stop offset="100%" stop-color="#694294" />
+    </linearGradient>
+
+    <linearGradient id="darkFurGrad" x1="0%" y1="0%" x2="0%" y2="100%">
+      <stop offset="0%" stop-color="#9168b8" />
+      <stop offset="100%" stop-color="#4e2a75" />
+    </linearGradient>
+
+    <!-- White Chest & Face Fur Gradient -->
+    <linearGradient id="whiteFur" x1="0%" y1="0%" x2="0%" y2="100%">
+      <stop offset="0%" stop-color="#ffffff" />
+      <stop offset="70%" stop-color="#f2e6ff" />
+      <stop offset="100%" stop-color="#cfb3e8" />
+    </linearGradient>
+
+    <!-- Pink Outer Feathers Gradient -->
+    <linearGradient id="pinkFeather" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#ffd6eb" />
+      <stop offset="45%" stop-color="#f078b8" />
+      <stop offset="100%" stop-color="#b52b79" />
+    </linearGradient>
+
+    <!-- Cosmic / Galaxy Inner Wing Gradient -->
+    <linearGradient id="galaxyGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#1a1245" />
+      <stop offset="40%" stop-color="#3a2073" />
+      <stop offset="75%" stop-color="#7c3f9c" />
+      <stop offset="100%" stop-color="#251652" />
+    </linearGradient>
+
+    <!-- Back Wing Gradient -->
+    <linearGradient id="backWingGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#d468a8" />
+      <stop offset="50%" stop-color="#75469e" />
+      <stop offset="100%" stop-color="#361f5c" />
+    </linearGradient>
+
+    <!-- Paw & Toe Gradient -->
+    <linearGradient id="pawGrad" x1="0%" y1="0%" x2="0%" y2="100%">
+      <stop offset="0%" stop-color="#d6b8d6" />
+      <stop offset="100%" stop-color="#8c658c" />
+    </linearGradient>
+
+    <!-- Beak & Claw Gradient -->
+    <linearGradient id="beakGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#786b94" />
+      <stop offset="50%" stop-color="#352a4d" />
+      <stop offset="100%" stop-color="#161024" />
+    </linearGradient>
+
+    <!-- Eye Iris Gradient -->
+    <radialGradient id="purpleEye" cx="50%" cy="50%" r="50%">
+      <stop offset="30%" stop-color="#1a0933" />
+      <stop offset="70%" stop-color="#6f2da8" />
+      <stop offset="100%" stop-color="#c98aff" />
+    </radialGradient>
+
+    <!-- Ear Interior Gradient -->
+    <linearGradient id="earPink" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#ffccd8" />
+      <stop offset="100%" stop-color="#b86b8e" />
+    </linearGradient>
+
+    <!-- Glow Filter for Galaxy Stars -->
+    <filter id="glow" x="-20%" y="-20%" width="140%" height="140%">
+      <feGaussianBlur stdDeviation="3" result="blur" />
+      <feComposite in="SourceGraphic" in2="blur" operator="over" />
+    </filter>
+  </defs>
+
+  <!-- ================= BACK WING (RIGHT) ================= -->
+  <g id="back-wing" class="wing-right">
+    <!-- Outer Pinkish-Purple Feathers -->
+    <path d="M 435 340 C 415 260, 445 140, 505 55 C 515 100, 520 130, 515 160 C 535 120, 545 95, 540 155 C 560 125, 565 115, 560 175 C 580 150, 595 190, 585 245 Z" fill="url(#backWingGrad)" stroke="#361f5c" stroke-width="2" />
+    <!-- Inner Dark Cosmic Feathers -->
+    <path d="M 445 345 C 455 265, 495 185, 525 135 C 535 170, 535 195, 530 220 C 555 180, 565 175, 560 230 C 580 205, 590 220, 575 265 Z" fill="url(#galaxyGrad)" stroke="#251652" stroke-width="1.5" />
+    <!-- Subtle Back Wing Stars -->
+    <circle cx="505" cy="215" r="2" fill="#ffffff" opacity="0.8" />
+    <circle cx="520" cy="190" r="1.5" fill="#ffd6eb" opacity="0.7" />
+    <circle cx="495" cy="240" r="2.5" fill="#ffffff" opacity="0.6" />
+  </g>
+
+  <!-- ================= BODY, HIND LEG & FRONT LEGS ================= -->
+  <!-- Far Front Right Leg -->
+  <g id="front-right-leg" class="leg-right">
+    <path d="M 600 500 C 605 545, 625 575, 655 585 C 625 605, 575 605, 545 580 C 535 550, 540 515, 550 490 Z" fill="url(#darkFurGrad)" stroke="#4e2a75" stroke-width="2" />
+    <!-- Right Paw Toes -->
+    <ellipse cx="625" cy="595" rx="22" ry="14" transform="rotate(15 625 595)" fill="url(#pawGrad)" stroke="#5e3c6e" stroke-width="2" />
+    <ellipse cx="655" cy="592" rx="24" ry="15" transform="rotate(20 655 592)" fill="url(#pawGrad)" stroke="#5e3c6e" stroke-width="2" />
+    <ellipse cx="680" cy="582" rx="20" ry="13" transform="rotate(25 680 582)" fill="url(#pawGrad)" stroke="#5e3c6e" stroke-width="2" />
+    <!-- Claws -->
+    <path d="M 635 602 C 642 622, 655 618, 648 598 Z" fill="url(#beakGrad)" />
+    <path d="M 672 598 C 682 618, 695 612, 684 592 Z" fill="url(#beakGrad)" />
+    <path d="M 695 585 C 708 604, 718 598, 705 580 Z" fill="url(#beakGrad)" />
+  </g>
+
+  <!-- Main Torso & Haunches -->
+  <g id="torso">
+    <path d="M 330 480 C 270 530, 265 625, 330 655 C 405 685, 545 660, 585 585 C 615 530, 620 440, 560 400 Z" fill="url(#furGrad)" stroke="#5e3c82" stroke-width="2" />
+    
+    <!-- Hind Leg Haunch (Left) -->
+    <path d="M 335 495 C 285 530, 285 615, 345 645 C 415 665, 465 625, 455 555 C 445 505, 385 480, 335 495 Z" fill="url(#furGrad)" stroke="#5e3c82" stroke-width="2" />
+    <!-- Feather/Fur Scales on Haunch -->
+    <path d="M 355 525 Q 375 545 395 525 M 385 540 Q 405 560 425 540 M 345 555 Q 365 575 385 555 M 375 570 Q 395 590 415 570" fill="none" stroke="#cfb3e8" stroke-width="2.5" stroke-linecap="round" />
+
+    <!-- Hind Paw (Sitting Under Haunch) -->
+    <ellipse cx="405" cy="645" rx="22" ry="14" fill="url(#pawGrad)" stroke="#5e3c6e" stroke-width="2" />
+    <ellipse cx="435" cy="648" rx="22" ry="15" fill="url(#pawGrad)" stroke="#5e3c6e" stroke-width="2" />
+    <ellipse cx="462" cy="642" rx="18" ry="13" fill="url(#pawGrad)" stroke="#5e3c6e" stroke-width="2" />
+    <!-- Hind Claws -->
+    <path d="M 405 652 C 402 670, 415 670, 415 654 Z" fill="url(#beakGrad)" />
+    <path d="M 438 655 C 436 672, 450 672, 448 655 Z" fill="url(#beakGrad)" />
+    <path d="M 468 648 C 468 665, 480 662, 476 646 Z" fill="url(#beakGrad)" />
+  </g>
+
+  <!-- Near Front Left Leg -->
+  <g id="front-left-leg" class="leg-left">
+    <path d="M 465 445 C 455 520, 475 595, 505 635 C 540 650, 585 640, 595 610 C 585 560, 580 495, 575 445 Z" fill="url(#furGrad)" stroke="#5e3c82" stroke-width="2" />
+    <!-- Feather/Fur Tufts on Front Leg -->
+    <path d="M 485 485 Q 505 505 525 485 M 515 500 Q 535 520 555 500 M 490 525 Q 510 545 530 525 M 520 540 Q 540 560 560 540 M 495 565 Q 515 585 535 565" fill="none" stroke="#e8d7f7" stroke-width="2.5" stroke-linecap="round" />
+    
+    <!-- Front Left Paw Toes -->
+    <ellipse cx="525" cy="645" rx="18" ry="26" transform="rotate(-15 525 645)" fill="url(#pawGrad)" stroke="#5e3c6e" stroke-width="2" />
+    <ellipse cx="558" cy="648" rx="19" ry="28" transform="rotate(-5 558 648)" fill="url(#pawGrad)" stroke="#5e3c6e" stroke-width="2" />
+    <ellipse cx="590" cy="642" rx="18" ry="26" transform="rotate(10 590 642)" fill="url(#pawGrad)" stroke="#5e3c6e" stroke-width="2" />
+    <ellipse cx="615" cy="628" rx="15" ry="22" transform="rotate(20 615 628)" fill="url(#pawGrad)" stroke="#5e3c6e" stroke-width="2" />
+    <!-- Paw Sparkle Dots -->
+    <circle cx="545" cy="615" r="2.5" fill="#ffffff" opacity="0.8" />
+    <circle cx="565" cy="620" r="2" fill="#ffffff" opacity="0.8" />
+    <circle cx="580" cy="610" r="2.5" fill="#ffffff" opacity="0.8" />
+    <!-- Front Left Claws -->
+    <path d="M 522 662 C 522 686, 540 684, 536 660 Z" fill="url(#beakGrad)" />
+    <path d="M 556 668 C 560 694, 578 690, 572 664 Z" fill="url(#beakGrad)" />
+    <path d="M 594 658 C 602 684, 618 678, 608 652 Z" fill="url(#beakGrad)" />
+    <path d="M 622 640 C 632 662, 645 656, 634 634 Z" fill="url(#beakGrad)" />
+  </g>
+
+  <!-- Fluffy White Chest Ruff -->
+  <g id="chest-ruff" class="ruff">
+    <path d="M 545 395 C 525 435, 545 480, 520 515 C 555 510, 570 545, 560 575 C 595 560, 615 530, 605 565 C 645 535, 675 475, 655 405 C 675 415, 685 395, 665 375 Z" fill="url(#whiteFur)" stroke="#b594d6" stroke-width="2" />
+    <path d="M 575 435 C 585 475, 605 505, 595 535 M 615 425 C 630 460, 635 495, 625 520" fill="none" stroke="#d8c2ed" stroke-width="2.5" stroke-linecap="round" />
+  </g>
+
+  <!-- ================= SWIRLING TAIL ================= -->
+  <g id="tail" class="tail">
+    <path d="M 320 515 C 245 565, 250 675, 345 710 C 425 740, 485 695, 470 740 C 460 765, 430 755, 435 735 C 415 760, 455 785, 485 760 C 515 735, 495 675, 415 675 C 335 675, 305 615, 335 555 Z" fill="url(#furGrad)" stroke="#5e3c82" stroke-width="2" />
+    <path d="M 295 615 C 315 675, 385 695, 445 685 C 405 660, 355 665, 325 615" fill="none" stroke="#e8d7f7" stroke-width="3" stroke-linecap="round" />
+  </g>
+
+  <!-- ================= FOREGROUND WING (LEFT) ================= -->
+  <g id="foreground-wing" class="wing-left">
+    <!-- Wing Base / Primary Pink Flight Feathers -->
+    <path d="M 420 445
+             C 320 495, 275 480, 305 445
+             C 245 475, 225 455, 265 415
+             C 200 440, 185 415, 235 375
+             C 165 395, 150 365, 210 330
+             C 135 345, 120 315, 185 280
+             C 110 290, 95 255, 165 225
+             C 90 225, 75 185, 145 165
+             C 70 155, 50 115, 125 105
+             C 70 80, 90 40, 105 25
+             C 155 85, 210 155, 265 215 Z" fill="url(#pinkFeather)" stroke="#a3296e" stroke-width="2" stroke-linejoin="round" />
+
+    <!-- Feather Vein Details on Pink Feathers -->
+    <path d="M 105 25 L 220 190 M 95 125 L 225 225 M 95 190 L 235 265 M 115 255 L 250 305 M 140 315 L 265 345 M 175 365 L 285 385 M 215 410 L 310 420" stroke="#941e61" stroke-width="1.5" opacity="0.6" fill="none" />
+
+    <!-- Middle Layer: Cosmic / Galaxy Feathers -->
+    <path d="M 465 455
+             C 385 485, 350 470, 375 435
+             C 320 455, 300 430, 340 395
+             C 280 410, 260 385, 305 345
+             C 240 355, 225 325, 275 290
+             C 205 290, 195 255, 250 225
+             C 185 210, 180 170, 240 160
+             C 185 130, 175 85, 245 125
+             C 315 170, 395 290, 485 415 Z" fill="url(#galaxyGrad)" stroke="#1a0f3d" stroke-width="2" stroke-linejoin="round" />
+
+    <!-- Glowing Galaxy Swirls & Stars on Middle Layer -->
+    <g filter="url(#glow)">
+      <!-- Swirl Filigree -->
+      <path d="M 255 245 C 285 235, 315 265, 290 290 C 270 310, 245 285, 265 265" fill="none" stroke="#ffd6ff" stroke-width="2.5" stroke-linecap="round" opacity="0.85" />
+      <path d="M 310 310 C 275 315, 265 365, 305 375 C 335 385, 350 350, 325 335 C 305 325, 295 345, 310 355" fill="none" stroke="#ffffff" stroke-width="2.5" stroke-linecap="round" opacity="0.9" />
+      <path d="M 340 385 C 315 405, 335 445, 375 430" fill="none" stroke="#e5b8ff" stroke-width="2" stroke-linecap="round" opacity="0.8" />
+      <!-- Glowing Starburst -->
+      <polygon points="285,220 290,238 308,243 290,248 285,266 280,248 262,243 280,238" fill="#ffffff" />
+      <circle cx="285" cy="243" r="8" fill="#ff9ee2" opacity="0.6" />
+      <!-- Star Dots -->
+      <circle cx="235" cy="185" r="2.5" fill="#ffffff" />
+      <circle cx="255" cy="210" r="3" fill="#ffd6ff" />
+      <circle cx="325" cy="275" r="2.5" fill="#ffffff" />
+      <circle cx="285" cy="340" r="2" fill="#a5d8ff" />
+      <circle cx="355" cy="365" r="3" fill="#ffffff" />
+      <circle cx="345" cy="405" r="2.5" fill="#ffd6ff" />
+      <circle cx="395" cy="425" r="3" fill="#ffffff" />
+      <circle cx="420" cy="445" r="2" fill="#a5d8ff" />
+    </g>
+
+    <!-- Upper Covert Layer: Soft Lavender Plumes -->
+    <path d="M 510 435
+             C 465 455, 445 430, 465 405
+             C 420 420, 405 395, 430 365
+             C 385 375, 370 345, 400 315
+             C 350 325, 335 290, 370 260
+             C 315 265, 300 225, 345 195
+             C 280 190, 260 140, 310 135
+             C 240 110, 200 65, 275 110
+             C 350 155, 425 275, 515 405 Z" fill="url(#furGrad)" stroke="#5e3c82" stroke-width="2" stroke-linejoin="round" />
+
+    <!-- Feather Scallop Details on Lavender Coverts -->
+    <path d="M 355 215 Q 385 235 395 205 M 385 265 Q 415 285 425 255 M 410 315 Q 440 335 450 305 M 435 365 Q 465 385 475 355 M 465 405 Q 495 425 505 395" fill="none" stroke="#f2e6ff" stroke-width="2.5" stroke-linecap="round" />
+  </g>
+
+  <!-- ================= HEAD, EARS, EYES & BEAK ================= -->
+  <g id="head" class="head">
+    <!-- Crown & Head Base -->
+    <path d="M 465 315 C 445 245, 520 180, 605 190 C 665 195, 710 235, 715 305 C 720 365, 675 415, 605 415 C 525 415, 475 375, 465 315 Z" fill="url(#furGrad)" stroke="#5e3c82" stroke-width="2" />
+
+    <!-- Forehead Scale/Feather Pattern -->
+    <g fill="#e6d4f7" stroke="#7a52a6" stroke-width="1.5">
+      <ellipse cx="595" cy="215" rx="10" ry="6" />
+      <ellipse cx="620" cy="218" rx="10" ry="6" />
+      <ellipse cx="570" cy="222" rx="10" ry="6" />
+      <ellipse cx="585" cy="232" rx="11" ry="7" />
+      <ellipse cx="612" cy="234" rx="11" ry="7" />
+      <ellipse cx="638" cy="232" rx="10" ry="6" />
+      <ellipse cx="560" cy="240" rx="10" ry="6" />
+      <ellipse cx="600" cy="250" rx="12" ry="8" />
+      <ellipse cx="628" cy="250" rx="11" ry="7" />
+      <ellipse cx="575" cy="255" rx="11" ry="7" />
+      <ellipse cx="615" cy="268" rx="10" ry="7" />
+    </g>
+
+    <!-- White Facial Mask & Fluffy Cheeks -->
+    <path d="M 480 295 C 460 335, 485 395, 555 410 C 625 425, 705 395, 718 345 C 725 305, 705 260, 675 255 C 645 250, 635 280, 615 285 C 595 280, 565 255, 525 270 C 495 280, 485 285, 480 295 Z" fill="url(#whiteFur)" stroke="#b594d6" stroke-width="2" />
+
+    <!-- Left Feline/Griffin Ear -->
+    <g id="left-ear" class="ear-left">
+      <path d="M 525 275 C 490 250, 465 235, 465 220 C 465 265, 475 305, 510 325 Z" fill="url(#whiteFur)" stroke="#7a52a6" stroke-width="2" />
+      <path d="M 518 282 C 492 262, 475 248, 475 235 C 478 270, 488 298, 512 315 Z" fill="url(#earPink)" />
+      <!-- Ear Tuft Lines -->
+      <path d="M 495 275 L 520 290 M 485 290 L 515 305" stroke="#ffffff" stroke-width="2.5" stroke-linecap="round" />
+    </g>
+
+    <!-- Right Ear Tip -->
+    <path d="M 675 250 C 685 225, 700 215, 702 230 C 705 245, 698 265, 688 270 Z" fill="url(#furGrad)" stroke="#5e3c82" stroke-width="2" />
+
+    <!-- Left Eye (Large Expressive Cosmic Eye) -->
+    <g id="left-eye" class="eyes">
+      <!-- Eye Socket / Lashes -->
+      <path d="M 548 318 C 562 292, 605 292, 616 322 C 605 352, 565 352, 548 318 Z" fill="#231138" stroke="#160826" stroke-width="3" />
+      <!-- Iris -->
+      <circle cx="585" cy="322" r="22" fill="url(#purpleEye)" />
+      <!-- Pupil -->
+      <circle cx="586" cy="322" r="11" fill="#0d0417" />
+      <!-- Starlight Reflections -->
+      <circle cx="576" cy="312" r="6.5" fill="#ffffff" />
+      <circle cx="596" cy="330" r="3.5" fill="#ffffff" />
+      <circle cx="578" cy="332" r="2" fill="#ffd6ff" />
+      <!-- Cute Lower Eyelid Highlight -->
+      <path d="M 555 326 C 570 346, 600 346, 612 326" fill="none" stroke="#e2c4ff" stroke-width="2" stroke-linecap="round" />
+    </g>
+
+    <!-- Right Eye -->
+    <g id="right-eye" class="eyes">
+      <path d="M 660 308 C 668 282, 695 282, 700 310 C 695 335, 670 338, 660 308 Z" fill="#231138" stroke="#160826" stroke-width="3" />
+      <ellipse cx="678" cy="310" rx="15" ry="19" fill="url(#purpleEye)" />
+      <ellipse cx="678" cy="310" rx="8" ry="11" fill="#0d0417" />
+      <!-- Highlights -->
+      <circle cx="672" cy="300" r="5" fill="#ffffff" />
+      <circle cx="685" cy="318" r="2.5" fill="#ffffff" />
+      <path d="M 662 316 C 672 332, 692 330, 698 314" fill="none" stroke="#e2c4ff" stroke-width="2" stroke-linecap="round" />
+    </g>
+
+    <!-- Griffin Beak -->
+    <g id="beak">
+      <!-- Smile Line -->
+      <path d="M 630 352 C 638 355, 645 352, 650 348" fill="none" stroke="#2d1e42" stroke-width="3" stroke-linecap="round" />
+      <!-- Upper Hooked Beak -->
+      <path d="M 645 325 C 655 318, 672 322, 676 338 C 680 352, 674 368, 666 376 C 662 362, 652 352, 642 348 C 640 338, 642 330, 645 325 Z" fill="url(#beakGrad)" stroke="#161024" stroke-width="2" stroke-linejoin="round" />
+      <!-- Beak Highlight & Nostril -->
+      <path d="M 652 326 C 662 325, 670 335, 668 355" fill="none" stroke="#b5a8cf" stroke-width="2" stroke-linecap="round" opacity="0.7" />
+      <ellipse cx="654" cy="334" rx="2.5" ry="1.5" transform="rotate(25 654 334)" fill="#161024" />
+    </g>
+  </g>
+</svg>

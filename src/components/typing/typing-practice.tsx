@@ -39,7 +39,6 @@ export default function TypingPractice({ language, platform = "Unknown", initial
   const [paused, setPaused] = useState(false);
   const [forcedDone, setForcedDone] = useState(false);
   const [resultClosed, setResultClosed] = useState(false);
-  const [wrongKey, setWrongKey] = useState("");
   const [drillText, setDrillText] = useState<string | null>(initialDrill);
   const [needsKhmerInputSwitch, setNeedsKhmerInputSwitch] = useState(false);
   const inputRef = useRef<HTMLTextAreaElement>(null);
@@ -64,6 +63,10 @@ export default function TypingPractice({ language, platform = "Unknown", initial
     const code = findKeyFor(language, k.char)?.code;
     if (code) heat[code] = Math.max(heat[code] ?? 0, Math.min(1, 0.35 + k.score / 80));
   }
+  const mistakes = done ? Array.from(normalizedInput).flatMap((typed, index) => {
+    const expected = Array.from(normalizedTarget)[index];
+    return expected !== undefined && typed !== expected ? [{ index, expected, typed }] : [];
+  }) : [];
   const lessonIndex = list.findIndex((item) => item.id === lessonId);
   const nextLesson = list[lessonIndex + 1];
   const nextCharacter = Array.from(normalizedTarget)[Array.from(normalizedInput).length] ?? "";
@@ -138,7 +141,6 @@ export default function TypingPractice({ language, platform = "Unknown", initial
     setInput("");
     setSeconds(0);
     setRunning(false);
-    setWrongKey("");
     setNeedsKhmerInputSwitch(false);
     inputRef.current?.focus();
   }
@@ -161,11 +163,6 @@ export default function TypingPractice({ language, platform = "Unknown", initial
 
     if (nextChars.length > previousLength) {
       const additions = nextChars.slice(previousLength);
-      const wrongCharacter = additions.find((typed, offset) => {
-        const targetIndex = previousLength + offset;
-        const expected = Array.from(normalizedTarget)[targetIndex];
-        return typed !== expected;
-      });
       recordKeystrokes(sessionStatsRef.current, lastKeyAtRef, additions.flatMap((typed, offset): [string, boolean][] => {
         const expectedChar = Array.from(normalizedTarget)[previousLength + offset];
         return expectedChar ? [[expectedChar, typed === expectedChar]] : [];
@@ -174,8 +171,7 @@ export default function TypingPractice({ language, platform = "Unknown", initial
         const expectedChar = Array.from(normalizedTarget)[previousLength + offset];
         if (expectedChar) recorder.keystroke(language, expectedChar, typed === expectedChar);
       });
-      setWrongKey(wrongCharacter ? wrongCharacter === " " ? "space" : wrongCharacter.toLowerCase() : "");
-      playKeySound(!wrongCharacter);
+      playKeySound(!additions.some((typed, offset) => typed !== Array.from(normalizedTarget)[previousLength + offset]));
 
       if (language === "khmer") {
         const latestCharacter = additions.at(-1) ?? "";
@@ -255,6 +251,7 @@ export default function TypingPractice({ language, platform = "Unknown", initial
               {done && !resultClosed && <GameDialog title="Lesson complete" icon="🎉" onEscape={() => setResultClosed(true)}>
                 <div className="text-center">
                 <dl className="my-4 grid grid-cols-4 gap-2 text-center">{[["WPM", stats.wpm], ["Accuracy", `${stats.accuracy}%`], ["Errors", stats.errors], ["Time", `${seconds}s`]].map(([label, value]) => <div key={String(label)} className="rounded-xl bg-slate-50 p-2"><dt className="text-[10px] font-bold uppercase text-mute">{label}</dt><dd className="text-xl font-extrabold text-navy">{value}</dd></div>)}</dl>
+                {mistakes.length > 0 && <div className="mb-4 text-left"><p className="mb-2 text-[10px] font-bold uppercase text-mute">Mistakes ({mistakes.length})</p><ul className="flex max-h-28 flex-wrap gap-1.5 overflow-y-auto">{mistakes.map((m) => <li key={m.index} className="rounded-lg bg-red-50 px-2 py-1 text-xs text-red-700">expected <b>{m.expected === " " ? "space" : m.expected}</b>, typed <b>{m.typed === " " ? "space" : m.typed}</b></li>)}</ul></div>}
                 <div className="flex flex-wrap justify-center gap-2">
                   <button data-autofocus type="button" className="rounded-xl border border-slate-300 bg-white px-4 py-2 text-sm font-bold text-navy" onClick={() => reset()}>↻ Retry</button>
                   <button type="button" className="rounded-xl bg-brand px-4 py-2 text-sm font-bold text-white" onClick={() => reset(pickRandomLesson(language, lessonId).id)}>🎲 Random article</button>
@@ -268,7 +265,6 @@ export default function TypingPractice({ language, platform = "Unknown", initial
               <div className="typing-footer"><span><kbd>tab</kbd> + <kbd>enter</kbd> {t("practice.restartHint")}</span><div className="typing-actions"><button className={`sound-toggle ${soundEnabled ? "sound-on" : ""}`} onClick={() => setSoundEnabled((enabled) => !enabled)} aria-pressed={soundEnabled} title={soundEnabled ? t("practice.mute") : t("practice.enableSound")}>{soundEnabled ? "◖))" : "◖×"}<span>{t(soundEnabled ? "practice.soundOn" : "practice.soundOff")}</span></button>{!done && <button className="restart-button" onClick={() => { if (paused) { setPaused(false); if (typedLength > 0) setRunning(true); inputRef.current?.focus(); } else { setPaused(true); setRunning(false); } }} disabled={typedLength === 0 && !paused}>{paused ? "▶ Resume" : "⏸ Pause"}</button>}{!done && typedLength > 0 && <button className="restart-button" onClick={() => { setRunning(false); setPaused(false); setForcedDone(true); }}>🏁 Finish</button>}<button className="restart-button" onClick={() => reset()}>↻ <span>{t("practice.restart")}</span></button></div></div>
             </div>
             {needsKhmerInputSwitch && language === "khmer" && <div className="input-switch-hint" role="alert"><span className="feedback-icon">!</span><span><strong>{t("practice.switchTitle")}</strong><br />{t(platform === "Windows" ? "practice.switchWindows" : platform === "macOS" ? "practice.switchMac" : "practice.switchUnknown")}</span></div>}
-            {wrongKey && <div className="key-feedback" role="alert"><span className="feedback-icon">!</span><span>{t("practice.wrong")}</span></div>}
             <VirtualKeyboard language={language} heat={done ? heat : undefined} expected={done || paused ? null : nextCharacter || null} disabled={paused || done} osHint={osFromPlatform(platform)} onChar={handleVirtualChar} onBackspace={handleVirtualBackspace} />
           </section>
           <aside className="stats-column"><div className="stats-card"><div className="stats-title"><span>{t("practice.sessionStats")}</span><span className="info">i</span></div><div className="wpm-stat"><strong>{stats.wpm}</strong><span>{t("practice.wpm")}</span></div><div className="stat-divider"/><div className="mini-stat"><span>{t("practice.accuracy")}</span><strong>{stats.accuracy}<small>%</small></strong></div><div className="mini-stat"><span>{t("practice.errors")}</span><strong>{stats.errors.toString().padStart(2, "0")}</strong></div><div className="mini-stat"><span>{t("practice.time")}</span><strong>{Math.floor(seconds / 60).toString().padStart(2, "0")}:{(seconds % 60).toString().padStart(2, "0")}</strong></div><div className="progress-label"><span>{t("practice.lessonProgress")}</span><strong>{stats.progress}%</strong></div><div className="progress-track"><span style={{ width: `${stats.progress}%` }}/></div></div><div className="tip-card"><span className="tip-icon">✦</span><div><strong>{t("practice.tipTitle")}</strong><p>{t("practice.tipText")}</p></div></div><div className="next-lesson"><span className="small-label">{t("practice.upNext")}</span><strong>{list[(list.findIndex((item) => item.id === lessonId) + 1) % list.length].title}</strong><button onClick={() => reset(list[(list.findIndex((item) => item.id === lessonId) + 1) % list.length].id)}>{t("practice.preview")} <span>→</span></button></div></aside>

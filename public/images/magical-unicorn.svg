@@ -1,0 +1,261 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 800 800" width="100%" height="100%">
+  <defs>
+    <!-- Unicorn Coat Gradients (White with Soft Blue/Lavender Shading) -->
+    <linearGradient id="coatGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#ffffff" />
+      <stop offset="50%" stop-color="#d6ecff" />
+      <stop offset="85%" stop-color="#9bbce8" />
+      <stop offset="100%" stop-color="#8b7bbd" />
+    </linearGradient>
+
+    <linearGradient id="backLegGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#b8d4f2" />
+      <stop offset="55%" stop-color="#859ec9" />
+      <stop offset="100%" stop-color="#d495b8" />
+    </linearGradient>
+
+    <!-- Silky White Mane Gradient -->
+    <linearGradient id="maneGrad" x1="0%" y1="0%" x2="0%" y2="100%">
+      <stop offset="0%" stop-color="#ffffff" />
+      <stop offset="65%" stop-color="#e3f2ff" />
+      <stop offset="100%" stop-color="#a6c8f0" />
+    </linearGradient>
+
+    <!-- Rainbow Tail Gradients -->
+    <linearGradient id="tailRainbow" x1="0%" y1="0%" x2="40%" y2="100%">
+      <stop offset="0%" stop-color="#4df0ff" />
+      <stop offset="30%" stop-color="#3b49df" />
+      <stop offset="60%" stop-color="#b829e3" />
+      <stop offset="82%" stop-color="#ff3b7f" />
+      <stop offset="100%" stop-color="#ffb84d" />
+    </linearGradient>
+
+    <linearGradient id="tailTopLock" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#ffffff" />
+      <stop offset="50%" stop-color="#80e5ff" />
+      <stop offset="100%" stop-color="#4d6dff" />
+    </linearGradient>
+
+    <!-- Spiraled Golden Horn Gradient -->
+    <linearGradient id="hornGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#fff6cc" />
+      <stop offset="45%" stop-color="#e6a132" />
+      <stop offset="100%" stop-color="#783f08" />
+    </linearGradient>
+
+    <!-- Chest Gem & Gold Setting Gradients -->
+    <linearGradient id="goldSetting" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#ffeb99" />
+      <stop offset="50%" stop-color="#e09824" />
+      <stop offset="100%" stop-color="#914d09" />
+    </linearGradient>
+
+    <linearGradient id="gemCrystal" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#70f8ff" />
+      <stop offset="45%" stop-color="#297bff" />
+      <stop offset="75%" stop-color="#b529ff" />
+      <stop offset="100%" stop-color="#ff388b" />
+    </linearGradient>
+
+    <!-- Hoof Gradient -->
+    <linearGradient id="hoofGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#45506b" />
+      <stop offset="50%" stop-color="#1e2230" />
+      <stop offset="100%" stop-color="#0d0e14" />
+    </linearGradient>
+
+    <!-- Eye Iris Gradient -->
+    <radialGradient id="eyeIris" cx="50%" cy="50%" r="50%">
+      <stop offset="25%" stop-color="#14052b" />
+      <stop offset="65%" stop-color="#b81d94" />
+      <stop offset="100%" stop-color="#ff75d8" />
+    </radialGradient>
+
+    <!-- Ear Interior Gradient -->
+    <linearGradient id="earPink" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#ffb8d9" />
+      <stop offset="100%" stop-color="#7a458c" />
+    </linearGradient>
+  </defs>
+
+  <!-- ================= RAINBOW TAIL ================= -->
+  <g id="tail" class="tail">
+    <!-- Lower Warm Glow Locks -->
+    <path d="M 240 435 C 165 445, 130 575, 45 555 C 95 595, 165 605, 225 535 Z" fill="#ff9e44" opacity="0.9" />
+    <!-- Main Rainbow Flowing Plume -->
+    <path d="M 245 385
+             C 165 340, 125 460, 40 465
+             C 80 490, 95 505, 35 525
+             C 95 545, 115 565, 55 580
+             C 145 595, 200 545, 240 475 Z" fill="url(#tailRainbow)" stroke="#6128a8" stroke-width="1.5" stroke-linejoin="round" />
+    <!-- Upper Silky White & Cyan Crest of Tail -->
+    <path d="M 250 385 C 185 320, 115 375, 75 435 C 125 415, 155 435, 110 475 C 165 455, 205 405, 245 415 Z" fill="url(#tailTopLock)" />
+    <!-- Tail Shimmer Lines & Sparkles -->
+    <path d="M 225 400 C 160 390, 145 495, 75 510 M 225 430 C 175 450, 155 535, 95 555" fill="none" stroke="#ffffff" stroke-width="2.5" stroke-linecap="round" opacity="0.65" />
+    <circle cx="145" cy="485" r="4" fill="#ffffff" opacity="0.9" />
+    <circle cx="165" cy="435" r="3" fill="#70f8ff" opacity="0.9" />
+    <circle cx="135" cy="535" r="3.5" fill="#ffb8ec" opacity="0.9" />
+  </g>
+
+  <!-- ================= FAR HIND LEG (RIGHT) ================= -->
+  <g id="far-hind-leg" class="leg-left">
+    <path d="M 290 500 C 280 555, 255 585, 270 615 C 295 645, 345 670, 360 700 C 385 695, 395 680, 385 660 C 355 635, 325 605, 320 580 C 335 550, 345 525, 335 495 Z" fill="url(#backLegGrad)" stroke="#7c8eb8" stroke-width="2" />
+  </g>
+
+  <!-- ================= NEAR HIND LEG (LEFT) ================= -->
+  <g id="near-hind-leg" class="leg-right">
+    <!-- Haunch & Lower Leg -->
+    <path d="M 225 395 C 190 445, 195 535, 215 565 C 195 585, 195 605, 220 625 C 255 655, 285 675, 295 705 C 315 710, 335 695, 330 675 C 310 645, 275 615, 255 590 C 285 555, 305 515, 295 465 Z" fill="url(#coatGrad)" stroke="#859ec9" stroke-width="2" />
+    <!-- Hind Hoof -->
+    <path d="M 292 692 C 285 712, 305 732, 328 730 C 332 712, 332 695, 325 685 C 312 688, 300 690, 292 692 Z" fill="url(#hoofGrad)" stroke="#141824" stroke-width="1.5" />
+  </g>
+
+  <!-- ================= RAISED FRONT LEG (RIGHT) ================= -->
+  <g id="raised-front-leg" class="leg-right">
+    <!-- Foreleg & Bent Knee -->
+    <path d="M 520 510 C 565 520, 625 550, 628 585 C 630 620, 595 680, 565 695 C 545 700, 525 685, 520 665 C 535 655, 545 645, 565 645 C 580 625, 590 600, 585 585 C 555 575, 515 565, 490 550 Z" fill="url(#coatGrad)" stroke="#859ec9" stroke-width="2" />
+    <!-- Fetlock Fur Tuft -->
+    <path d="M 555 695 C 570 702, 585 692, 590 680" fill="none" stroke="#ffffff" stroke-width="3" stroke-linecap="round" />
+    <!-- Raised Front Hoof -->
+    <path d="M 525 660 C 502 662, 492 682, 502 705 C 515 708, 532 702, 540 692 C 530 680, 525 670, 525 660 Z" fill="url(#hoofGrad)" stroke="#141824" stroke-width="1.5" />
+  </g>
+
+  <!-- ================= TORSO, NECK & HEAD ================= -->
+  <g id="head-turn" class="head">
+  <g id="body-and-head">
+    <!-- Main Body, Arched Neck & Head Silhouette -->
+    <path d="M 225 395
+             C 265 365, 315 390, 355 405
+             C 375 335, 415 225, 485 185
+             C 525 165, 565 175, 585 215
+             C 595 245, 595 270, 610 295
+             C 625 318, 645 335, 642 358
+             C 638 378, 620 385, 608 380
+             C 598 375, 590 365, 585 375
+             C 592 385, 608 392, 622 388
+             C 615 402, 595 402, 580 390
+             C 562 375, 550 355, 535 352
+             C 555 415, 585 480, 545 535
+             C 510 575, 445 585, 385 565
+             C 325 545, 285 520, 245 485 Z" fill="url(#coatGrad)" stroke="#859ec9" stroke-width="2" stroke-linejoin="round" />
+
+    <!-- Cheekbone & Jaw Definition -->
+    <path d="M 480 280 C 460 320, 495 360, 545 352" fill="none" stroke="#859ec9" stroke-width="2.5" stroke-linecap="round" />
+    <!-- Muzzle Crease & Nostril -->
+    <path d="M 565 320 C 585 328, 600 340, 605 350" fill="none" stroke="#7c98c4" stroke-width="2" stroke-linecap="round" />
+    <ellipse cx="622" cy="348" rx="6" ry="9" transform="rotate(-20 622 348)" fill="#2e3b59" />
+    <!-- Mouth Smile Interior -->
+    <path d="M 582 365 C 592 375, 605 385, 618 382 C 605 392, 590 388, 582 365 Z" fill="#3b2645" />
+  </g>
+
+  <!-- ================= EXTENDED FRONT LEG (LEFT) ================= -->
+  <g id="front-left-leg" class="leg-left">
+    <!-- Muscular Shoulder & Foreleg -->
+    <path d="M 405 495 C 390 545, 415 595, 422 630 C 428 660, 395 685, 365 702 C 370 722, 385 738, 405 740 C 435 718, 465 685, 468 645 C 470 605, 465 565, 480 520 Z" fill="url(#coatGrad)" stroke="#859ec9" stroke-width="2" />
+    <!-- Front Left Hoof -->
+    <path d="M 365 702 C 345 715, 338 738, 350 755 C 368 762, 390 758, 402 742 C 388 732, 372 718, 365 702 Z" fill="url(#hoofGrad)" stroke="#141824" stroke-width="1.5" />
+  </g>
+
+  <!-- ================= FLOWING WHITE MANE & CHEST RUFF ================= -->
+  <g id="mane-and-collar" class="mane">
+    <!-- Lower Fluffy Collar Ruff Around Chest -->
+    <path d="M 345 415
+             C 325 435, 335 455, 310 460
+             C 340 475, 365 465, 355 490
+             C 385 485, 415 505, 455 520
+             C 515 535, 565 520, 595 480
+             C 605 450, 585 430, 605 410
+             C 580 415, 565 395, 555 375
+             C 545 425, 495 455, 445 440 Z" fill="url(#maneGrad)" stroke="#859ec9" stroke-width="1.5" stroke-linejoin="round" />
+
+    <!-- Layered Flowing Mane Locks Down the Neck -->
+    <path d="M 520 155
+             C 455 150, 415 190, 395 235
+             C 415 225, 420 235, 380 265
+             C 350 290, 350 325, 330 320
+             C 350 345, 355 365, 345 395
+             C 370 385, 380 405, 365 435
+             C 395 425, 415 455, 455 470
+             C 485 480, 515 475, 510 445
+             C 475 435, 470 395, 445 385
+             C 420 375, 410 345, 425 315
+             C 440 285, 455 245, 495 210 Z" fill="url(#maneGrad)" stroke="#859ec9" stroke-width="2" stroke-linejoin="round" />
+
+    <!-- Inner Mane Lock Highlights -->
+    <path d="M 455 195 C 415 225, 385 280, 395 335 M 415 285 C 385 325, 385 380, 425 415 M 435 375 C 435 415, 465 445, 495 450" fill="none" stroke="#9bbce8" stroke-width="2.5" stroke-linecap="round" />
+
+    <!-- Tiny Magical Gems Embedded in Left Collar Ruff -->
+    <circle cx="370" cy="440" r="4.5" fill="#4df0ff" stroke="#297bff" stroke-width="1" />
+    <circle cx="395" cy="452" r="4" fill="#ff52a8" stroke="#9c1458" stroke-width="1" />
+  </g>
+
+  <!-- ================= ORNATE CRYSTAL CHEST PENDANT ================= -->
+  <g id="chest-jewel" class="jewel">
+    <!-- Side Sapphire & Amethyst Wing Gems -->
+    <polygon points="480,455 505,440 515,470 485,475" fill="#5e42f5" stroke="#ffffff" stroke-width="1.5" />
+    <polygon points="495,475 515,470 518,492 498,490" fill="#29b6f6" stroke="#ffffff" stroke-width="1.5" />
+    <polygon points="565,455 582,448 580,472 562,472" fill="#7e57c2" stroke="#ffffff" stroke-width="1.5" />
+
+    <!-- Golden Filigree Bezel -->
+    <polygon points="538,422 568,458 565,518 535,552 505,518 508,458" fill="url(#goldSetting)" stroke="#6e3805" stroke-width="2" stroke-linejoin="round" />
+    <!-- Decorative Gold Side Points -->
+    <polygon points="502,482 515,472 512,505 498,495" fill="url(#goldSetting)" />
+    <polygon points="575,482 562,472 565,505 578,495" fill="url(#goldSetting)" />
+
+    <!-- Center Faceted Rainbow Crystal -->
+    <polygon points="538,438 560,465 558,512 535,540 515,512 518,465" fill="url(#gemCrystal)" stroke="#ffffff" stroke-width="1.5" />
+    <!-- Crystal Internal Facet Lines -->
+    <polygon points="538,438 548,468 535,495 525,468" fill="#ffffff" opacity="0.55" />
+    <polygon points="535,495 558,512 535,540 515,512" fill="#ff66b5" opacity="0.45" />
+    <path d="M 518 465 L 558 512 M 560 465 L 515 512" stroke="#ffffff" stroke-width="1.5" opacity="0.7" />
+  </g>
+
+  <!-- ================= SPIRALED HORN, EARS, FORELOCK & EYE ================= -->
+  <g id="head-details">
+    <!-- Far Ear (Right) -->
+    <path d="M 548 182 C 555 152, 570 135, 578 128 C 578 148, 575 172, 565 190 Z" fill="url(#coatGrad)" stroke="#859ec9" stroke-width="1.5" />
+
+    <!-- Spiraled Golden Unicorn Horn -->
+    <g id="horn" class="horn">
+      <!-- Base Horn Cone -->
+      <polygon points="550,210 688,82 572,232" fill="url(#hornGrad)" stroke="#5c2c04" stroke-width="2" stroke-linejoin="round" />
+      <!-- Spiral Ridge Grooves -->
+      <path d="M 556 218 C 568 218, 582 208, 585 195
+               M 572 198 C 585 198, 598 188, 602 175
+               M 592 176 C 605 176, 616 168, 620 156
+               M 614 154 C 625 154, 635 146, 638 136
+               M 636 132 C 645 132, 652 126, 655 118
+               M 658 112 C 664 112, 670 106, 672 100" fill="none" stroke="#5c2c04" stroke-width="2.5" stroke-linecap="round" />
+      <!-- Golden Horn Highlights -->
+      <path d="M 562 208 L 675 95" stroke="#ffffff" stroke-width="2" stroke-linecap="round" opacity="0.75" />
+    </g>
+
+    <!-- Forelock Tuft Swirling Around Horn Base -->
+    <path d="M 535 195 C 555 165, 585 155, 600 155 C 585 175, 570 185, 555 215 Z" fill="url(#maneGrad)" stroke="#859ec9" stroke-width="1.5" />
+    <path d="M 568 228 C 595 235, 615 235, 630 220 C 625 245, 598 258, 575 245 C 585 262, 572 280, 558 272" fill="url(#maneGrad)" stroke="#859ec9" stroke-width="1.5" stroke-linejoin="round" />
+
+    <!-- Near Ear (Left) -->
+    <g id="near-ear" class="ear-left">
+      <path d="M 490 212 C 482 180, 502 148, 526 136 C 532 162, 526 198, 508 220 Z" fill="url(#coatGrad)" stroke="#859ec9" stroke-width="2" stroke-linejoin="round" />
+      <path d="M 498 210 C 495 185, 508 160, 522 148 C 525 170, 520 195, 506 214 Z" fill="url(#earPink)" />
+    </g>
+
+    <!-- Expressive Purple/Pink Eye -->
+    <g id="eye" class="eyes">
+      <!-- Upper Eyelashes & Winged Liner -->
+      <path d="M 505 262 C 518 242, 548 245, 560 272 C 562 285, 550 298, 535 296 C 518 294, 512 275, 505 262 Z" fill="#140824" />
+      <!-- Sclera -->
+      <path d="M 514 266 C 524 252, 546 254, 556 274 C 552 290, 536 294, 522 286 C 516 280, 514 272, 514 266 Z" fill="#ffffff" />
+      <!-- Glowing Magenta/Violet Iris -->
+      <ellipse cx="538" cy="274" rx="14" ry="16" fill="url(#eyeIris)" />
+      <!-- Pupil -->
+      <ellipse cx="540" cy="274" rx="7" ry="9" fill="#090214" />
+      <!-- Crisp Eye Catchlights -->
+      <circle cx="533" cy="266" r="4.5" fill="#ffffff" />
+      <circle cx="545" cy="280" r="2.5" fill="#ffffff" />
+      <!-- Subtle Brow Line -->
+      <path d="M 512 248 C 528 238, 548 242, 562 258" fill="none" stroke="#6c84b5" stroke-width="2.5" stroke-linecap="round" />
+    </g>
+  </g>
+  </g>
+</svg>

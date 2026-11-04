@@ -108,7 +108,32 @@ const nextDay = (ms: number, step: number) => {
 };
 
 /** Distinct local days with a qualifying session. */
-export const practiceDays = (sessions: SessionRecord[]): Set<string> => new Set(sessions.filter(isQualifyingSession).map((s) => dayKey(timeOf(s))));
+/** Every new learner starts with this many streak days, so the first pet is already within reach. */
+export const WELCOME_STREAK_DAYS = 3;
+const WELCOME_KEY = "dlt.welcome";
+
+/** Remembers the first day this browser opened the site. Safe to call repeatedly; only the first call writes. */
+export function ensureWelcomeStart(now = Date.now()) {
+  try {
+    if (!window.localStorage.getItem(WELCOME_KEY)) window.localStorage.setItem(WELCOME_KEY, String(now));
+  } catch {
+    // Storage unavailable: the welcome streak simply isn't granted.
+  }
+}
+
+/** The welcome streak days: the first-visit day and the days just before it, so a new learner begins at 3. */
+function welcomeDays(): string[] {
+  if (typeof window === "undefined") return [];
+  try {
+    const start = Number(window.localStorage.getItem(WELCOME_KEY));
+    if (!Number.isFinite(start) || start <= 0) return [];
+    return Array.from({ length: WELCOME_STREAK_DAYS }, (_, i) => dayKey(nextDay(startOfDay(start), -i)));
+  } catch {
+    return [];
+  }
+}
+
+export const practiceDays = (sessions: SessionRecord[]): Set<string> => new Set([...sessions.filter(isQualifyingSession).map((s) => dayKey(timeOf(s))), ...welcomeDays()]);
 
 /** Consecutive practice days up to today. A streak stays alive until the end of the day after the last session. */
 export function currentStreak(sessions: SessionRecord[], now: number): number {

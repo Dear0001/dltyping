@@ -8,7 +8,14 @@ export type PetEvent =
   /** `good` = the learner did well (high accuracy). */
   | { type: "encourage"; good: boolean }
   | { type: "wake" }
-  | { type: "unlock" };
+  | { type: "unlock" }
+  /** Cast a legendary pet's ultimate. `pet`: only that pet (otherwise every pet that has one). */
+  | { type: "ultimate"; pet?: string }
+  /** Cast one of a pet's abilities (`id` from its `abilities`). */
+  | { type: "ability"; pet?: string; id: string };
+
+/** When the ultimate can be cast again (ms timestamp). Shared so the menu can show the wait. */
+export const ultimateCooldown = { readyAt: 0, seconds: 25 };
 
 const listeners = new Set<(event: PetEvent) => void>();
 

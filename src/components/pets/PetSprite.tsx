@@ -15,6 +15,12 @@ type Props = {
   className?: string;
 };
 
+const MAGIC_SPARKLES = [
+  { glyph: "✦", left: "6%", delay: "0s", drift: "-6px" }, { glyph: "✧", left: "30%", delay: "-.7s", drift: "5px" },
+  { glyph: "✦", left: "55%", delay: "-1.4s", drift: "-4px" }, { glyph: "✧", left: "78%", delay: "-2.1s", drift: "6px" },
+  { glyph: "✨", left: "92%", delay: "-2.8s", drift: "-5px" }, { glyph: "✦", left: "44%", delay: "-3.5s", drift: "4px" },
+];
+
 /**
  * A pet drawn as inline SVG so CSS can animate its parts (tail, ears, wings, eyes...).
  * Animation state is plain data attributes, which the companion updates directly on the DOM node
@@ -38,6 +44,13 @@ const PetSprite = forwardRef<HTMLDivElement, Props>(function PetSprite({ def, an
       data-pet={def.id} data-anim={anim} data-move={def.locomotion} data-view={def.view ?? "front"} data-motion={motion} data-aura={def.aura}
       aria-hidden="true"
     >
+      {def.rarity === "legendary" && !silhouette && (
+        // Legendary magic: a shimmering halo behind the pet and sparkles rising around it.
+        <div className="pet-magic" aria-hidden="true">
+          <i className="pet-magic-halo" />
+          {MAGIC_SPARKLES.map((sp, i) => <b key={i} style={{ left: sp.left, "--md": sp.delay, "--mx": sp.drift } as React.CSSProperties}>{sp.glyph}</b>)}
+        </div>
+      )}
       {markup ? (
         <div className="pet-art" dangerouslySetInnerHTML={{ __html: markup }} />
       ) : (

@@ -3,11 +3,15 @@
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { useEffect, useRef, useState, useSyncExternalStore } from "react";
+import { useNow, useTypingProgress } from "@/hooks/useTypingProgress";
+import { currentStreak, dayKey, practiceDays } from "@/lib/progress/progress-analytics";
 import PetSprite from "@/components/pets/PetSprite";
+import PetAbility, { type AbilityRun } from "@/components/pets/PetAbility";
+import PetUltimate, { type UltimateRun } from "@/components/pets/PetUltimate";
 import { usePetState } from "@/hooks/usePets";
-import { createBrain, stepBrain, type MotionMode } from "@/lib/pets/pet-brain";
-import type { PetDefinition } from "@/lib/pets/pet-catalog";
-import { subscribePetEvents, type PetEvent } from "@/lib/pets/pet-events";
+import { createBrain, stepBrain, ULTIMATE_SECONDS, type MotionMode } from "@/lib/pets/pet-brain";
+import { PETS, type Ability, type PetDefinition } from "@/lib/pets/pet-catalog";
+import { emitPetEvent, subscribePetEvents, ultimateCooldown, type PetEvent } from "@/lib/pets/pet-events";
 import { ACTION_SELECTOR, INTERACTIVE_SELECTOR, isPetHiddenRoute, isTypingRoute, MOBILE_MAX_SIZE, PET_SIZES, TYPING_GRACE_MS } from "@/lib/pets/pet-policy";
 import { setPetEnabled, type PetSettings } from "@/lib/pets/pet-storage";
 
@@ -30,13 +34,15 @@ export default function PetCompanion() {
   const { state, hydrated, active, actives } = usePetState();
   const pathname = usePathname();
   const systemReduced = useSystemReducedMotion();
-  if (!hydrated || !active) return null;
+  if (!hydrated) return null;
+  // No pet earned yet: still show the control, in its locked form, so everyone can see what the streak unlocks.
+  if (!active) return <PetControls locked name="" enabled />;
   const typingRoute = isTypingRoute(pathname);
   const show = state.enabled && !isPetHiddenRoute(pathname);
   return (
     <>
       {show && actives.map((pet, index) => <PetStage key={pet.id} def={pet} index={index} settings={state.settings} motion={effectiveMotion(state.settings.animations, systemReduced)} typingRoute={typingRoute} />)}
-      <PetControls name={actives.length > 1 ? `${actives.length} pets are` : `${active.name} is`} enabled={state.enabled} />
+      <PetControls name={actives.length > 1 ? `${actives.length} pets are` : `${active.name} is`} enabled={state.enabled} ultimates={actives.filter((p) => p.ultimate && !p.keyCast)} abilities={actives.filter((p) => !p.keyCast).flatMap((p) => (p.abilities ?? []).map((ab) => ({ pet: p, ab })))} keyCasters={actives.filter((p) => p.keyCast)} canCast={state.enabled && !isPetHiddenRoute(pathname) && effectiveMotion(state.settings.animations, systemReduced) === "full"} />
     </>
   );
 }
@@ -49,6 +55,8 @@ function PetStage({ def, index, settings, motion, typingRoute }: StageProps) {
   const spriteRef = useRef<HTMLDivElement>(null);
   const bubbleRef = useRef<HTMLDivElement>(null);
   const fxRef = useRef<HTMLDivElement>(null);
+  const [ult, setUlt] = useState<UltimateRun | null>(null);
+  const [abil, setAbil] = useState<AbilityRun | null>(null);
   const startIndex = useRef(index); // only used for the first position, so reordering the team never moves a pet
   const live = useRef({ settings, motion, typingRoute });
   useEffect(() => {
@@ -70,7 +78,109 @@ function PetStage({ def, index, settings, motion, typingRoute }: StageProps) {
     const drag = { on: false, offX: 0, offY: 0, moved: false, lastX: 0, tilt: 0 };
     let justDragged = 0;
     const applied = { tf: "", air: NaN, x: NaN, anim: "", blink: false, face: 0, look: NaN, lookY: NaN, size: 0, quiet: false, hidden: false, trick: "" };
-    let sayId = 0, fxId = 0;
+    let sayId = 0, fxId = 0, boltId = 0, ultId = 0, abilId = 0, ambientAt = 0;
+    const ultTimers: number[] = [];
+    const endUltimate = () => {
+      ultTimers.forEach((id) => window.clearTimeout(id));
+      ultTimers.length = 0;
+      delete sprite.dataset.ult;
+      sprite.style.removeProperty("--ult-grow");
+      sprite.style.removeProperty("--ult-lift");
+      document.body.classList.remove("pet-shake", "pet-shake-big");
+      setUlt(null);
+    };
+    /** Where things happen on screen: the pet, its mouth (mirrored with the art), the beam direction and how far it can reach. */
+    const locate = (mouth: { x: number; y: number }, aim: "room" | "face" | "right", face: 1 | -1, k = 1) => {
+      const rect = sprite.getBoundingClientRect();
+      const cx = rect.left + rect.width / 2, cy = rect.top + rect.height / 2;
+      const dir: 1 | -1 = aim === "face" ? face : aim === "right" ? 1 : window.innerWidth - cx >= cx ? 1 : -1;
+      const mirrored = (def.view === "side" && face === -1) || (aim === "room" && dir === -1);
+      // A transformed pet grows from its feet, so the mouth moves up and out with it.
+      const mx0 = rect.left + (rect.width * (mirrored ? 100 - mouth.x : mouth.x)) / 100;
+      const my0 = rect.top + (rect.height * mouth.y) / 100;
+      const mx = cx + (mx0 - cx) * k;
+      const my = rect.bottom - (rect.bottom - my0) * k;
+      const room = dir > 0 ? window.innerWidth - mx : mx;
+      const length = Math.max(220, Math.min(room - 30, Math.max(420, window.innerWidth * 0.72)));
+      return { rect, cx, cy, dir, mx, my, length };
+    };
+    const abilTimers: number[] = [];
+    const endAbility = () => {
+      abilTimers.forEach((id) => window.clearTimeout(id));
+      abilTimers.length = 0;
+      delete sprite.dataset.abil;
+      document.body.classList.remove("pet-sight");
+      setAbil(null);
+    };
+    /** Plays an ability's cinematic. The pet's own pose comes from the brain; this adds the effects around it. */
+    const startAbility = (key: string, face: 1 | -1, tx: number) => {
+      const ab = def.abilities?.find((a) => a.id === key);
+      if (!ab) return;
+      endAbility();
+      const { cx, cy, dir, mx, my, length, rect } = locate(def.ultimate?.mouth ?? { x: 50, y: 50 }, def.ultimate?.aim ?? "right", face);
+      sprite.dataset.abil = key;
+      setAbil({ id: Date.now(), key, seconds: ab.seconds, cx, cy, size: rect.width, mx, my, dir, length, tx, color: def.ultimate?.color ?? "#a78bfa", color2: def.ultimate?.color2 ?? "#fde68a", file: def.file });
+      if (key === "astral_sight") {
+        abilTimers.push(window.setTimeout(() => document.body.classList.add("pet-sight"), 1100));
+        abilTimers.push(window.setTimeout(() => document.body.classList.remove("pet-sight"), 3400));
+      }
+      abilTimers.push(window.setTimeout(endAbility, ab.seconds * 1000 + 150));
+    };
+    /** Starts the cinematic: works out where the mouth is on screen and how far the beam can go, then runs its phases. */
+    const startUltimate = (face: 1 | -1) => {
+      const cfg = def.ultimate;
+      if (!cfg) return;
+      const k = cfg.grow ?? 1;
+      const { rect, cx, cy, dir, mx, my, length } = locate(cfg.mouth, cfg.aim, face, k);
+      ultimateCooldown.readyAt = Date.now() + (ULTIMATE_SECONDS + (def.keyCast ? 0 : ultimateCooldown.seconds)) * 1000;
+      sprite.style.setProperty("--ult", cfg.color);
+      sprite.style.setProperty("--dir", String(dir));
+      sprite.style.setProperty("--ult-grow", String(k));
+      sprite.style.setProperty("--ult-lift", `${(cfg.lift ?? 0) * rect.width}px`);
+      sprite.dataset.ult = "charge";
+      setUlt({ id: Date.now(), cfg, cx, cy, size: rect.width, mx, my, dir, length });
+      const at = (ms: number, fn: () => void) => ultTimers.push(window.setTimeout(fn, ms));
+      // The big moment: the beam (2.6s), or the supernova blast for casters with no beam (4.4s).
+      const fireAt = cfg.beam === "none" ? 4400 : 2600;
+      at(fireAt, () => { sprite.dataset.ult = "fire"; document.body.classList.add("pet-shake"); });
+      at(fireAt + 1000, () => { document.body.classList.remove("pet-shake"); document.body.classList.add("pet-shake-big"); });
+      at(fireAt + 1700, () => { sprite.dataset.ult = cfg.lift ? "land" : "rest"; });
+      at(fireAt + 2200, () => { document.body.classList.remove("pet-shake-big"); document.body.classList.add("pet-shake"); });
+      at(fireAt + 2700, () => document.body.classList.remove("pet-shake"));
+      at(ULTIMATE_SECONDS * 1000 + 100, endUltimate);
+    };
+
+    // Key-to-cast: a letter key casts its skill. Never while typing in a field, on the typing pages, or during another cast.
+    let comboEl: HTMLSpanElement | null = null, comboTimer = 0;
+    const readyAt: Record<string, number> = {}; // per-skill cooldowns (ms timestamps)
+    const skillName = (id: string) => (id === "ultimate" ? def.ultimate?.name : def.abilities?.find((a) => a.id === id)?.name) ?? "";
+    const casting = () => ultTimers.length > 0 || abilTimers.length > 0 || brain.ultT > 0;
+    const clearCombo = () => { window.clearTimeout(comboTimer); comboEl?.remove(); comboEl = null; };
+    const castKey = (e: KeyboardEvent) => {
+      const map = def.keyCast;
+      if (!map || e.repeat || e.metaKey || e.ctrlKey || e.altKey || live.current.typingRoute || casting()) return;
+      const target = e.target instanceof HTMLElement ? e.target : null;
+      if (target?.closest('input,textarea,select,[contenteditable=""],[contenteditable="true"]')) return;
+      const id = map[e.key.toLowerCase()];
+      if (!id) return;
+      const wait = (readyAt[id] ?? 0) - Date.now();
+      clearCombo();
+      comboEl = document.createElement("span");
+      comboEl.className = "pet-combo";
+      if (wait > 0) {
+        comboEl.textContent = `${skillName(id)} · ${Math.ceil(wait / 1000)}s`;
+      } else {
+        const ab = def.abilities?.find((a) => a.id === id);
+        const seconds = id === "ultimate" ? ULTIMATE_SECONDS : ab?.seconds ?? 0;
+        readyAt[id] = Date.now() + (seconds + ((id === "ultimate" ? def.ultimate?.cooldown : ab?.cooldown) ?? 0)) * 1000;
+        queue.push(id === "ultimate" ? { type: "ultimate", pet: def.id } : { type: "ability", pet: def.id, id });
+        // A short label so the key press visibly means something.
+        comboEl.textContent = `${e.key.toUpperCase()} · ${skillName(id)}`;
+      }
+      fx.appendChild(comboEl);
+      comboTimer = window.setTimeout(clearCombo, 1200);
+    };
+    window.addEventListener("keydown", castKey);
 
     const rectPad = (touch: boolean) => (touch ? 16 : 6);
     const insidePet = (cx: number, cy: number, pad: number) => {
@@ -120,13 +230,19 @@ function PetStage({ def, index, settings, motion, typingRoute }: StageProps) {
       // A button or link under the pet was clicked: that click belongs to it. Text areas are fine, since the click still reaches them.
       if (target?.closest(ACTION_SELECTOR)) return;
       // Touch screens have no hover, so give fingers a bigger target.
-      if (insidePet(e.clientX, e.clientY, rectPad(window.matchMedia("(hover: none)").matches))) queue.push({ type: "click" });
+      if (insidePet(e.clientX, e.clientY, rectPad(window.matchMedia("(hover: none)").matches))) {
+        queue.push({ type: "click" });
+      }
     };
     const onKey = (e: KeyboardEvent) => {
       if (!live.current.typingRoute || ["Shift", "Control", "Alt", "Meta", "CapsLock", "Tab"].includes(e.key)) return;
       typingUntil = performance.now() + TYPING_GRACE_MS;
     };
-    const unsubscribe = subscribePetEvents((ev) => queue.push(ev));
+    const unsubscribe = subscribePetEvents((ev) => {
+      if (ev.type === "ability" && (!def.abilities || (ev.pet && ev.pet !== def.id))) return;
+      if (ev.type === "ultimate" && (!def.ultimate || (ev.pet && ev.pet !== def.id) || Date.now() < ultimateCooldown.readyAt)) return;
+      queue.push(ev);
+    });
 
     const frame = (t: number) => {
       raf = requestAnimationFrame(frame);
@@ -185,6 +301,43 @@ function PetStage({ def, index, settings, motion, typingRoute }: StageProps) {
       } else if (!brain.say && bubble.classList.contains("show")) {
         bubble.classList.remove("show");
       }
+      if (brain.ult && brain.ult.id !== ultId) { ultId = brain.ult.id; startUltimate(brain.ult.face); }
+      if (brain.abil && brain.abil.id !== abilId) { abilId = brain.abil.id; startAbility(brain.abil.key, brain.abil.face, brain.abil.tx); }
+      // Movement and mood particles: star dust behind footsteps and wings, stars over a sleeper...
+      if (def.ambient && cfg.motion === "full" && t > ambientAt && !hidden) {
+        const rule = def.ambient[brain.air > 4 ? "fly" : brain.anim] ?? (brain.anim === "follow" ? def.ambient.walk : undefined);
+        if (rule) {
+          ambientAt = t + rule.every * (0.8 + rand() * 0.5);
+          const span = document.createElement("span");
+          span.className = rule.world ? "pet-dust pet-dust-world" : "pet-emoji pet-dust";
+          span.textContent = rule.glyphs[Math.floor(rand() * rule.glyphs.length)];
+          span.style.setProperty("--dy", `${Math.round(size * (0.25 + rand() * 0.55))}px`);
+          if (rule.world) {
+            // A trail: dropped in the page at the pet's tail end, so it stays behind as the pet moves on.
+            const r = sprite.getBoundingClientRect();
+            span.style.left = `${Math.round(r.left + r.width * (0.5 - brain.face * 0.28) + (rand() - 0.5) * r.width * 0.3)}px`;
+            span.style.top = `${Math.round(r.top + r.height * (0.45 + rand() * 0.4))}px`;
+            span.style.setProperty("--fs", `${Math.round(size * (0.14 + rand() * 0.1))}px`);
+            document.body.appendChild(span);
+          } else {
+            span.style.setProperty("--dx", `${Math.round((rand() - 0.5) * size * 0.9) - brain.face * Math.round(size * 0.18)}px`);
+            fx.appendChild(span);
+          }
+          span.addEventListener("animationend", () => span.remove(), { once: true });
+          window.setTimeout(() => span.remove(), 2400);
+        }
+      }
+      if (brain.bolt && brain.bolt.id !== boltId && def.magic) {
+        boltId = brain.bolt.id;
+        const b = document.createElement("span");
+        b.className = "pet-bolt";
+        b.textContent = def.magic.emoji;
+        b.style.setProperty("--dir", String(brain.bolt.face));
+        b.style.setProperty("--bolt", def.magic.color);
+        b.addEventListener("animationend", () => b.remove(), { once: true });
+        fx.appendChild(b);
+        window.setTimeout(() => b.remove(), 2000);
+      }
       if (brain.fx && brain.fx.id !== fxId) {
         fxId = brain.fx.id;
         const span = document.createElement("span");
@@ -213,6 +366,10 @@ function PetStage({ def, index, settings, motion, typingRoute }: StageProps) {
     return () => {
       cancelAnimationFrame(raf);
       unsubscribe();
+      endUltimate();
+      endAbility();
+      clearCombo();
+      window.removeEventListener("keydown", castKey);
       window.removeEventListener("pointermove", onMove);
       window.removeEventListener("click", onClick);
       window.removeEventListener("pointerdown", onDown);
@@ -228,20 +385,25 @@ function PetStage({ def, index, settings, motion, typingRoute }: StageProps) {
   }, [def]);
 
   return (
-    <div ref={rootRef} className="pet-root" aria-hidden="true">
-      <div ref={bodyRef} className="pet-body">
-        <div ref={bubbleRef} className="pet-bubble" />
-        <div ref={fxRef} className="pet-fx" />
-        <div className="pet-shadow" />
-        <PetSprite ref={spriteRef} def={def} motion={motion} />
+    <>
+      {ult && <PetUltimate run={ult} />}
+      {abil && <PetAbility run={abil} />}
+      <div ref={rootRef} className="pet-root" aria-hidden="true">
+        <div ref={bodyRef} className="pet-body">
+          <div ref={bubbleRef} className="pet-bubble" />
+          <div ref={fxRef} className="pet-fx" />
+          <div className="pet-shadow" />
+          <PetSprite ref={spriteRef} def={def} motion={motion} />
+        </div>
       </div>
-    </div>
+    </>
   );
 }
 
 /** Small always-available control: hide or show the companion, or open the collection. */
-function PetControls({ name, enabled }: { name: string; enabled: boolean }) {
+function PetControls({ name, enabled, locked = false, ultimates = [], abilities = [], keyCasters = [], canCast = false }: { name: string; enabled: boolean; locked?: boolean; ultimates?: PetDefinition[]; abilities?: { pet: PetDefinition; ab: Ability }[]; keyCasters?: PetDefinition[]; canCast?: boolean }) {
   const [open, setOpen] = useState(false);
+  const [wait, setWait] = useState(0);
   const ref = useRef<HTMLDivElement>(null);
   useEffect(() => {
     if (!open) return;
@@ -251,16 +413,39 @@ function PetControls({ name, enabled }: { name: string; enabled: boolean }) {
     window.addEventListener("keydown", onKey);
     return () => { window.removeEventListener("pointerdown", onDown); window.removeEventListener("keydown", onKey); };
   }, [open]);
+  const { store } = useTypingProgress();
+  const now = useNow();
+  const streak = now ? currentStreak(store.sessions, now) : 0;
+  const doneToday = now ? practiceDays(store.sessions).has(dayKey(now)) : false;
+  const nextGoal = PETS.map((p) => p.unlockStreak).sort((a, b) => a - b).find((d) => d > streak);
   return (
     <div ref={ref} className="pet-ctl">
       {open && (
         <div className="pet-ctl-menu" role="menu" aria-label="Pet companion">
-          <small>{name} {enabled ? "keeping you company" : "resting"}</small>
-          <button type="button" role="menuitem" onClick={() => { setPetEnabled(!enabled); setOpen(false); }}>{enabled ? "🙈 Hide companion" : "👀 Show companion"}</button>
+          {locked ? <small>Locked · reach a {nextGoal ?? 3}-day streak to unlock your first pet</small> : <>
+            <small>{name} {enabled ? "keeping you company" : "resting"}</small>
+            <button type="button" role="menuitem" onClick={() => { setPetEnabled(!enabled); setOpen(false); }}>{enabled ? "🙈 Hide companion" : "👀 Show companion"}</button>
+          </>}
+          {ultimates.map((p) => (
+            <button key={p.id} type="button" role="menuitem" disabled={!canCast || wait > 0} onClick={() => { emitPetEvent({ type: "ultimate", pet: p.id }); setOpen(false); }}>
+              ⚡ {p.ultimate?.name}{wait > 0 ? ` · ${wait}s` : !canCast ? " · needs animations" : ""}
+            </button>
+          ))}
+          {abilities.map(({ pet, ab }) => (
+            <button key={`${pet.id}-${ab.id}`} type="button" role="menuitem" disabled={!canCast} title={ab.blurb} onClick={() => { emitPetEvent({ type: "ability", pet: pet.id, id: ab.id }); setOpen(false); }}>✨ {ab.name}</button>
+          ))}
+          {keyCasters.map((p) => <small key={p.id}>⌨️ Press {Object.keys(p.keyCast ?? {}).join(" ").toUpperCase()} to cast {p.name.split(" ")[0]}&apos;s skills (not while typing).</small>)}
+          {ultimates.length > 0 && <small>Or click your pet five times, fast.</small>}
+          <small>🔥 {streak}-day streak{nextGoal ? ` · next pet at ${nextGoal} days` : ""}</small>
+          <small>{doneToday ? "✅ Today counted. Come back tomorrow to keep it going." : "Finish a lesson with 20+ correct characters today to add a day."}</small>
+          {!doneToday && <>
+            <Link href="/learn/english" role="menuitem" onClick={() => setOpen(false)}>⌨️ Practice English</Link>
+            <Link href="/learn/khmer" role="menuitem" onClick={() => setOpen(false)}>⌨️ Practice Khmer</Link>
+          </>}
           <Link href="/pets" role="menuitem" onClick={() => setOpen(false)}>🐾 Pet collection</Link>
         </div>
       )}
-      <button type="button" className="pet-ctl-btn" aria-haspopup="menu" aria-expanded={open} aria-label="Pet companion menu" title="Pet companion" onClick={() => setOpen((v) => !v)}>🐾</button>
+      <button type="button" className="pet-ctl-btn" aria-haspopup="menu" aria-expanded={open} aria-label={locked ? "Pet companion (locked)" : "Pet companion menu"} title={locked ? "Locked: build a streak to unlock" : "Pet companion"} onClick={() => { setWait(Math.max(0, Math.ceil((ultimateCooldown.readyAt - Date.now()) / 1000))); setOpen((v) => !v); }}>{locked ? "🔒" : "🐾"}</button>
     </div>
   );
 }

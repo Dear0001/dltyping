@@ -3,11 +3,13 @@
 import { useEffect } from "react";
 import { subscribeStorage } from "@/lib/local-progress";
 import { refreshAccount } from "@/lib/account";
+import { ensureWelcomeStart } from "@/lib/progress/progress-analytics";
 import { syncProgress } from "@/lib/sync";
 
 /** Background sync: on load, after local progress changes (debounced), and when the connection returns. Renders nothing. */
 export default function ProgressSync() {
   useEffect(() => {
+    ensureWelcomeStart();
     let timer: number | undefined;
     const schedule = (delay: number) => {
       window.clearTimeout(timer);

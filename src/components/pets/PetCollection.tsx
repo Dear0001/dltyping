@@ -8,6 +8,7 @@ import { usePetState } from "@/hooks/usePets";
 import { useNow, useTypingProgress } from "@/hooks/useTypingProgress";
 import { PETS, RARITIES, type PetAnim, type PetDefinition } from "@/lib/pets/pet-catalog";
 import { useAccount } from "@/lib/account";
+import { emitPetEvent } from "@/lib/pets/pet-events";
 import { nextReward } from "@/lib/pets/pet-rewards";
 import { activeIds, MAX_ACTIVE_PETS, patchPetSettings, setPetEnabled, togglePet, type PetSettings } from "@/lib/pets/pet-storage";
 import { currentStreak, longestStreak, QUALIFYING_MIN_CORRECT } from "@/lib/progress/progress-analytics";
@@ -177,6 +178,8 @@ function PetCard({ pet, unlocked, unlockedAt, active, teamSize, companionOn, bes
             {active ? (
               <>
                 <p className="mb-2 text-xs text-mute">{companionOn ? "Playing on every page." : "Selected, but the companion is turned off."}</p>
+                {pet.keyCast ? <KeyCastGuide pet={pet} /> : pet.ultimate && <button type="button" onClick={() => emitPetEvent({ type: "ultimate", pet: pet.id })} disabled={!companionOn || motion !== "full"} title={motion !== "full" ? "Turn pet animations to Full to cast ultimates" : undefined} className="mb-2 w-full rounded-xl bg-navy px-4 py-2 text-sm font-bold text-white hover:brightness-110 disabled:cursor-not-allowed disabled:opacity-50">⚡ Cast {pet.ultimate.name}</button>}
+                {!pet.keyCast && pet.abilities && <div className="mb-2 grid grid-cols-2 gap-1.5">{pet.abilities.map((ab) => <button key={ab.id} type="button" onClick={() => emitPetEvent({ type: "ability", pet: pet.id, id: ab.id })} disabled={!companionOn || motion !== "full"} title={ab.blurb} className="rounded-lg border border-slate-200 px-2 py-1.5 text-xs font-semibold text-navy hover:border-brand hover:text-brand disabled:cursor-not-allowed disabled:opacity-50">✨ {ab.name}</button>)}</div>}
                 <button type="button" onClick={() => togglePet(pet.id)} disabled={teamSize <= 1} title={teamSize <= 1 ? "Keep at least one pet, or turn the companion off in settings" : undefined} className="w-full rounded-xl border border-slate-300 px-4 py-2 text-sm font-bold text-navy hover:border-brand hover:text-brand disabled:cursor-not-allowed disabled:opacity-50">Remove from my pets</button>
               </>
             ) : (
@@ -194,5 +197,17 @@ function PetCard({ pet, unlocked, unlockedAt, active, teamSize, companionOn, bes
         </div>
       )}
     </article>
+  );
+}
+
+/** For key-to-cast pets: no buttons, so the card only explains which key casts what. */
+function KeyCastGuide({ pet }: { pet: PetDefinition }) {
+  const name = (id: string) => (id === "ultimate" ? pet.ultimate?.name : pet.abilities?.find((a) => a.id === id)?.name) ?? id;
+  return (
+    <div className="mb-2 rounded-xl bg-slate-50 p-3 text-xs text-mute">
+      <p className="mb-1.5 font-bold text-navy">Press a key to cast</p>
+      <ul className="space-y-0.5">{Object.entries(pet.keyCast ?? {}).map(([key, id]) => <li key={key}><kbd className="rounded border border-slate-300 bg-white px-1.5 py-0.5 font-bold text-navy">{key.toUpperCase()}</kbd> {name(id)}</li>)}</ul>
+      <p className="mt-1.5">Keys don&apos;t cast while you type in a field or on the practice and game pages.</p>
+    </div>
   );
 }
