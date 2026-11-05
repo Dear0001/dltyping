@@ -34,6 +34,10 @@ export type SessionRecord = {
   completedAt: string;
   /** Short human label, e.g. a lesson title or "Level 3". */
   detail?: string;
+  /** Stars (1-3) earned by clearing a game level. Worth that many streak points for the day. */
+  stars?: 1 | 2 | 3;
+  /** The whole curriculum lesson was completed in this session (bonus streak point for the day). */
+  lessonDone?: true;
 };
 
 export type Tally = { n: number; c: number };
@@ -73,6 +77,8 @@ export type SessionInput = {
   score?: number | null;
   difficulty?: Difficulty | null;
   detail?: string;
+  stars?: number;
+  lessonDone?: boolean;
   /** Overrides the computed value (e.g. games that already know it). */
   wpm?: number;
   accuracy?: number;

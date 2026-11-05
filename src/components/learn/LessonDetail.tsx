@@ -1,14 +1,13 @@
 "use client";
 
 import Link from "next/link";
-import { useState, useCallback } from "react";
 import SiteHeader from "@/components/shared/SiteHeader";
 import { primaryBtn, secondaryBtn } from "@/components/games/shared/GameDialog";
 import { curricula, findLesson, findLessonCourse, findLessonModule, nextLesson, prevLesson, levelLabels, levelColors } from "@/data/curriculum";
 import { typingGames } from "@/data/games";
+import { LessonStreakGuide } from "@/components/learn/StreakGuide";
 import GameThumb from "@/components/games/shared/GameThumb";
 import { useUserProgress } from "@/hooks/use-stored-value";
-import { completeLesson, levelFromXp, LEVEL_TITLES } from "@/lib/local-progress";
 import { lessons as practiceLessons } from "@/data/lessons";
 import type { Language } from "@/types";
 
@@ -45,20 +44,8 @@ export default function LessonDetail({ language, lessonId }: Props) {
 
   const progress = useUserProgress();
   const isCompleted = !!progress.completedLessons[`${language}:${lessonId}`];
-  const [justCompleted, setJustCompleted] = useState(false);
-  const [newLevelTitle, setNewLevelTitle] = useState<string | null>(null);
-
   const practiceLesson = practiceLessons[language].find((l) => l.id === lessonId);
   const previewText = practiceLesson?.text?.slice(0, 180) ?? "";
-
-  const handleMarkComplete = useCallback(() => {
-    if (isCompleted) return;
-    const before = levelFromXp(progress.xp);
-    const updated = completeLesson(language, lessonId, lesson?.xpReward ?? 50);
-    const after = levelFromXp(updated.xp);
-    setJustCompleted(true);
-    if (after > before) setNewLevelTitle(LEVEL_TITLES[after] ?? null);
-  }, [isCompleted, progress.xp, language, lessonId, lesson?.xpReward]);
 
   if (!lesson || !course || !mod) {
     return (
@@ -168,6 +155,8 @@ export default function LessonDetail({ language, lessonId }: Props) {
             </div>
           </section>
 
+          <LessonStreakGuide criteria={lesson.completionCriteria} xp={lesson.xpReward} />
+
           {/* Practice preview */}
           {previewText && (
             <section className="rounded-2xl border border-slate-200 bg-white p-5 shadow-sm">
@@ -207,26 +196,21 @@ export default function LessonDetail({ language, lessonId }: Props) {
             </section>
           )}
 
-          {/* Mark complete / XP reward */}
-          <section className={`rounded-2xl border p-5 shadow-sm ${isCompleted || justCompleted ? "border-emerald-200 bg-emerald-50" : "border-slate-200 bg-white"}`}>
-            {(isCompleted || justCompleted) ? (
+          {/* Completion is automatic: finishing the practice within the limits above completes the lesson. */}
+          <section className={`rounded-2xl border p-5 shadow-sm ${isCompleted ? "border-emerald-200 bg-emerald-50" : "border-slate-200 bg-white"}`}>
+            {isCompleted ? (
               <div className="flex items-center gap-3">
                 <span className="text-3xl" aria-hidden="true">🏆</span>
                 <div>
                   <p className="font-extrabold text-emerald-800">Lesson Complete!</p>
-                  {justCompleted && newLevelTitle && (
-                    <p className="text-sm font-bold text-brand">🎉 Level up! You are now: {newLevelTitle}</p>
-                  )}
                   <p className="text-sm text-emerald-700">You earned {lesson.xpReward} XP for this lesson.</p>
                 </div>
               </div>
             ) : (
               <div>
-                <h2 className="mb-1 text-sm font-extrabold uppercase tracking-wider text-brand">Mark as Complete</h2>
-                <p className="mb-4 text-xs text-mute">Once you have practised this lesson and met the criteria above, mark it complete to earn XP and track your progress.</p>
-                <button type="button" className={primaryBtn} onClick={handleMarkComplete}>
-                  ✓ Complete Lesson (+{lesson.xpReward} XP)
-                </button>
+                <h2 className="mb-1 text-sm font-extrabold uppercase tracking-wider text-brand">Complete by practising</h2>
+                <p className="mb-4 text-xs text-mute">Type the whole practice text and reach the accuracy{lesson.completionCriteria.minWpm ? " and speed" : ""} above. The lesson completes by itself and you earn +{lesson.xpReward} XP. No button needed.</p>
+                <Link href={practiceUrl} className={`${primaryBtn} inline-flex`}>Start practice →</Link>
               </div>
             )}
           </section>

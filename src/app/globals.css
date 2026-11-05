@@ -203,3 +203,15 @@
   .topnav a.active{font-size:12px}
   .gm-wrap{display:flex;height:100%;flex:none}.gm-caret{display:none}
 }
+
+/* Streak increase celebration: lasts --streak-ms (3s), never blocks clicks. */
+.streak-burst{position:fixed;top:76px;left:50%;z-index:70;display:flex;align-items:center;gap:12px;padding:12px 20px;border-radius:9999px;background:#0f172a;color:#fff;box-shadow:0 12px 40px rgb(37 99 235 / .45);pointer-events:none;transform:translateX(-50%);animation:streak-pop var(--streak-ms,3s) cubic-bezier(.2,.9,.3,1.2) both}
+.streak-burst-flame{font-size:2rem;display:inline-block;animation:streak-flame .6s ease-in-out 4 alternate}
+.streak-burst-gain{font-weight:800;font-size:1.1rem;line-height:1.1}
+.streak-burst-total{font-size:.75rem;opacity:.75}
+.streak-burst-sparks span{position:absolute;left:34px;top:50%;font-size:1rem;opacity:0;animation:streak-spark 1.4s ease-out both}
+@keyframes streak-pop{0%{opacity:0;transform:translate(-50%,-30px) scale(.6)}12%{opacity:1;transform:translate(-50%,0) scale(1.08)}20%{transform:translate(-50%,0) scale(1)}85%{opacity:1;transform:translate(-50%,0) scale(1)}100%{opacity:0;transform:translate(-50%,-16px) scale(.96)}}
+@keyframes streak-flame{from{transform:scale(1) rotate(-6deg)}to{transform:scale(1.25) rotate(6deg)}}
+@keyframes streak-spark{0%{opacity:0;transform:translate(0,0) scale(.4)}25%{opacity:1}100%{opacity:0;transform:translate(var(--sx),var(--sy)) scale(1.1)}}
+@media (prefers-reduced-motion: reduce){.streak-burst{animation:streak-fade var(--streak-ms,3s) both}.streak-burst-flame,.streak-burst-sparks span{animation:none}.streak-burst-sparks{display:none}}
+@keyframes streak-fade{0%,90%{opacity:1;transform:translateX(-50%)}100%{opacity:0;transform:translateX(-50%)}}

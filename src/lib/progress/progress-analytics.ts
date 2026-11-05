@@ -135,14 +135,61 @@ function welcomeDays(): string[] {
 
 export const practiceDays = (sessions: SessionRecord[]): Set<string> => new Set([...sessions.filter(isQualifyingSession).map((s) => dayKey(timeOf(s))), ...welcomeDays()]);
 
-/** Consecutive practice days up to today. A streak stays alive until the end of the day after the last session. */
+// ---- Daily visits -------------------------------------------------------------
+const VISITS_KEY = "dlt.visits";
+const MAX_VISITS = 400;
+
+/** Remembers that the learner opened the site today: the automatic +1 streak point of the day. Safe to call repeatedly. */
+export function recordVisit(now = Date.now()) {
+  try {
+    const raw = JSON.parse(window.localStorage.getItem(VISITS_KEY) ?? "[]");
+    const days: string[] = Array.isArray(raw) ? raw.filter((d) => typeof d === "string") : [];
+    const today = dayKey(now);
+    if (days.includes(today)) return;
+    window.localStorage.setItem(VISITS_KEY, JSON.stringify([...days, today].slice(-MAX_VISITS)));
+  } catch {
+    // Storage unavailable: the automatic daily point simply isn't recorded.
+  }
+}
+
+function visitDays(): string[] {
+  if (typeof window === "undefined") return [];
+  try {
+    const raw = JSON.parse(window.localStorage.getItem(VISITS_KEY) ?? "[]");
+    return Array.isArray(raw) ? raw.filter((d): d is string => typeof d === "string") : [];
+  } catch {
+    return [];
+  }
+}
+
+/**
+ * Streak points each day is worth. The day itself is automatic: +1 for opening the site (or any qualifying practice).
+ * Extra tasks add more: +1 for completing a lesson, and + the best star count (1-3) from a cleared game level.
+ */
+export function dayPoints(sessions: SessionRecord[]): Map<string, number> {
+  const points = new Map<string, number>();
+  for (const day of [...practiceDays(sessions), ...visitDays()]) points.set(day, 1);
+  const lesson = new Set<string>();
+  const stars = new Map<string, number>();
+  for (const s of sessions) {
+    if (!isQualifyingSession(s)) continue;
+    const key = dayKey(timeOf(s));
+    if (s.lessonDone) lesson.add(key);
+    if (s.stars) stars.set(key, Math.max(stars.get(key) ?? 0, s.stars));
+  }
+  for (const day of lesson) points.set(day, (points.get(day) ?? 1) + 1);
+  for (const [day, n] of stars) points.set(day, (points.get(day) ?? 1) + n);
+  return points;
+}
+
+/** Streak points over consecutive practice days up to today. A streak stays alive until the end of the day after the last session. */
 export function currentStreak(sessions: SessionRecord[], now: number): number {
-  const days = practiceDays(sessions);
+  const days = dayPoints(sessions);
   let cursor = startOfDay(now);
   if (!days.has(dayKey(cursor))) cursor = nextDay(cursor, -1);
   let streak = 0;
   while (days.has(dayKey(cursor))) {
-    streak += 1;
+    streak += days.get(dayKey(cursor)) ?? 1;
     cursor = nextDay(cursor, -1);
   }
   return streak;
@@ -155,10 +202,12 @@ const dayStart = (key: string) => {
 
 /** Longest run of consecutive practice days ever recorded. Rewards use this, so an earned pet never depends on the streak still being alive. */
 export function longestStreak(sessions: SessionRecord[]): number {
-  const days = [...practiceDays(sessions)].sort();
+  const points = dayPoints(sessions);
+  const days = [...points.keys()].sort();
   let best = 0, run = 0;
   days.forEach((day, i) => {
-    run = i > 0 && dayKey(nextDay(dayStart(days[i - 1]), 1)) === day ? run + 1 : 1;
+    const consecutive = i > 0 && dayKey(nextDay(dayStart(days[i - 1]), 1)) === day;
+    run = (consecutive ? run : 0) + (points.get(day) ?? 1);
     best = Math.max(best, run);
   });
   return best;

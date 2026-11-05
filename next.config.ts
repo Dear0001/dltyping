@@ -5,6 +5,8 @@ const nextConfig: NextConfig = {
   experimental: {
     agentFeedback: true,
   },
+  // Lets a phone/another device on the LAN use the dev server's HMR (dev only).
+  allowedDevOrigins: ["192.168.3.192"],
   cacheComponents: true,
   partialPrefetching: true,
   turbopack: {

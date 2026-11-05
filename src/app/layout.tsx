@@ -6,6 +6,7 @@ import SiteFooter from "@/components/shared/SiteFooter";
 import ProgressSync from "@/components/shared/ProgressSync";
 import PetCompanion from "@/components/pets/PetCompanion";
 import PetRewards from "@/components/pets/PetRewards";
+import StreakCelebration from "@/components/shared/StreakCelebration";
 import { THEME_INIT_SCRIPT } from "@/lib/themes";
 import GoogleAnalytics from "@/components/shared/GoogleAnalytics";
 import { SITE_URL } from "@/lib/site";
@@ -34,7 +35,7 @@ export default function RootLayout({ children }: LayoutProps<"/">) {
   return (
     <html lang="en" data-scroll-behavior="smooth" className={poppins.variable} suppressHydrationWarning>
       <head><script dangerouslySetInnerHTML={{ __html: THEME_INIT_SCRIPT }} /></head>
-      <body id="top" suppressHydrationWarning><LocaleProvider>{children}<SiteFooter /><ProgressSync /><Suspense fallback={null}><PetCompanion /></Suspense><PetRewards /></LocaleProvider><GoogleAnalytics /></body>
+      <body id="top" suppressHydrationWarning><LocaleProvider>{children}<SiteFooter /><ProgressSync /><Suspense fallback={null}><PetCompanion /></Suspense><PetRewards /><StreakCelebration /></LocaleProvider><GoogleAnalytics /></body>
     </html>
   );
 }

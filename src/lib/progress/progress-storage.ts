@@ -58,6 +58,8 @@ function validateSession(v: unknown): SessionRecord | null {
     layout: layout === "khmer-nida" || layout === "english-qwerty" ? layout : layoutFor(language),
     completedAt,
     ...(typeof detail === "string" ? { detail: detail.slice(0, 80) } : {}),
+    ...(v.lessonDone === true ? { lessonDone: true as const } : {}),
+    ...(v.stars === 1 || v.stars === 2 || v.stars === 3 ? { stars: v.stars } : {}),
   };
 }
 
@@ -221,6 +223,8 @@ export function recordSession(input: SessionInput, tally?: SessionTally, now = n
     layout: layoutFor(input.language),
     completedAt: now.toISOString(),
     ...(input.detail ? { detail: input.detail.slice(0, 80) } : {}),
+    ...(input.lessonDone ? { lessonDone: true as const } : {}),
+    ...(input.stars === 1 || input.stars === 2 || input.stars === 3 ? { stars: input.stars } : {}),
   };
   writeStore({ ...store, sessions: [...store.sessions, session].slice(-MAX_SESSIONS) });
   // The companion cheers for a finished lesson and encourages after any other session.

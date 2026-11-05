@@ -8,7 +8,8 @@ import { lessons } from "@/data/lessons";
 import type { Language, OSPlatform } from "@/types";
 import { useLocale } from "@/components/shared/LocaleProvider";
 import SiteHeader from "@/components/shared/SiteHeader";
-import { recordPractice } from "@/lib/local-progress";
+import { completeLesson, readUserProgress, recordPractice } from "@/lib/local-progress";
+import { curricula, findLesson } from "@/data/curriculum";
 import { GameDialog } from "@/components/games/shared/GameDialog";
 import { pickRandomLesson } from "@/lib/lesson-picker";
 import VirtualKeyboard from "@/components/keyboard/VirtualKeyboard";
@@ -53,6 +54,7 @@ export default function TypingPractice({ language, platform = "Unknown", initial
   const target = drillText ?? lesson.text;
   const keyBook = useKeyStatBook();
   const recorder = useActivityRecorder();
+  const [autoCompleted, setAutoCompleted] = useState<{ xp: number } | null>(null);
   const normalizedInput = language === "khmer" ? normalizeKhmer(input) : input;
   const normalizedTarget = language === "khmer" ? normalizeKhmer(target) : target;
   const stats = useMemo(() => getTypingStats(normalizedTarget, normalizedInput, seconds), [normalizedTarget, normalizedInput, seconds]);
@@ -107,7 +109,12 @@ export default function TypingPractice({ language, platform = "Unknown", initial
     if (!drillText) recordPractice(language, stats.wpm, stats.accuracy);
     // Dashboard record: running out the clock is a typing test, finishing the passage is a completed lesson.
     recorder.wordsFromText(language, normalizedTarget, normalizedInput);
+    // A curriculum lesson completes by itself once the whole passage is typed within its limits.
+    const finishedPassage = typedLength >= Array.from(normalizedTarget).length;
+    const rule = drillText || !finishedPassage ? undefined : findLesson(curricula[language], lessonId)?.completionCriteria;
+    const lessonMet = !!rule && stats.accuracy >= rule.minAccuracy && stats.wpm >= (rule.minWpm ?? 0);
     recorder.finish({
+      lessonDone: lessonMet,
       activity: drillText ? "drill" : seconds >= timeLimit && typedLength < Array.from(normalizedTarget).length ? "typing-test" : "lesson",
       language,
       durationSec: seconds,
@@ -116,6 +123,13 @@ export default function TypingPractice({ language, platform = "Unknown", initial
       difficulty: lesson.level === "Beginner" ? "easy" : "medium",
       detail: drillText ? "Weak-key drill" : lesson.title,
     });
+    if (lessonMet) {
+      const wasDone = !!readUserProgress().completedLessons[`${language}:${lessonId}`];
+      const xp = findLesson(curricula[language], lessonId)?.xpReward ?? 50;
+      completeLesson(language, lessonId, xp);
+      // eslint-disable-next-line react-hooks/set-state-in-effect
+      setAutoCompleted({ xp: wasDone ? 0 : xp });
+    }
     // Save once per finished session.
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [done]);
@@ -137,6 +151,7 @@ export default function TypingPractice({ language, platform = "Unknown", initial
     setLessonId(nextId);
     setPaused(false);
     setForcedDone(false);
+    setAutoCompleted(null);
     setResultClosed(false);
     setInput("");
     setSeconds(0);
@@ -250,6 +265,7 @@ export default function TypingPractice({ language, platform = "Unknown", initial
               {paused && <p className="mx-auto my-2 w-fit rounded-lg bg-blue-50 px-4 py-2 text-sm font-semibold text-brand" role="status">⏸ Paused — press Resume to continue.</p>}
               {done && !resultClosed && <GameDialog title="Lesson complete" icon="🎉" onEscape={() => setResultClosed(true)}>
                 <div className="text-center">
+                {autoCompleted && <p className="mt-2 rounded-xl bg-emerald-50 px-3 py-2 text-sm font-extrabold text-emerald-800" role="status">🏆 Lesson Complete!{autoCompleted.xp > 0 ? ` +${autoCompleted.xp} XP` : ""}</p>}
                 <dl className="my-4 grid grid-cols-4 gap-2 text-center">{[["WPM", stats.wpm], ["Accuracy", `${stats.accuracy}%`], ["Errors", stats.errors], ["Time", `${seconds}s`]].map(([label, value]) => <div key={String(label)} className="rounded-xl bg-slate-50 p-2"><dt className="text-[10px] font-bold uppercase text-mute">{label}</dt><dd className="text-xl font-extrabold text-navy">{value}</dd></div>)}</dl>
                 {mistakes.length > 0 && <div className="mb-4 text-left"><p className="mb-2 text-[10px] font-bold uppercase text-mute">Mistakes ({mistakes.length})</p><ul className="flex max-h-28 flex-wrap gap-1.5 overflow-y-auto">{mistakes.map((m) => <li key={m.index} className="rounded-lg bg-red-50 px-2 py-1 text-xs text-red-700">expected <b>{m.expected === " " ? "space" : m.expected}</b>, typed <b>{m.typed === " " ? "space" : m.typed}</b></li>)}</ul></div>}
                 <div className="flex flex-wrap justify-center gap-2">

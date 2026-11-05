@@ -113,7 +113,7 @@ export default function QuestGame({ config }: { config: QuestConfig }) {
     if (state.status !== "finished") return;
     const s = stateRef.current;
     recordScore(`${gameId}:${s.level}:${s.difficulty}`, { score: s.score, accuracy: calcAccuracy(s.correctKeys, s.totalKeys) });
-    recorder.finish({ activity: gameId === "english-quest" ? "english-quest" : "mario-khmer-quest", language, durationSec: s.elapsedMs / 1000, correct: s.correctKeys, incorrect: s.totalKeys - s.correctKeys, score: s.score, difficulty: s.difficulty, detail: `Level ${s.level}${s.outcome === "win" ? " cleared" : ""}` });
+    recorder.finish({ activity: gameId === "english-quest" ? "english-quest" : "mario-khmer-quest", language, durationSec: s.elapsedMs / 1000, correct: s.correctKeys, incorrect: s.totalKeys - s.correctKeys, score: s.score, difficulty: s.difficulty, detail: `Level ${s.level}${s.outcome === "win" ? " cleared" : ""}`, stars: s.outcome === "win" ? starsFor(calcAccuracy(s.correctKeys, s.totalKeys), s.lives) : undefined });
     if (s.outcome === "win") recordLevel(s.level, { stars: starsFor(calcAccuracy(s.correctKeys, s.totalKeys), s.lives), score: s.score }, gameId);
     playSound(s.outcome === "win" ? "win" : "lose", settings.sound);
     // Only when a run ends.

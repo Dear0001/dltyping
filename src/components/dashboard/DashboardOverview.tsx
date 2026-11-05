@@ -6,6 +6,7 @@ import ActivityHistory from "@/components/dashboard/ActivityHistory";
 import DashboardShell from "@/components/dashboard/DashboardShell";
 import { BarChart, ChartCard, ComparisonBars, LineChart, type ChartPoint } from "@/components/dashboard/PerformanceChart";
 import StatCard from "@/components/dashboard/StatCard";
+import StreakLevels from "@/components/dashboard/StreakLevels";
 import { useUserProgress } from "@/hooks/use-stored-value";
 import { useAccount } from "@/lib/account";
 import { useNow, useTypingProgress } from "@/hooks/useTypingProgress";
@@ -62,9 +63,11 @@ export default function DashboardOverview() {
             <StatCard icon="📘" label="Completed lessons" value={lessonsDone} hint="All time, from the Learn path" accent="navy" tooltip="Lessons you marked complete in the Learn curriculum. Not limited by the time range." />
             <StatCard icon="🎮" label="Completed games" value={none(data.overview.gamesCompleted)} hint={`runs in ${rangeLabel}`} />
             {signedIn
-              ? <StatCard icon="🔥" label="Daily streak" value={data.streak} unit={data.streak === 1 ? "day" : "days"} accent="sky" hint={data.streak ? "Keep it going today" : "Practice today to start one"} tooltip="Consecutive days with a finished session of 20+ correct characters. Today or yesterday keeps it current. Streaks unlock pets." />
+              ? <StatCard icon="🔥" label="Daily streak" value={data.streak} unit={data.streak === 1 ? "day" : "days"} accent="sky" hint={data.streak ? "Keep it going today" : "Practice today to start one"} tooltip="Consecutive days with a finished session of 20+ correct characters. Today or yesterday keeps it current. Each day adds 1 automatically; completing a lesson adds 1 more, and clearing a game level adds its stars (1 to 3). Streaks unlock pets." />
               : <StatCard icon="🔒" label="Daily streak" value="Locked" accent="sky" hint="Sign in to unlock streaks" tooltip="Streaks and the pets they unlock are for signed-in accounts. Use Sign in at the top of the page; your practice on this device counts once you do." />}
           </section>
+
+          {signedIn && <StreakLevels sessions={store.sessions} />}
 
           {!hasData && (
             <p className="rounded-xl border border-blue-100 bg-blue-50 px-4 py-3 text-sm text-navy" role="status">

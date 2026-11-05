@@ -86,6 +86,8 @@ export function useKeyboardInput({ language, expected, judge = true }: Options) 
 
     function onKeyUp(e: KeyboardEvent) {
       syncMods(e);
+      // Autofill and some IME events arrive without a code.
+      if (!e.code) return;
       drop(e.code);
       // Releasing Command releases everything that was held with it.
       if (e.code.startsWith("Meta")) clearAll();

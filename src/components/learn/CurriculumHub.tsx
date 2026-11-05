@@ -1,5 +1,6 @@
 "use client";
 
+import { StreakGuide } from "@/components/learn/StreakGuide";
 import Link from "next/link";
 import { useState } from "react";
 import SiteHeader from "@/components/shared/SiteHeader";
@@ -91,6 +92,8 @@ export default function CurriculumHub() {
             <StreakBadge streak={progress.streak} />
           </div>
         )}
+
+        <StreakGuide />
 
         <ContinueCard />
 
@@ -203,7 +206,7 @@ export default function CurriculumHub() {
                                   {lesson.keyFocus.length > 4 ? " …" : ""}
                                 </p>
                               </div>
-                              <span className="flex-none text-xs font-bold text-amber-600">+{lesson.xpReward} XP</span>
+                              <span className="flex-none text-right text-xs font-bold text-amber-600">+{lesson.xpReward} XP<span className="block text-[10px] font-semibold text-orange-600" title="Needed to complete this lesson. Completing it also adds +1 streak.">🔥 {lesson.completionCriteria.minAccuracy}%{lesson.completionCriteria.minWpm ? ` · ${lesson.completionCriteria.minWpm} WPM` : ""}</span></span>
                             </Link>
                           );
                         })}

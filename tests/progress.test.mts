@@ -178,3 +178,13 @@ t("drill params: validated, capped, built server-side", () => {
 });
 
 console.log(`\n${pass} test groups passed`);
+
+t("daily streak: +1 a day, extra tasks add more", () => {
+  const day = (d: number, extra: { stars?: 1 | 2 | 3; lessonDone?: true } = {}) => ({ id: `s${d}${JSON.stringify(extra)}`, activity: "english-quest", language: "english", durationSec: 60, wpm: 10, accuracy: 90, correct: 50, incorrect: 5, score: null, difficulty: null, layout: "english-qwerty", completedAt: new Date(2026, 5, d, 12).toISOString(), ...extra }) as any;
+  assert.equal(an.longestStreak([day(1), day(2)]), 2); // plain practice: 1 point a day
+  assert.equal(an.longestStreak([day(1, { stars: 1 })]), 2); // 1 base + 1 star
+  assert.equal(an.longestStreak([day(1, { stars: 3 })]), 4);
+  assert.equal(an.longestStreak([day(1, { lessonDone: true })]), 2);
+  assert.equal(an.longestStreak([day(1, { lessonDone: true }), day(1, { stars: 2 })]), 4); // 1 + lesson + 2 stars
+  assert.equal(an.longestStreak([day(1, { stars: 2 }), day(2), day(4, { stars: 3 })]), 4 + 0); // 3 + 1 = 4; day 4 starts over at 4
+});
