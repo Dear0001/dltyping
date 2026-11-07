@@ -10,7 +10,8 @@ import { useLocale } from "@/components/shared/LocaleProvider";
 import { completeLesson, readUserProgress, recordPractice } from "@/lib/local-progress";
 import { curricula, findLesson } from "@/data/curriculum";
 import { GameDialog } from "@/components/games/shared/GameDialog";
-import { pickRandomLesson } from "@/lib/lesson-picker";
+import { pickArticle } from "@/lib/lesson-picker";
+import { isPlainLesson, type Article } from "@/lib/article-length";
 import VirtualKeyboard from "@/components/keyboard/VirtualKeyboard";
 import { osFromPlatform } from "@/lib/keyboard/keyboard-detection";
 import WeakKeysReport from "@/components/typing/WeakKeysReport";
@@ -26,9 +27,11 @@ type TypingPracticeProps = {
   timeLimit?: number;
   /** Drill text built from a dashboard recommendation (weak keys, combinations or words). */
   initialDrill?: string | null;
+  /** A generated article sized to the chosen duration (text from one or more lessons). */
+  initialArticle?: Pick<Article, "title" | "text"> | null;
 };
 
-export default function TypingPractice({ language, platform = "Unknown", initialLessonId, timeLimit = 60, initialDrill = null }: TypingPracticeProps) {
+export default function TypingPractice({ language, platform = "Unknown", initialLessonId, timeLimit = 60, initialDrill = null, initialArticle = null }: TypingPracticeProps) {
   const { locale, t } = useLocale();
   const list = lessons[language];
   const [lessonId, setLessonId] = useState(() => list.find((item) => item.id === initialLessonId)?.id ?? list[0].id);
@@ -40,6 +43,7 @@ export default function TypingPractice({ language, platform = "Unknown", initial
   const [forcedDone, setForcedDone] = useState(false);
   const [resultClosed, setResultClosed] = useState(false);
   const [drillText, setDrillText] = useState<string | null>(initialDrill);
+  const [article, setArticle] = useState<Pick<Article, "title" | "text"> | null>(initialArticle);
   const [needsKhmerInputSwitch, setNeedsKhmerInputSwitch] = useState(false);
   const inputRef = useRef<HTMLTextAreaElement>(null);
   const audioRef = useRef<AudioContext | null>(null);
@@ -49,8 +53,8 @@ export default function TypingPractice({ language, platform = "Unknown", initial
   const compositionStartRef = useRef("");
   const lesson = list.find((item) => item.id === lessonId) ?? list[0];
   const lessonLevel = lesson.level === "Beginner" ? t("practice.beginner") : t("practice.intermediate");
-  const lessonMinutes = Number.parseInt(lesson.duration, 10) || 1;
-  const target = drillText ?? lesson.text;
+  const lessonMinutes = article ? Math.max(1, Math.round(timeLimit / 60)) : Number.parseInt(lesson.duration, 10) || 1;
+  const target = drillText ?? article?.text ?? lesson.text;
   const keyBook = useKeyStatBook();
   const recorder = useActivityRecorder();
   const [autoCompleted, setAutoCompleted] = useState<{ xp: number } | null>(null);
@@ -110,7 +114,7 @@ export default function TypingPractice({ language, platform = "Unknown", initial
     recorder.wordsFromText(language, normalizedTarget, normalizedInput);
     // A curriculum lesson completes by itself once the whole passage is typed within its limits.
     const finishedPassage = typedLength >= Array.from(normalizedTarget).length;
-    const rule = drillText || !finishedPassage ? undefined : findLesson(curricula[language], lessonId)?.completionCriteria;
+    const rule = drillText || article || !finishedPassage ? undefined : findLesson(curricula[language], lessonId)?.completionCriteria;
     const lessonMet = !!rule && stats.accuracy >= rule.minAccuracy && stats.wpm >= (rule.minWpm ?? 0);
     recorder.finish({
       lessonDone: lessonMet,
@@ -120,7 +124,7 @@ export default function TypingPractice({ language, platform = "Unknown", initial
       correct: stats.correct,
       incorrect: stats.errors,
       difficulty: lesson.level === "Beginner" ? "easy" : "medium",
-      detail: drillText ? "Weak-key drill" : lesson.title,
+      detail: drillText ? "Weak-key drill" : article?.title ?? lesson.title,
     });
     if (lessonMet) {
       const wasDone = !!readUserProgress().completedLessons[`${language}:${lessonId}`];
@@ -140,13 +144,20 @@ export default function TypingPractice({ language, platform = "Unknown", initial
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
+  /** New random article sized for the chosen duration and the user's own average speed. */
+  function newArticle() {
+    const { article: picked } = pickArticle(language, timeLimit, [lessonId]);
+    reset(picked.ids[0], null, isPlainLesson(picked) ? null : picked);
+  }
+
   /** Start over. A drill is kept on retry, and cleared when another lesson is chosen. */
-  function reset(nextId = lessonId, drill?: string | null) {
+  function reset(nextId = lessonId, drill?: string | null, nextArticle?: Pick<Article, "title" | "text"> | null) {
     recorder.flush();
     flushSession(language, sessionStatsRef.current);
     sessionStatsRef.current = {};
     lastKeyAtRef.current = null;
     setDrillText(drill !== undefined ? drill : nextId === lessonId ? drillText : null);
+    setArticle(nextArticle !== undefined ? nextArticle : nextId === lessonId ? article : null);
     setLessonId(nextId);
     setPaused(false);
     setForcedDone(false);
@@ -249,7 +260,7 @@ export default function TypingPractice({ language, platform = "Unknown", initial
       <section className="practice-shell" id="practice">
         <div className="practice-grid">
           <section className="practice-main">
-            <div className="lesson-bar"><div className="lesson-name"><span className="lesson-icon">✳</span><div><span className="small-label">{t("practice.currentLesson")}</span><strong>{drillText ? (locale === "km" ? "ហាត់គ្រាប់ចុចខ្សោយ" : "Weak-key drill") : lesson.title}</strong></div></div><select value={lessonId} onChange={(event) => reset(event.target.value)} aria-label={locale === "km" ? "ជ្រើសរើសមេរៀន" : "Choose lesson"}>{list.map((item) => <option key={item.id} value={item.id}>{item.title}</option>)}</select></div>
+            <div className="lesson-bar"><div className="lesson-name"><span className="lesson-icon">✳</span><div><span className="small-label">{t("practice.currentLesson")}</span><strong>{drillText ? (locale === "km" ? "ហាត់គ្រាប់ចុចខ្សោយ" : "Weak-key drill") : article?.title ?? lesson.title}</strong></div></div><select value={lessonId} onChange={(event) => reset(event.target.value)} aria-label={locale === "km" ? "ជ្រើសរើសមេរៀន" : "Choose lesson"}>{list.map((item) => <option key={item.id} value={item.id}>{item.title}</option>)}</select></div>
             <div className="typing-card">
               <div className="text-meta"><span>{t("practice.typeBelow")}</span><span>{lessonLevel} <i>·</i> {lessonMinutes} {t("setup.min")}</span></div>
               <div className={`prompt ${language === "khmer" ? "khmer-prompt" : ""}`} onClick={() => inputRef.current?.focus()}>
@@ -268,7 +279,7 @@ export default function TypingPractice({ language, platform = "Unknown", initial
                 {mistakes.length > 0 && <div className="mb-4 text-left"><p className="mb-2 text-[10px] font-bold uppercase text-mute">Mistakes ({mistakes.length})</p><ul className="flex max-h-28 flex-wrap gap-1.5 overflow-y-auto">{mistakes.map((m) => <li key={m.index} className="rounded-lg bg-red-50 px-2 py-1 text-xs text-red-700">expected <b>{m.expected === " " ? "space" : m.expected}</b>, typed <b>{m.typed === " " ? "space" : m.typed}</b></li>)}</ul></div>}
                 <div className="flex flex-wrap justify-center gap-2">
                   <button data-autofocus type="button" className="rounded-xl border border-slate-300 bg-white px-4 py-2 text-sm font-bold text-navy" onClick={() => reset()}>↻ Retry</button>
-                  <button type="button" className="rounded-xl bg-brand px-4 py-2 text-sm font-bold text-white" onClick={() => reset(pickRandomLesson(language, lessonId).id)}>🎲 Random article</button>
+                  <button type="button" className="rounded-xl bg-brand px-4 py-2 text-sm font-bold text-white" onClick={newArticle}>🎲 Random article</button>
                   {nextLesson && <button type="button" className="rounded-xl border border-slate-300 bg-white px-4 py-2 text-sm font-bold text-navy" onClick={() => reset(nextLesson.id)}>Next lesson →</button>}
                   <Link href="/games" className="rounded-xl border border-slate-300 bg-white px-4 py-2 text-sm font-bold text-navy">🎮 Play a game</Link>
                   <button type="button" className="rounded-xl border border-slate-300 bg-white px-4 py-2 text-sm font-bold text-navy" onClick={() => setResultClosed(true)}>Close</button>

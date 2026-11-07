@@ -8,9 +8,10 @@ import Timer from "@/components/typing/Timer";
 import { lessonCategories } from "@/data/categories";
 import type { LessonCategory, LessonConfig } from "@/types";
 import { useLocale } from "@/components/shared/LocaleProvider";
-import { RANDOM_LESSON, pickRandomLesson, suggestedTime } from "@/lib/lesson-picker";
+import { RANDOM_LESSON, articleHref, pickArticle, suggestedTime } from "@/lib/lesson-picker";
+import { DURATIONS } from "@/lib/article-length";
 
-const timeLimits = [60, 120, 300];
+const timeLimits = DURATIONS;
 
 export default function SetupForm() {
   const { locale, setLocale, t } = useLocale();
@@ -39,12 +40,12 @@ export default function SetupForm() {
 
   const startHref = `/learn/${config.language}?lesson=${isRandom ? RANDOM_LESSON : encodeURIComponent(selectedSection.id)}&time=${config.timeLimit}`;
 
-  // Random mode: the article is drawn when Start is pressed, and the time fits it unless the user chose a time.
+  // Random mode: when Start is pressed, an article is drawn whose length fits the chosen duration at the user's own average speed.
   function start(event: React.MouseEvent) {
     if (!isRandom) return;
     event.preventDefault();
-    const lesson = pickRandomLesson(config.language);
-    router.push(`/learn/${config.language}?lesson=${encodeURIComponent(lesson.id)}&time=${timeTouched ? config.timeLimit : suggestedTime(lesson)}`);
+    const { article, goal } = pickArticle(config.language, config.timeLimit);
+    router.push(articleHref(config.language, article, goal, config.timeLimit));
   }
   const km = locale === "km";
   const sectionLevel = selectedSection.level === "Beginner" ? t("setup.beginner") : t("setup.intermediate");
@@ -66,8 +67,8 @@ export default function SetupForm() {
         </div>
         <fieldset>
           <legend className="text-[10px] font-bold tracking-[0.16em] text-[color:var(--muted)]">{t("setup.stepTime")}</legend>
-          <div className="mt-3 grid grid-cols-3 gap-2">
-            {timeLimits.map((seconds) => <button key={seconds} type="button" aria-pressed={(!isRandom || timeTouched) && config.timeLimit === seconds} onClick={() => { setTimeTouched(true); setConfig((current) => ({ ...current, timeLimit: seconds })); }} className={`rounded-lg border px-3 py-3 text-sm transition ${config.timeLimit === seconds ? "border-[color:var(--green)] bg-[color:var(--pale)] font-semibold text-[#3a4b67]" : "border-[color:var(--line)] bg-white text-[#6f747b] hover:border-[color:var(--line)]"}`}>{seconds / 60} {t("setup.min")}<span className="mt-1 block text-[10px] font-normal opacity-75">{seconds} {t("setup.seconds")}</span></button>)}
+          <div className="mt-3 grid grid-cols-3 gap-2 sm:grid-cols-5">
+            {timeLimits.map((seconds) => <button key={seconds} type="button" aria-pressed={config.timeLimit === seconds} onClick={() => { setTimeTouched(true); setConfig((current) => ({ ...current, timeLimit: seconds })); }} className={`rounded-lg border px-3 py-3 text-sm transition ${config.timeLimit === seconds ? "border-[color:var(--green)] bg-[color:var(--pale)] font-semibold text-[#3a4b67]" : "border-[color:var(--line)] bg-white text-[#6f747b] hover:border-[color:var(--line)]"}`}>{seconds / 60} {t("setup.min")}<span className="mt-1 block text-[10px] font-normal opacity-75">{seconds} {t("setup.seconds")}</span></button>)}
           </div>
         </fieldset>
         <div className="mt-8 flex flex-wrap items-center justify-between gap-4 border-t border-[#ebedf0] pt-5">
@@ -80,7 +81,7 @@ export default function SetupForm() {
         <div className="rounded-xl border border-[color:var(--pale)] bg-[#eff1f5] p-4">
           <span className="text-[9px] font-bold tracking-[0.14em] text-[color:var(--muted)]">{t("setup.upNext")}</span>
           <h2 className="mt-2 font-serif text-xl text-[#2e3238]">{isRandom ? (km ? "🎲 អត្ថបទចៃដន្យ" : "🎲 Random article") : selectedSection.title}</h2>
-          <p className="mt-2 text-xs leading-5 text-[color:var(--muted)]">{isRandom ? (km ? `ជ្រើសរើសដោយចៃដន្យពី ${category.sections.length} មេរៀន នៅពេលអ្នកចុចចាប់ផ្តើម។ រយៈពេលនឹងសមស្របតាមអត្ថបទ។` : `A surprise pick from ${category.sections.length} lessons, chosen when you press Start. Time adjusts to the article unless you set it.`) : <>{selectedSection.text.slice(0, 116)}{selectedSection.text.length > 116 ? "…" : ""}</>}</p>
+          <p className="mt-2 text-xs leading-5 text-[color:var(--muted)]">{isRandom ? (km ? `អត្ថបទចៃដន្យដែលជ្រើសរើសនៅពេលអ្នកចុចចាប់ផ្តើម មានប្រវែងសមស្របនឹងរយៈពេល និងល្បឿនវាយរបស់អ្នក។` : `A surprise article chosen when you press Start, long enough to fill your session at your own typing speed.`) : <>{selectedSection.text.slice(0, 116)}{selectedSection.text.length > 116 ? "…" : ""}</>}</p>
           {!isRandom && <div className="mt-3 flex gap-2 text-[10px] text-[#7f848b]"><span>{sectionLevel}</span><span>·</span><span>{sectionMinutes} {t("setup.min")}</span></div>}
         </div>
       </aside>

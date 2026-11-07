@@ -1,6 +1,8 @@
 import { lessons, type Lesson } from "@/data/lessons";
 import { readRaw, writeRaw } from "@/lib/local-progress";
 import type { Language } from "@/types";
+import { buildArticle, averageWpm, targetWords, type Article } from "@/lib/article-length";
+import { readStore } from "@/lib/progress/progress-storage";
 
 export const RANDOM_LESSON = "random";
 
@@ -32,4 +34,22 @@ export function randomLessonId(language: Language): string {
 export function resolveLessonId(language: Language, requested?: string): string {
   if (requested && lessons[language].some((item) => item.id === requested)) return requested;
   return randomLessonId(language);
+}
+
+/**
+ * Picks an article sized for `seconds` at the user's own average speed, avoiding the last one played.
+ * Call from event handlers only (reads and writes device storage).
+ */
+export function pickArticle(language: Language, seconds: number, avoid: readonly string[] = []): { article: Article; goal: number } {
+  const key = `dlt.lastLesson.${language}`;
+  const last = readRaw(key);
+  const wpm = averageWpm(readStore(), language);
+  const article = buildArticle(language, wpm, seconds, { avoid: last ? [...avoid, last] : avoid });
+  writeRaw(key, article.ids[0]);
+  return { article, goal: targetWords(wpm, seconds) };
+}
+
+/** Practice URL for a generated article; the ids and goal let the server rebuild the identical text. */
+export function articleHref(language: Language, article: Article, goal: number, seconds: number): string {
+  return `/learn/${language}?lesson=${encodeURIComponent(article.ids.join(","))}&goal=${goal}&time=${seconds}`;
 }
