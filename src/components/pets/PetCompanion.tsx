@@ -437,7 +437,7 @@ function PetControls({ name, enabled, locked = false, ultimates = [], abilities 
           {keyCasters.map((p) => <small key={p.id}>⌨️ Press {Object.keys(p.keyCast ?? {}).join(" ").toUpperCase()} to cast {p.name.split(" ")[0]}&apos;s skills (not while typing).</small>)}
           {ultimates.length > 0 && <small>Or click your pet five times, fast.</small>}
           <small>🔥 {streak}-day streak{nextGoal ? ` · next pet at ${nextGoal} days` : ""}</small>
-          <small>{doneToday ? "✅ Today counted. Come back tomorrow to keep it going." : "Finish a lesson with 20+ correct characters today to add a day."}</small>
+          <small>{doneToday ? "✅ Today counted. Come back tomorrow to keep it going." : "Finish a lesson or game with 10+ correct characters to add streak points."}</small>
           {!doneToday && <>
             <Link href="/learn/english" role="menuitem" onClick={() => setOpen(false)}>⌨️ Practice English</Link>
             <Link href="/learn/khmer" role="menuitem" onClick={() => setOpen(false)}>⌨️ Practice Khmer</Link>

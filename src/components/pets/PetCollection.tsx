@@ -3,7 +3,7 @@
 import { useEffect, useMemo, useRef, useState } from "react";
 import PetSprite from "@/components/pets/PetSprite";
 import { effectiveMotion } from "@/components/pets/PetCompanion";
-import SiteHeader from "@/components/shared/SiteHeader";
+import { SkCard, SkGrid } from "@/components/skeleton/Skeleton";
 import { usePetState } from "@/hooks/usePets";
 import { useNow, useTypingProgress } from "@/hooks/useTypingProgress";
 import { PETS, RARITIES, type PetAnim, type PetDefinition } from "@/lib/pets/pet-catalog";
@@ -35,7 +35,6 @@ export default function PetCollection() {
 
   return (
     <div className="min-h-screen bg-surface text-navy">
-      <SiteHeader />
       <main className="mx-auto max-w-6xl px-4 pb-16 pt-8 sm:px-6">
         <div className="mb-6">
           <p className="text-xs font-bold uppercase tracking-widest text-brand">Rewards</p>
@@ -44,7 +43,7 @@ export default function PetCollection() {
         </div>
 
         {!hydrated ? (
-          <div className="h-40 animate-pulse rounded-2xl border border-slate-200 bg-white" aria-busy="true" />
+          <div className="space-y-6" aria-busy="true" aria-label="Loading your pets"><div className="grid gap-4 lg:grid-cols-2"><SkCard lines={3} media="h-16" /><SkCard lines={3} media="h-16" /></div><SkGrid count={8} cols="grid-cols-2 sm:grid-cols-3 lg:grid-cols-4" lines={1} media="h-28" /></div>
         ) : (
           <div className="space-y-6">
             <section className="grid gap-4 lg:grid-cols-[minmax(0,1fr)_minmax(0,1.2fr)]" aria-label="Streak and settings">
@@ -64,7 +63,7 @@ export default function PetCollection() {
                     </div>
                   </div>
                 ) : <p className="mt-4 text-sm font-semibold text-brand">You have every pet. Amazing!</p>}
-                <p className="mt-3 text-xs text-mute">A practice day is a day with at least one finished lesson, test or game with {QUALIFYING_MIN_CORRECT}+ correct characters. Just opening the site doesn&apos;t count.</p>
+                <p className="mt-3 text-xs text-mute">Opening the site gives +1. Finished lessons, tests and games with {QUALIFYING_MIN_CORRECT}+ correct characters add more, up to 70 streak points a day. One missed day is forgiven.</p>
               </div>
 
               <Settings settings={state.settings} enabled={state.enabled} hasActive={Boolean(state.active)} />

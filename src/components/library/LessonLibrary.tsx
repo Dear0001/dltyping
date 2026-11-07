@@ -2,7 +2,6 @@
 
 import Link from "next/link";
 import { useMemo, useState } from "react";
-import SiteHeader from "@/components/shared/SiteHeader";
 import ContinueCard from "@/components/learn/ContinueCard";
 import { curricula, levelLabels, levelColors } from "@/data/curriculum";
 import { useUserProgress } from "@/hooks/use-stored-value";
@@ -96,7 +95,6 @@ export default function LessonLibrary() {
 
   return (
     <div className="min-h-screen bg-surface text-navy">
-      <SiteHeader />
       <main className="mx-auto max-w-5xl px-4 pb-16 pt-8 sm:px-6">
         <div className="mb-6">
           <p className="text-xs font-bold uppercase tracking-widest text-brand">Library</p>

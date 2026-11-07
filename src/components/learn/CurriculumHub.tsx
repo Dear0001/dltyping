@@ -3,7 +3,6 @@
 import { StreakGuide } from "@/components/learn/StreakGuide";
 import Link from "next/link";
 import { useState } from "react";
-import SiteHeader from "@/components/shared/SiteHeader";
 import ContinueCard from "@/components/learn/ContinueCard";
 import { secondaryBtn } from "@/components/games/shared/GameDialog";
 import { curricula, levelLabels, levelColors, courseProgress, getAllLessons } from "@/data/curriculum";
@@ -72,7 +71,6 @@ export default function CurriculumHub() {
 
   return (
     <div className="min-h-screen bg-surface text-navy">
-      <SiteHeader />
       <main className="mx-auto max-w-5xl px-4 pb-16 pt-8 sm:px-6">
         {/* Header */}
         <div className="mb-8">

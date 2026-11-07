@@ -2,6 +2,7 @@
 
 import Link from "next/link";
 import DashboardShell from "@/components/dashboard/DashboardShell";
+import { SkCard } from "@/components/skeleton/Skeleton";
 import TrainingRecommendations from "@/components/dashboard/TrainingRecommendations";
 import { useTrainingRecommendations } from "@/hooks/useTrainingRecommendations";
 import { MIN_SAMPLES } from "@/lib/progress/keyboard-analytics";
@@ -13,7 +14,7 @@ export default function TrainingView() {
   return (
     <DashboardShell title="Personalized training" subtitle="Exercises chosen from your own results: weak keys, tricky combinations, misspelled words, speed and consistency.">
       {!hydrated ? (
-        <div className="space-y-3" aria-busy="true">{[0, 1].map((i) => <div key={i} className="h-28 animate-pulse rounded-2xl border border-slate-200 bg-white" />)}</div>
+        <div className="space-y-3" aria-busy="true" aria-label="Loading recommendations">{[0, 1, 2].map((i) => <SkCard key={i} lines={2} media={null} />)}</div>
       ) : recommendations.length > 0 ? (
         <>
           <TrainingRecommendations items={recommendations} />

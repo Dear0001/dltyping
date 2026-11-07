@@ -205,13 +205,38 @@
 }
 
 /* Streak increase celebration: lasts --streak-ms (3s), never blocks clicks. */
-.streak-burst{position:fixed;top:76px;left:50%;z-index:70;display:flex;align-items:center;gap:12px;padding:12px 20px;border-radius:9999px;background:#0f172a;color:#fff;box-shadow:0 12px 40px rgb(37 99 235 / .45);pointer-events:none;transform:translateX(-50%);animation:streak-pop var(--streak-ms,3s) cubic-bezier(.2,.9,.3,1.2) both}
-.streak-burst-flame{font-size:2rem;display:inline-block;animation:streak-flame .6s ease-in-out 4 alternate}
-.streak-burst-gain{font-weight:800;font-size:1.1rem;line-height:1.1}
-.streak-burst-total{font-size:.75rem;opacity:.75}
-.streak-burst-sparks span{position:absolute;left:34px;top:50%;font-size:1rem;opacity:0;animation:streak-spark 1.4s ease-out both}
-@keyframes streak-pop{0%{opacity:0;transform:translate(-50%,-30px) scale(.6)}12%{opacity:1;transform:translate(-50%,0) scale(1.08)}20%{transform:translate(-50%,0) scale(1)}85%{opacity:1;transform:translate(-50%,0) scale(1)}100%{opacity:0;transform:translate(-50%,-16px) scale(.96)}}
-@keyframes streak-flame{from{transform:scale(1) rotate(-6deg)}to{transform:scale(1.25) rotate(6deg)}}
-@keyframes streak-spark{0%{opacity:0;transform:translate(0,0) scale(.4)}25%{opacity:1}100%{opacity:0;transform:translate(var(--sx),var(--sy)) scale(1.1)}}
-@media (prefers-reduced-motion: reduce){.streak-burst{animation:streak-fade var(--streak-ms,3s) both}.streak-burst-flame,.streak-burst-sparks span{animation:none}.streak-burst-sparks{display:none}}
-@keyframes streak-fade{0%,90%{opacity:1;transform:translateX(-50%)}100%{opacity:0;transform:translateX(-50%)}}
+
+/* Fixed navbar: SiteHeader lives in the root layout and stays pinned while the page body scrolls or loads. */
+.topbar{position:fixed;top:0;left:0;right:0;z-index:60;background:var(--paper)}
+/* No backdrop-filter/transform on .topbar: it would become the containing block of the fixed sign-in dialog rendered inside it and clip it to the bar. */
+body{padding-top:var(--topbar-h,74px)}html{scroll-padding-top:calc(var(--topbar-h,74px) + 8px)}
+
+/* Loading skeleton (src/app/loading.tsx) */
+.sk{display:block;border-radius:8px;background:linear-gradient(90deg,color-mix(in srgb,var(--ink) 7%,transparent) 25%,color-mix(in srgb,var(--ink) 13%,transparent) 50%,color-mix(in srgb,var(--ink) 7%,transparent) 75%);background-size:200% 100%;animation:sk-shimmer 1.4s ease-in-out infinite}
+@keyframes sk-shimmer{from{background-position:200% 0}to{background-position:-200% 0}}
+@media(prefers-reduced-motion:reduce){.sk{animation:none}}
+/* Streak award: a full-screen overlay above everything (navbar, dialogs, pets) so it can't be missed. It never blocks clicks or typing. */
+.streak-burst{position:fixed;inset:0;z-index:2147483000;display:grid;place-items:center;padding:16px;pointer-events:none;background:radial-gradient(circle at 50% 45%,rgb(15 23 42 / .72),rgb(15 23 42 / .5) 60%,rgb(15 23 42 / .35));animation:streak-backdrop var(--streak-ms,4s) ease both}
+.streak-burst-card{position:relative;display:flex;flex-direction:column;align-items:center;gap:6px;min-width:min(86vw,320px);padding:28px 36px 24px;border-radius:28px;background:linear-gradient(160deg,#1e3a8a,#0f172a 70%);color:#fff;text-align:center;border:2px solid rgb(251 191 36 / .85);box-shadow:0 0 0 8px rgb(251 191 36 / .18),0 30px 80px rgb(37 99 235 / .55);animation:streak-pop var(--streak-ms,4s) cubic-bezier(.2,.9,.3,1.2) both}
+.streak-burst-flame{font-size:5rem;line-height:1;display:inline-block;filter:drop-shadow(0 0 22px rgb(251 146 60 / .9));animation:streak-flame .6s ease-in-out infinite alternate}
+.streak-burst-label{font-size:.8rem;font-weight:800;letter-spacing:.18em;text-transform:uppercase;color:#fbbf24}
+.streak-burst-gain{font-weight:900;font-size:3.5rem;line-height:1;background:linear-gradient(180deg,#fff,#fde68a);-webkit-background-clip:text;background-clip:text;color:transparent}
+.streak-burst-total{font-size:.9rem;opacity:.85}
+.streak-burst-sparks span{position:absolute;left:50%;top:30%;font-size:1.6rem;opacity:0;animation:streak-spark 1.6s ease-out both}
+@keyframes streak-backdrop{0%{opacity:0}10%,82%{opacity:1}100%{opacity:0}}
+@keyframes streak-pop{0%{opacity:0;transform:scale(.4) translateY(30px)}14%{opacity:1;transform:scale(1.12)}24%{transform:scale(1)}84%{opacity:1;transform:scale(1)}100%{opacity:0;transform:scale(.9) translateY(-14px)}}
+@keyframes streak-flame{from{transform:scale(1) rotate(-6deg)}to{transform:scale(1.2) rotate(6deg)}}
+@keyframes streak-spark{0%{opacity:0;transform:translate(0,0) scale(.4)}25%{opacity:1}100%{opacity:0;transform:translate(var(--sx),var(--sy)) scale(1.2)}}
+@media (prefers-reduced-motion: reduce){.streak-burst,.streak-burst-card{animation:streak-fade var(--streak-ms,4s) both}.streak-burst-flame,.streak-burst-sparks span{animation:none}.streak-burst-sparks{display:none}}
+@keyframes streak-fade{0%,88%{opacity:1}100%{opacity:0}}
+/* New personal best: full-screen award above everything (navbar, dialogs, streak alert). Never blocks clicks or typing. */
+.best-burst{position:fixed;inset:0;z-index:2147483001;display:grid;place-items:start center;padding:calc(var(--topbar-h,74px) + 16px) 16px 16px;pointer-events:none;background:radial-gradient(circle at 50% 30%,rgb(15 23 42 / .7),rgb(15 23 42 / .45) 65%);animation:best-backdrop var(--best-ms,4s) ease both}
+.best-burst-card{position:relative;display:flex;flex-direction:column;align-items:center;gap:4px;min-width:min(86vw,320px);padding:22px 34px 20px;border-radius:26px;background:linear-gradient(160deg,#92400e,#0f172a 75%);color:#fff;text-align:center;border:2px solid rgb(252 211 77 / .9);box-shadow:0 0 0 8px rgb(252 211 77 / .2),0 30px 80px rgb(245 158 11 / .45);animation:best-pop var(--best-ms,4s) cubic-bezier(.2,.9,.3,1.2) both}
+.best-burst-trophy{font-size:4rem;line-height:1;filter:drop-shadow(0 0 20px rgb(252 211 77 / .9));animation:best-bounce .7s ease-in-out infinite alternate}
+.best-burst-label{font-size:.8rem;font-weight:800;letter-spacing:.18em;text-transform:uppercase;color:#fcd34d}
+.best-burst-score{font-weight:900;font-size:3rem;line-height:1;background:linear-gradient(180deg,#fff,#fde68a);-webkit-background-clip:text;background-clip:text;color:transparent}
+.best-burst-sparks span{position:absolute;left:50%;top:30%;font-size:1.6rem;opacity:0;animation:streak-spark 1.6s ease-out both}
+@keyframes best-backdrop{0%{opacity:0}10%,82%{opacity:1}100%{opacity:0}}
+@keyframes best-pop{0%{opacity:0;transform:scale(.4) translateY(-30px)}14%{opacity:1;transform:scale(1.12)}24%{transform:scale(1)}84%{opacity:1;transform:scale(1)}100%{opacity:0;transform:scale(.9) translateY(-14px)}}
+@keyframes best-bounce{from{transform:translateY(0) rotate(-6deg)}to{transform:translateY(-8px) rotate(6deg) scale(1.1)}}
+@media (prefers-reduced-motion: reduce){.best-burst,.best-burst-card{animation:streak-fade var(--best-ms,4s) both}.best-burst-trophy{animation:none}.best-burst-sparks{display:none}}

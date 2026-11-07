@@ -211,8 +211,9 @@ export function completeLesson(language: string, lessonId: string, xpReward: num
   const todayDate = today();
   let { streak } = progress;
   if (progress.lastActiveDate !== todayDate) {
-    const yesterday = new Date(Date.now() - 86400000).toISOString().slice(0, 10);
-    streak = progress.lastActiveDate === yesterday ? streak + 1 : 1;
+    // One missed day is forgiven: yesterday or the day before keeps the streak going.
+    const recent = [1, 2].map((n) => new Date(Date.now() - n * 86400000).toISOString().slice(0, 10));
+    streak = recent.includes(progress.lastActiveDate ?? "") ? streak + 1 : 1;
   }
 
   const updated: UserProgressData = {

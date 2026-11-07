@@ -32,10 +32,10 @@ export default function KeyboardMasteryView() {
     <DashboardShell title="Keyboard mastery" subtitle="See which physical keys you type accurately and which need work. Switch between Mac and Windows boards with the keyboard controls." actions={picker}>
       <div className="space-y-6">
         <section className="grid grid-cols-2 gap-3 lg:grid-cols-4" aria-label="Mastery summary">
-          <StatCard icon="⌨️" label="Keys practiced" value={hydrated ? summary.practicedKeys : null} hint={`${summary.totalKeystrokes.toLocaleString("en-US")} keystrokes`} />
-          <StatCard icon="✅" label="Excellent" value={hydrated ? summary.counts.excellent : null} hint="95%+ accuracy" accent="navy" />
-          <StatCard icon="👍" label="Good" value={hydrated ? summary.counts.good : null} hint="85-94% accuracy" accent="sky" />
-          <StatCard icon="⚠️" label="Needs improvement" value={hydrated ? summary.counts.weak : null} hint={`under 85%, ${MIN_SAMPLES}+ keystrokes`} />
+          <StatCard loading={!hydrated} icon="⌨️" label="Keys practiced" value={hydrated ? summary.practicedKeys : null} hint={`${summary.totalKeystrokes.toLocaleString("en-US")} keystrokes`} />
+          <StatCard loading={!hydrated} icon="✅" label="Excellent" value={hydrated ? summary.counts.excellent : null} hint="95%+ accuracy" accent="navy" />
+          <StatCard loading={!hydrated} icon="👍" label="Good" value={hydrated ? summary.counts.good : null} hint="85-94% accuracy" accent="sky" />
+          <StatCard loading={!hydrated} icon="⚠️" label="Needs improvement" value={hydrated ? summary.counts.weak : null} hint={`under 85%, ${MIN_SAMPLES}+ keystrokes`} />
         </section>
 
         {empty && (

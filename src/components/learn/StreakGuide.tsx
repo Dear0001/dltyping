@@ -1,4 +1,4 @@
-import { QUALIFYING_MIN_CORRECT } from "@/lib/progress/progress-analytics";
+import { LESSON_POINTS, MAX_DAY_POINTS, QUALIFYING_MIN_CORRECT, STAR_POINTS } from "@/lib/progress/progress-analytics";
 
 type Criteria = { minAccuracy: number; minWpm?: number };
 
@@ -9,11 +9,13 @@ export function LessonStreakGuide({ criteria, xp }: { criteria: Criteria; xp: nu
     <section className="rounded-2xl border border-orange-200 bg-orange-50 p-5 shadow-sm" aria-label="How this lesson earns a streak">
       <h2 className="mb-3 text-sm font-extrabold uppercase tracking-wider text-orange-700">🔥 Streak guide</h2>
       <ol className="space-y-2 text-sm text-slate-700">
-        <li><b>Every day: +1 streak, automatically.</b> Just open the site each day. Missing a whole day resets it.</li>
-        <li><b>Task: complete this lesson = +1 more.</b> Type the whole text with {need} (and at least {QUALIFYING_MIN_CORRECT} correct characters). It completes automatically (+{xp} XP).</li>
-        <li><b>Task: clear a game level = + its stars.</b> 1 star = +1, 2 stars = +2, 3 stars = +3.</li>
+        <li><b>Every day: +1 streak, automatically.</b> Just open the site. One missed day is forgiven; two in a row reset it.</li>
+        <li><b>Each practice session: +1.</b> Finish any session with at least {QUALIFYING_MIN_CORRECT} correct characters.</li>
+        <li><b>Complete this lesson: +{LESSON_POINTS} more.</b> Type the whole text with {need}. It completes automatically (+{xp} XP).</li>
+        <li><b>Clear a game level: +{STAR_POINTS} per star</b> (up to +{STAR_POINTS * 3}).</li>
+        <li><b>Streak level bonus:</b> your best streak level of the day (1-20) is added too.</li>
       </ol>
-      <p className="mt-3 text-xs text-slate-600">Extra points are counted once per task type each day (the best star count wins).</p>
+      <p className="mt-3 text-xs text-slate-600">A day can be worth up to {MAX_DAY_POINTS} streak points.</p>
     </section>
   );
 }
@@ -27,11 +29,13 @@ export function StreakGuide() {
         <span className="text-xl transition-transform group-open:rotate-180" aria-hidden="true">⌄</span>
       </summary>
       <div className="space-y-3 border-t border-orange-200 px-5 pb-5 pt-4 text-sm text-slate-700">
-        <p><b>Every day: +1 streak, automatically</b> when you open the site. Missing a whole day starts you over.</p>
-        <p><b>Extra tasks add more:</b></p>
+        <p><b>Every day: +1 streak, automatically</b> when you open the site. One missed day is forgiven; two in a row start you over.</p>
+        <p><b>Tasks add more, up to {MAX_DAY_POINTS} points a day:</b></p>
         <ul className="list-disc space-y-1 pl-5">
-          <li><b>Complete a lesson: +1.</b> Type the whole text and reach its accuracy (and WPM). The 🔥 on each lesson below shows what it needs.</li>
-          <li><b>Clear a game level (Mario Khmer Quest or English Quest): + stars.</b> 1 star = +1, 2 = +2, 3 = +3 (3 stars: 95%+ accuracy and no lives lost; 2 stars: 85%+).</li>
+          <li><b>Finish a practice session: +1</b> (10+ correct characters).</li>
+          <li><b>Complete a lesson: +{LESSON_POINTS}.</b> Type the whole text and reach its accuracy (and WPM).</li>
+          <li><b>Clear a game level: +{STAR_POINTS} per star.</b> 3 stars: 90%+ accuracy and at most one life lost; 2 stars: 75%+.</li>
+          <li><b>Streak level bonus:</b> + the highest of the 20 streak levels you reach that day.</li>
         </ul>
         <p>Streaks unlock pets.</p>
       </div>

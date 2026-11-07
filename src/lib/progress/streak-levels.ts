@@ -4,7 +4,7 @@ import type { SessionRecord } from "@/types/progress";
 /**
  * Streak levels 1-20. A finished session unlocks level N when it meets all of that level's
  * limits: speed (WPM) at least, accuracy at least, errors at most. Every level also needs the
- * usual 20+ correct characters, so a few lucky keystrokes never count. Levels only get harder,
+ * usual 10+ correct characters, so a few lucky keystrokes never count. Levels only get harder,
  * so a session that clears level N also clears every level below it.
  */
 export const STREAK_LEVEL_COUNT = 20;
@@ -15,7 +15,7 @@ const lerp = (from: number, to: number, step: number) => Math.round(from + ((to 
 
 export const STREAK_LEVELS: StreakLevel[] = Array.from({ length: STREAK_LEVEL_COUNT }, (_, i) => {
   const level = i + 1;
-  return { level, minWpm: lerp(5, 60, level), minAccuracy: lerp(70, 98, level), maxErrors: lerp(20, 1, level) };
+  return { level, minWpm: lerp(3, 45, level), minAccuracy: lerp(60, 95, level), maxErrors: lerp(30, 3, level) };
 });
 
 export function meetsLevel(s: SessionRecord, l: StreakLevel): boolean {

@@ -1,7 +1,8 @@
 "use client";
 
 import Link from "next/link";
-import SiteHeader from "@/components/shared/SiteHeader";
+import Ready from "@/components/skeleton/Ready";
+import { SkCard, SkHeading, SkPage, SkStatRow } from "@/components/skeleton/Skeleton";
 import { secondaryBtn } from "@/components/games/shared/GameDialog";
 import { curricula, getAllLessons, levelLabels, levelColors, courseProgress } from "@/data/curriculum";
 import { useUserProgress, useScores, usePracticeBest } from "@/hooks/use-stored-value";
@@ -35,6 +36,10 @@ function ProgressRing({ pct, size = 60, strokeWidth = 6 }: { pct: number; size?:
 }
 
 export default function ProgressDashboard() {
+  return <Ready fallback={<SkPage width="max-w-4xl"><SkHeading /><SkCard lines={2} media="h-20" className="mb-6" /><SkStatRow /><SkCard lines={3} media={null} className="mb-4" /><SkCard lines={3} media={null} /></SkPage>}><ProgressContent /></Ready>;
+}
+
+function ProgressContent() {
   const progress = useUserProgress();
   const signedIn = useAccount().status === "user";
   const streak = signedIn ? progress.streak : 0; // streaks (and the achievements for them) need an account
@@ -48,7 +53,6 @@ export default function ProgressDashboard() {
 
   return (
     <div className="min-h-screen bg-surface text-navy">
-      <SiteHeader />
       <main className="mx-auto max-w-4xl px-4 pb-16 pt-8 sm:px-6">
 
         {/* Header */}

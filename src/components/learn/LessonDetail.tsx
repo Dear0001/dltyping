@@ -1,7 +1,6 @@
 "use client";
 
 import Link from "next/link";
-import SiteHeader from "@/components/shared/SiteHeader";
 import { primaryBtn, secondaryBtn } from "@/components/games/shared/GameDialog";
 import { curricula, findLesson, findLessonCourse, findLessonModule, nextLesson, prevLesson, levelLabels, levelColors } from "@/data/curriculum";
 import { typingGames } from "@/data/games";
@@ -50,7 +49,6 @@ export default function LessonDetail({ language, lessonId }: Props) {
   if (!lesson || !course || !mod) {
     return (
       <div className="min-h-screen bg-surface text-navy">
-        <SiteHeader />
         <main className="mx-auto max-w-3xl px-4 py-16 text-center">
           <p className="text-4xl" aria-hidden="true">🔍</p>
           <h1 className="mt-4 text-2xl font-extrabold">Lesson not found</h1>
@@ -69,7 +67,6 @@ export default function LessonDetail({ language, lessonId }: Props) {
 
   return (
     <div className="min-h-screen bg-surface text-navy">
-      <SiteHeader />
       <main className="mx-auto max-w-3xl px-4 pb-16 pt-8 sm:px-6">
 
         {/* Breadcrumb */}

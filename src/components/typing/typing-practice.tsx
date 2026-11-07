@@ -7,7 +7,6 @@ import { normalizeKhmer } from "@/lib/khmer-unicode";
 import { lessons } from "@/data/lessons";
 import type { Language, OSPlatform } from "@/types";
 import { useLocale } from "@/components/shared/LocaleProvider";
-import SiteHeader from "@/components/shared/SiteHeader";
 import { completeLesson, readUserProgress, recordPractice } from "@/lib/local-progress";
 import { curricula, findLesson } from "@/data/curriculum";
 import { GameDialog } from "@/components/games/shared/GameDialog";
@@ -247,7 +246,6 @@ export default function TypingPractice({ language, platform = "Unknown", initial
 
   return (
     <main className="practice-page">
-      <SiteHeader />
       <section className="practice-shell" id="practice">
         <div className="practice-grid">
           <section className="practice-main">

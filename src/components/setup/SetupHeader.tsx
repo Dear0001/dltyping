@@ -1,11 +1,6 @@
 "use client";
 
-import SiteHeader from "@/components/shared/SiteHeader";
 import { useLocale } from "@/components/shared/LocaleProvider";
-
-export function SetupHeader() {
-  return <SiteHeader />;
-}
 
 export function SetupHeading() {
   const { t } = useLocale();

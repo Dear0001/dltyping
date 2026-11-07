@@ -5,6 +5,7 @@ import { useMemo, useState } from "react";
 import ActivityHistory from "@/components/dashboard/ActivityHistory";
 import DashboardShell from "@/components/dashboard/DashboardShell";
 import { BarChart, ChartCard, ComparisonBars, LineChart, type ChartPoint } from "@/components/dashboard/PerformanceChart";
+import { SkChart, SkStatRow, SkTable } from "@/components/skeleton/Skeleton";
 import StatCard from "@/components/dashboard/StatCard";
 import StreakLevels from "@/components/dashboard/StreakLevels";
 import { useUserProgress } from "@/hooks/use-stored-value";
@@ -47,9 +48,7 @@ export default function DashboardOverview() {
   return (
     <DashboardShell title="Your typing dashboard" subtitle="Everything below is calculated from sessions saved on this device. No account needed." actions={hydrated && !isEmpty ? rangePicker : undefined}>
       {!hydrated ? (
-        <div className="grid grid-cols-2 gap-3 lg:grid-cols-4" aria-busy="true" aria-label="Loading your statistics">
-          {Array.from({ length: 8 }, (_, i) => <div key={i} className="h-28 animate-pulse rounded-2xl border border-slate-200 bg-white" />)}
-        </div>
+        <div className="space-y-6" aria-busy="true" aria-label="Loading your statistics"><SkStatRow count={4} /><SkStatRow count={4} /><div className="grid gap-4 lg:grid-cols-2"><SkChart /><SkChart /></div><SkTable rows={4} /></div>
       ) : isEmpty ? (
         <EmptyState />
       ) : (

@@ -2,7 +2,6 @@
 
 import Link from "next/link";
 import { useState } from "react";
-import SiteHeader from "@/components/shared/SiteHeader";
 import GameThumb from "@/components/games/shared/GameThumb";
 import { primaryBtn, secondaryBtn } from "@/components/games/shared/GameDialog";
 import { categoryLabels, difficultyLabels, typingGames, type GameCategory } from "@/data/games";
@@ -30,7 +29,6 @@ export default function GameHub() {
   const reset = () => { setLanguage("all"); setDifficulty("all"); setCategory("all"); };
 
   return <div className="min-h-screen bg-surface text-navy">
-    <SiteHeader />
     <main className="mx-auto max-w-6xl px-4 pb-16 pt-8 sm:px-6">
       <div className="mb-6">
         <p className="text-xs font-bold uppercase tracking-widest text-brand">Play · Practice · Improve</p>

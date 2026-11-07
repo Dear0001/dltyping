@@ -59,8 +59,8 @@ export function shuffled<T>(pool: readonly T[], seed: number): { value: T[]; see
 }
 
 export function starsFor(accuracy: number, livesLeft: number) {
-  if (accuracy >= 95 && livesLeft >= 3) return 3;
-  if (accuracy >= 85) return 2;
+  if (accuracy >= 90 && livesLeft >= 2) return 3;
+  if (accuracy >= 75) return 2;
   return 1;
 }
 

@@ -3,7 +3,8 @@
 import Link from "next/link";
 import GameThumb from "@/components/games/shared/GameThumb";
 import { primaryBtn, secondaryBtn } from "@/components/games/shared/GameDialog";
-import SiteHeader from "@/components/shared/SiteHeader";
+import { Sk } from "@/components/skeleton/Skeleton";
+import { useHydrated } from "@/hooks/useTypingProgress";
 import { typingGames } from "@/data/games";
 import { usePracticeBest, useScores } from "@/hooks/use-stored-value";
 import { bestForGame } from "@/lib/local-progress";
@@ -18,10 +19,10 @@ const benefits = [
 export default function Landing({ children }: { children?: React.ReactNode }) {
   const practice = usePracticeBest();
   const scores = useScores();
+  const hydrated = useHydrated();
   const totalPlays = Object.values(scores).reduce((sum, s) => sum + s.plays, 0);
 
   return <div className="min-h-screen bg-surface text-navy">
-    <SiteHeader />
     <main>
       <section className="relative overflow-hidden bg-gradient-to-br from-navy via-slate-900 to-blue-900 text-white">
         <div className="mx-auto grid max-w-6xl items-center gap-10 px-4 py-16 sm:px-6 lg:grid-cols-2 lg:py-24">
@@ -110,7 +111,7 @@ export default function Landing({ children }: { children?: React.ReactNode }) {
               ["Best Khmer WPM", practice.khmer?.bestWpm ?? "—"],
               ["Games played", totalPlays || "—"],
               ["Top game score", Math.max(0, ...typingGames.map((g) => bestForGame(scores, g.id))) || "—"],
-            ].map(([label, value]) => <div key={String(label)} className="rounded-2xl bg-white/10 p-4"><dt className="text-xs font-bold uppercase tracking-wider text-blue-100">{label}</dt><dd className="mt-1 text-3xl font-extrabold tabular-nums">{value}</dd></div>)}
+            ].map(([label, value]) => <div key={String(label)} className="rounded-2xl bg-white/10 p-4"><dt className="text-xs font-bold uppercase tracking-wider text-blue-100">{label}</dt><dd className="mt-1 text-3xl font-extrabold tabular-nums">{hydrated ? value : <Sk className="inline-block h-8 w-14 bg-white/25" />}</dd></div>)}
           </dl>
           <div className="mt-6 flex flex-wrap gap-3"><Link href="/learn" className={`${secondaryBtn} !border-white !bg-white`}>Continue your lessons</Link><Link href="/progress" className={`${secondaryBtn} !border-white !bg-white`}>View full progress →</Link></div>
         </div>

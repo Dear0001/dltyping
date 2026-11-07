@@ -1,6 +1,5 @@
 import type { Metadata } from "next";
 import Link from "next/link";
-import SiteHeader from "@/components/shared/SiteHeader";
 
 export const metadata: Metadata = {
   title: "Help & Guides — DL Typing",
@@ -26,7 +25,6 @@ const card = "rounded-2xl border border-slate-200 bg-white p-6";
 export default function HelpPage() {
   return (
     <div className="min-h-screen bg-surface text-navy">
-      <SiteHeader />
       <main className="mx-auto max-w-3xl px-4 py-12 sm:px-6">
         <h1 className="text-3xl font-extrabold">Help &amp; guides</h1>
         <p className="mt-2 text-mute">Everything you need to get started with English and Khmer typing practice.</p>

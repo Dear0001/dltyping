@@ -3,7 +3,6 @@
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import type { ReactNode } from "react";
-import SiteHeader from "@/components/shared/SiteHeader";
 
 const TABS = [
   { href: "/dashboard", label: "Overview" },
@@ -16,7 +15,6 @@ export default function DashboardShell({ title, subtitle, actions, children }: {
   const pathname = usePathname();
   return (
     <div className="min-h-screen bg-surface text-navy">
-      <SiteHeader />
       <main className="mx-auto max-w-6xl px-4 pb-16 pt-8 sm:px-6">
         <div className="mb-5 flex flex-wrap items-end justify-between gap-4">
           <div>

@@ -25,6 +25,7 @@ export default function AccountMenu() {
   const [expiresAt, setExpiresAt] = useState<number | null>(null); // when the emailed code stops working (ms)
   const [now, setNow] = useState(0); // set only by startCountdown and the interval, never during render
   const [info, setInfo] = useState<string | null>(null);
+  const [confirmOut, setConfirmOut] = useState(false);
 
   useEffect(() => {
     if (cooldown <= 0) return;
@@ -113,7 +114,13 @@ export default function AccountMenu() {
   if (account.status === "user") {
     return <div className="flex items-center gap-2 text-xs">
       <span className="hidden max-w-[160px] truncate rounded-full bg-blue-50 px-3 py-1.5 font-semibold text-brand sm:inline" title={account.email}>☁ {account.name || account.email}</span>
-      <button type="button" className={`${secondaryBtn} whitespace-nowrap !px-3 !py-1.5 !text-xs`} onClick={() => void signOut()}>{t("auth.signOut")}</button>
+      <button type="button" className={`${secondaryBtn} whitespace-nowrap !px-3 !py-1.5 !text-xs`} onClick={() => setConfirmOut(true)}>{t("auth.signOut")}</button>
+      {confirmOut && <GameDialog title="Sign out?" subtitle="Your progress stays saved on this device and in your account." icon="👋" onEscape={() => setConfirmOut(false)}>
+        <div className="flex flex-col gap-2">
+          <button data-autofocus type="button" className={primaryBtn} onClick={() => { setConfirmOut(false); void signOut(); }}>{t("auth.signOut")}</button>
+          <button type="button" className={secondaryBtn} onClick={() => setConfirmOut(false)}>Stay signed in</button>
+        </div>
+      </GameDialog>}
     </div>;
   }
   return <>

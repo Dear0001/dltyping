@@ -2,6 +2,8 @@
 
 import Link from "next/link";
 import { curricula, firstIncompleteLesson, getAllLessons, levelLabels, levelColors } from "@/data/curriculum";
+import Ready from "@/components/skeleton/Ready";
+import { Sk } from "@/components/skeleton/Skeleton";
 import { useUserProgress } from "@/hooks/use-stored-value";
 
 const LANGS = [
@@ -11,6 +13,10 @@ const LANGS = [
 
 /** "Continue where you left off": the next incomplete lesson for each language. */
 export default function ContinueCard() {
+  return <Ready fallback={<section aria-busy="true" aria-label="Loading your lessons" className="mb-8 grid gap-3 sm:grid-cols-2">{[0, 1].map((i) => <div key={i} className="flex items-center gap-3 rounded-2xl border border-slate-200 bg-white p-4"><Sk className="h-11 w-11 flex-none rounded-2xl" /><div className="flex-1"><Sk className="mb-2 h-3 w-24" /><Sk className="mb-2 h-4 w-3/4" /><Sk className="h-2 w-full" /></div></div>)}</section>}><ContinueCardContent /></Ready>;
+}
+
+function ContinueCardContent() {
   const progress = useUserProgress();
   const cards = LANGS.map((lang) => {
     const curriculum = curricula[lang.id];

@@ -3,14 +3,19 @@
 import Image from "next/image";
 import Link from "next/link";
 import { useEffect, useRef } from "react";
+import { createPortal } from "react-dom";
+import { useHydrated } from "@/hooks/useTypingProgress";
 
 export function GameDialog({ title, subtitle, icon, logo, children, onEscape, wide }: { title: string; subtitle?: string; icon?: string; /** Show the DL Typing logo above the title instead of an emoji icon. */ logo?: boolean; children: React.ReactNode; onEscape?: () => void; wide?: boolean }) {
   const ref = useRef<HTMLDivElement>(null);
+  // Rendered into <body> so it is always centred on the viewport, whatever element (e.g. the fixed navbar) opened it.
+  const mounted = useHydrated();
   const escape = useRef(onEscape);
   useEffect(() => {
     escape.current = onEscape;
   });
   useEffect(() => {
+    if (!mounted) return;
     ref.current?.querySelector<HTMLElement>("[data-autofocus]")?.focus();
     function onKey(event: KeyboardEvent) {
       if (event.key === "Escape" && escape.current) {
@@ -28,8 +33,9 @@ export function GameDialog({ title, subtitle, icon, logo, children, onEscape, wi
     }
     window.addEventListener("keydown", onKey);
     return () => window.removeEventListener("keydown", onKey);
-  }, []);
-  return <div className="fixed inset-0 z-50 flex items-center justify-center overflow-y-auto bg-navy/60 p-4 backdrop-blur-sm">
+  }, [mounted]);
+  if (!mounted) return null;
+  return createPortal(<div className="fixed inset-0 z-[100] grid place-items-center overflow-y-auto bg-navy/60 p-4 backdrop-blur-sm">
     <div ref={ref} role="dialog" aria-modal="true" aria-labelledby="gm-dialog-title" className={`my-auto w-full ${wide ? "max-w-2xl" : "max-w-md"} rounded-3xl bg-white p-6 shadow-2xl sm:p-8`}>
       <div className="mb-5 text-center">
         {logo && <Image src="/icon.svg" alt="" width={64} height={64} unoptimized priority className="mx-auto mb-3 h-16 w-16 rounded-2xl shadow-sm" />}
@@ -39,7 +45,7 @@ export function GameDialog({ title, subtitle, icon, logo, children, onEscape, wi
       </div>
       {children}
     </div>
-  </div>;
+  </div>, document.body);
 }
 
 export const primaryBtn = "inline-flex items-center justify-center gap-2 rounded-xl bg-brand px-5 py-3 text-sm font-bold text-white shadow-sm transition hover:bg-blue-700 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-brand";
