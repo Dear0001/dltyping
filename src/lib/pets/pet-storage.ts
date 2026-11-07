@@ -23,6 +23,8 @@ export type PetSettings = {
   /** What the pet does while the learner is typing on practice and game pages. */
   whileTyping: TypingPolicy;
   size: PetSize;
+  /** Generated sound effects for legendary pets' skills. */
+  sound: boolean;
 };
 
 export type PetReward = {
@@ -51,7 +53,7 @@ export type PetState = {
   history: PetReward[];
 };
 
-export const DEFAULT_PET_SETTINGS: PetSettings = { animations: "full", cursor: true, speech: true, whileTyping: "quiet", size: "md" };
+export const DEFAULT_PET_SETTINGS: PetSettings = { animations: "full", cursor: true, speech: true, whileTyping: "quiet", size: "md", sound: true };
 export const EMPTY_PETS: PetState = { version: PETS_VERSION, unlocked: {}, pending: [], active: null, extra: [], enabled: true, settings: DEFAULT_PET_SETTINGS, history: [] };
 
 const isRecord = (v: unknown): v is Record<string, unknown> => typeof v === "object" && v !== null && !Array.isArray(v);
@@ -88,6 +90,7 @@ export function validatePetState(value: unknown): PetState | null {
       cursor: typeof s.cursor === "boolean" ? s.cursor : d.cursor,
       speech: typeof s.speech === "boolean" ? s.speech : d.speech,
       whileTyping: s.whileTyping === "quiet" || s.whileTyping === "stay" || s.whileTyping === "hide" ? s.whileTyping : d.whileTyping,
+      sound: typeof s.sound === "boolean" ? s.sound : d.sound,
       size: s.size === "sm" || s.size === "md" || s.size === "lg" ? s.size : d.size,
     },
   };

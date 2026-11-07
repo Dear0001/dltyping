@@ -9,11 +9,12 @@ import PetSprite from "@/components/pets/PetSprite";
 import PetAbility, { type AbilityRun } from "@/components/pets/PetAbility";
 import PetUltimate, { type UltimateRun } from "@/components/pets/PetUltimate";
 import { usePetState } from "@/hooks/usePets";
+import { playPetSound, stopPetSounds, unlockAudio } from "@/lib/pets/pet-sound";
 import { createBrain, stepBrain, ULTIMATE_SECONDS, type MotionMode } from "@/lib/pets/pet-brain";
 import { PETS, type Ability, type PetDefinition } from "@/lib/pets/pet-catalog";
 import { emitPetEvent, subscribePetEvents, ultimateCooldown, type PetEvent } from "@/lib/pets/pet-events";
 import { ACTION_SELECTOR, INTERACTIVE_SELECTOR, isPetHiddenRoute, isTypingRoute, MOBILE_MAX_SIZE, PET_SIZES, TYPING_GRACE_MS } from "@/lib/pets/pet-policy";
-import { setPetEnabled, type PetSettings } from "@/lib/pets/pet-storage";
+import { patchPetSettings, setPetEnabled, type PetSettings } from "@/lib/pets/pet-storage";
 
 const subscribeMotion = (cb: () => void) => {
   const q = window.matchMedia("(prefers-reduced-motion: reduce)");
@@ -301,8 +302,9 @@ function PetStage({ def, index, settings, motion, typingRoute }: StageProps) {
       } else if (!brain.say && bubble.classList.contains("show")) {
         bubble.classList.remove("show");
       }
-      if (brain.ult && brain.ult.id !== ultId) { ultId = brain.ult.id; startUltimate(brain.ult.face); }
-      if (brain.abil && brain.abil.id !== abilId) { abilId = brain.abil.id; startAbility(brain.abil.key, brain.abil.face, brain.abil.tx); }
+      const sfx = cfg.settings.sound && !quiet && !document.hidden; // skill sounds: off switch, calm-while-typing, background tab
+      if (brain.ult && brain.ult.id !== ultId) { ultId = brain.ult.id; startUltimate(brain.ult.face); if (sfx) playPetSound("ultimate", def.id); }
+      if (brain.abil && brain.abil.id !== abilId) { abilId = brain.abil.id; startAbility(brain.abil.key, brain.abil.face, brain.abil.tx); if (sfx) playPetSound("ability", brain.abil.key); }
       // Movement and mood particles: star dust behind footsteps and wings, stars over a sleeper...
       if (def.ambient && cfg.motion === "full" && t > ambientAt && !hidden) {
         const rule = def.ambient[brain.air > 4 ? "fly" : brain.anim] ?? (brain.anim === "follow" ? def.ambient.walk : undefined);
@@ -329,6 +331,7 @@ function PetStage({ def, index, settings, motion, typingRoute }: StageProps) {
       }
       if (brain.bolt && brain.bolt.id !== boltId && def.magic) {
         boltId = brain.bolt.id;
+        if (cfg.settings.sound && !quiet && !document.hidden) playPetSound("magic", def.id);
         const b = document.createElement("span");
         b.className = "pet-bolt";
         b.textContent = def.magic.emoji;
@@ -352,6 +355,8 @@ function PetStage({ def, index, settings, motion, typingRoute }: StageProps) {
 
     const start = () => { cancelAnimationFrame(raf); last = performance.now(); raf = requestAnimationFrame(frame); };
     const onVisibility = () => { if (document.hidden) cancelAnimationFrame(raf); else start(); };
+    window.addEventListener("pointerdown", unlockAudio, { passive: true });
+    window.addEventListener("keydown", unlockAudio, { passive: true });
     window.addEventListener("pointermove", onMove, { passive: true });
     window.addEventListener("click", onClick, { passive: true });
     window.addEventListener("pointerdown", onDown); // not passive: it cancels text selection when the pet is grabbed
@@ -370,6 +375,9 @@ function PetStage({ def, index, settings, motion, typingRoute }: StageProps) {
       endAbility();
       clearCombo();
       window.removeEventListener("keydown", castKey);
+      window.removeEventListener("pointerdown", unlockAudio);
+      window.removeEventListener("keydown", unlockAudio);
+      stopPetSounds();
       window.removeEventListener("pointermove", onMove);
       window.removeEventListener("click", onClick);
       window.removeEventListener("pointerdown", onDown);
@@ -413,6 +421,7 @@ function PetControls({ name, enabled, locked = false, ultimates = [], abilities 
     window.addEventListener("keydown", onKey);
     return () => { window.removeEventListener("pointerdown", onDown); window.removeEventListener("keydown", onKey); };
   }, [open]);
+  const sound = usePetState().state.settings.sound;
   const { store } = useTypingProgress();
   const now = useNow();
   const streak = now ? currentStreak(store.sessions, now) : 0;
@@ -442,6 +451,7 @@ function PetControls({ name, enabled, locked = false, ultimates = [], abilities 
             <Link href="/learn/english" role="menuitem" onClick={() => setOpen(false)}>⌨️ Practice English</Link>
             <Link href="/learn/khmer" role="menuitem" onClick={() => setOpen(false)}>⌨️ Practice Khmer</Link>
           </>}
+          {!locked && <button type="button" role="menuitemcheckbox" aria-checked={sound} onClick={() => { patchPetSettings({ sound: !sound }); if (sound) stopPetSounds(); else unlockAudio(); }}>{sound ? "🔊 Skill sounds: on" : "🔇 Skill sounds: off"}</button>}
           <Link href="/pets" role="menuitem" onClick={() => setOpen(false)}>🐾 Pet collection</Link>
         </div>
       )}

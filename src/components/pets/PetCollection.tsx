@@ -4,6 +4,7 @@ import { useEffect, useMemo, useRef, useState } from "react";
 import PetSprite from "@/components/pets/PetSprite";
 import { effectiveMotion } from "@/components/pets/PetCompanion";
 import { SkCard, SkGrid } from "@/components/skeleton/Skeleton";
+import { stopPetSounds } from "@/lib/pets/pet-sound";
 import { usePetState } from "@/hooks/usePets";
 import { useNow, useTypingProgress } from "@/hooks/useTypingProgress";
 import { PETS, RARITIES, type PetAnim, type PetDefinition } from "@/lib/pets/pet-catalog";
@@ -124,6 +125,7 @@ function Settings({ settings, enabled, hasActive }: { settings: PetSettings; ena
       <Toggle label="Show my pets" hint={hasActive ? "Your active pets keep you company while you learn." : "Unlock a pet to choose a companion."} checked={enabled && hasActive} onChange={(v) => hasActive && setPetEnabled(v)} />
       <Segmented<PetSettings["animations"]> label="Animations" value={settings.animations} onChange={(animations) => patchPetSettings({ animations })} options={[["full", "Full"], ["reduced", "Reduced"], ["off", "Off"]]} />
       <Toggle label="Follow and react to my cursor" checked={settings.cursor} onChange={(cursor) => patchPetSettings({ cursor })} />
+      <Toggle label="Skill sounds" hint="Generated sound effects for legendary pets' skills." checked={settings.sound} onChange={(sound) => { patchPetSettings({ sound }); if (!sound) stopPetSounds(); }} />
       <Toggle label="Speech bubbles" checked={settings.speech} onChange={(speech) => patchPetSettings({ speech })} />
       <Segmented<PetSettings["whileTyping"]> label="While I'm typing" value={settings.whileTyping} onChange={(whileTyping) => patchPetSettings({ whileTyping })} options={[["quiet", "Stay calm"], ["stay", "Keep playing"], ["hide", "Hide"]]} />
       <Segmented<PetSettings["size"]> label="Size" value={settings.size} onChange={(size) => patchPetSettings({ size })} options={[["sm", "Small"], ["md", "Medium"], ["lg", "Large"]]} />
