@@ -1,0 +1,423 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 850 850" width="100%" height="100%">
+  <defs>
+    <!-- Sea-Dragon Blue & Teal Body Gradients -->
+    <linearGradient id="bodyBlue" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#2fe0d9" />
+      <stop offset="45%" stop-color="#1585e8" />
+      <stop offset="100%" stop-color="#0b469c" />
+    </linearGradient>
+
+    <linearGradient id="darkBlueLeg" x1="0%" y1="0%" x2="0%" y2="100%">
+      <stop offset="0%" stop-color="#1268b8" />
+      <stop offset="60%" stop-color="#1899ab" />
+      <stop offset="100%" stop-color="#0a3f7a" />
+    </linearGradient>
+
+    <!-- Cream Plated Belly & Underbelly Gradient -->
+    <linearGradient id="creamBelly" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#fff8eb" />
+      <stop offset="65%" stop-color="#e3d3bc" />
+      <stop offset="100%" stop-color="#a89882" />
+    </linearGradient>
+
+    <!-- Coral Pink/Orange Gradient for Antlers & Spines -->
+    <linearGradient id="coralGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#ff99a8" />
+      <stop offset="50%" stop-color="#ff6b6b" />
+      <stop offset="100%" stop-color="#c93853" />
+    </linearGradient>
+
+    <!-- Fin Membrane Gradient (Teal to Peach/Coral Edge) -->
+    <linearGradient id="finGrad" x1="0%" y1="50%" x2="100%" y2="50%">
+      <stop offset="0%" stop-color="#19b5cc" />
+      <stop offset="50%" stop-color="#6ce8db" />
+      <stop offset="85%" stop-color="#ff9e8a" />
+      <stop offset="100%" stop-color="#ff6b8b" />
+    </linearGradient>
+
+    <linearGradient id="tailFanGrad" x1="100%" y1="100%" x2="0%" y2="0%">
+      <stop offset="0%" stop-color="#0f6bc2" />
+      <stop offset="35%" stop-color="#1ed6cc" />
+      <stop offset="75%" stop-color="#7ef5e3" />
+      <stop offset="93%" stop-color="#ff9c8f" />
+      <stop offset="100%" stop-color="#ff6b8b" />
+    </linearGradient>
+
+    <!-- Webbed Foot Membrane Gradient -->
+    <linearGradient id="webFootGrad" x1="0%" y1="0%" x2="0%" y2="100%">
+      <stop offset="0%" stop-color="#19b5cc" />
+      <stop offset="65%" stop-color="#85f2d8" />
+      <stop offset="100%" stop-color="#e8dec8" />
+    </linearGradient>
+
+    <!-- Eye Iris Gradient -->
+    <radialGradient id="eyeIris" cx="50%" cy="50%" r="50%">
+      <stop offset="30%" stop-color="#051329" />
+      <stop offset="70%" stop-color="#0d859c" />
+      <stop offset="100%" stop-color="#68f7ed" />
+    </radialGradient>
+  </defs>
+
+  <!-- ================= FAR HIND LEG (INNER BACK) ================= -->
+  <g id="far-hind-leg">
+    <!-- Leg Fin -->
+    <path d="M 415 585 C 455 595, 475 625, 465 645 C 450 650, 445 665, 450 680 C 430 680, 420 695, 420 705 L 395 665 Z" fill="url(#finGrad)" stroke="#147a8c" stroke-width="1.5" />
+    <!-- Leg Body -->
+    <path d="M 355 520 C 360 565, 395 605, 385 655 C 375 685, 355 705, 350 720 L 415 720 C 425 690, 435 640, 425 600 C 415 565, 395 535, 390 510 Z" fill="url(#darkBlueLeg)" stroke="#0a3b6e" stroke-width="2" />
+    <!-- Webbed Toes -->
+    <path d="M 350 720 L 385 728 L 418 718 C 415 702, 375 702, 350 720 Z" fill="url(#webFootGrad)" stroke="#1268b8" stroke-width="1.5" />
+    <ellipse cx="350" cy="720" rx="10" ry="7" fill="#1578d4" />
+    <ellipse cx="385" cy="726" rx="11" ry="8" fill="#1578d4" />
+  </g>
+
+  <!-- ================= DORSAL FINS & BACK CORAL ================= -->
+  <g id="dorsal-fins-and-coral">
+    <!-- Neck Coral Branch -->
+    <path d="M 275 385 C 260 365, 255 340, 268 332 C 275 345, 282 350, 290 348 C 285 325, 298 300, 315 292 C 320 300, 312 318, 310 330 C 325 312, 342 275, 355 272 C 365 272, 355 300, 345 318 C 360 310, 375 305, 378 315 C 378 325, 352 332, 338 342 C 350 342, 365 340, 368 350 C 368 358, 345 365, 332 372 C 348 372, 365 368, 368 378 C 368 388, 335 398, 295 395 Z" fill="url(#coralGrad)" stroke="#b02c46" stroke-width="1.5" stroke-linejoin="round" />
+
+    <!-- Dorsal Fin Sail -->
+    <path d="M 305 385 C 345 345, 395 315, 428 318 C 405 332, 405 350, 425 358 C 450 355, 470 360, 485 368 C 468 378, 468 392, 488 402 C 505 405, 515 415, 505 425 L 340 415 Z" fill="url(#finGrad)" stroke="#0f6bc2" stroke-width="2" stroke-linejoin="round" />
+    <!-- Dorsal Fin Rays -->
+    <path d="M 325 385 C 355 360, 385 345, 412 342 M 355 395 C 395 375, 435 368, 468 370 M 395 405 C 435 392, 460 390, 480 395" fill="none" stroke="#0c5ca8" stroke-width="2" opacity="0.6" />
+
+    <!-- Mid-Back Coral Sprouts -->
+    <path d="M 445 398 C 460 385, 480 380, 488 388 C 482 395, 472 398, 465 402 C 485 400, 502 402, 505 412 C 495 418, 475 418, 455 412 Z" fill="url(#coralGrad)" stroke="#b02c46" stroke-width="1.5" />
+    <path d="M 505 445 C 520 432, 538 415, 548 420 C 548 428, 538 438, 532 442 C 548 438, 562 438, 565 446 C 562 454, 545 455, 538 458 C 555 460, 568 465, 566 474 C 558 482, 530 475, 510 462 Z" fill="url(#coralGrad)" stroke="#b02c46" stroke-width="1.5" />
+
+    <!-- Tail Crest Finlets -->
+    <path d="M 555 480 C 585 455, 625 450, 645 460 C 630 470, 630 485, 645 495 L 585 505 Z" fill="url(#finGrad)" stroke="#0f6bc2" stroke-width="1.5" />
+    <path d="M 620 510 C 645 490, 672 480, 685 485 C 675 498, 680 510, 695 515 L 645 525 Z" fill="url(#finGrad)" stroke="#0f6bc2" stroke-width="1.5" />
+    <path d="M 695 512 C 715 490, 732 465, 740 462 C 738 480, 745 492, 755 492 L 715 520 Z" fill="url(#finGrad)" stroke="#0f6bc2" stroke-width="1.5" />
+  </g>
+
+  <!-- ================= SWEEPING TAIL & GIANT TAIL FAN ================= -->
+  <g id="tail-and-fan">
+    <!-- Lower Tail Finlet (Ventral) -->
+    <path d="M 630 535 C 685 565, 735 605, 758 625 C 725 628, 675 595, 615 550 Z" fill="url(#finGrad)" stroke="#0f6bc2" stroke-width="2" />
+
+    <!-- Sweeping Tail Body -->
+    <path d="M 480 435
+             C 565 485, 645 545, 710 520
+             C 765 500, 785 415, 765 325
+             C 750 265, 715 215, 675 185
+             C 725 225, 765 285, 782 355
+             C 802 440, 785 545, 715 585
+             C 655 620, 565 600, 480 545 Z" fill="url(#bodyBlue)" stroke="#0b469c" stroke-width="2" stroke-linejoin="round" />
+
+    <!-- Cream Underbelly Stripe Along Tail -->
+    <path d="M 495 525 C 575 580, 660 595, 715 565 C 760 540, 785 480, 785 415 C 785 495, 755 565, 705 590 C 645 620, 560 595, 485 545 Z" fill="url(#creamBelly)" stroke="#8c7d68" stroke-width="1.5" />
+
+    <!-- Grand Fan-Shaped Tail Fin -->
+    <!-- Upper Lobe of Tail Fan -->
+    <path d="M 772 355
+             C 755 275, 710 215, 660 175
+             C 652 155, 655 135, 660 120
+             C 672 155, 695 168, 722 172
+             C 718 158, 715 148, 712 142
+             C 748 155, 772 195, 768 255
+             C 778 248, 785 240, 785 232
+             C 802 268, 808 320, 795 375 Z" fill="url(#tailFanGrad)" stroke="#0d5ca6" stroke-width="2" stroke-linejoin="round" />
+
+    <!-- Lower Sweeping Lobe of Tail Fan -->
+    <path d="M 768 345
+             C 725 265, 625 190, 535 222
+             C 568 200, 625 202, 665 228
+             C 645 208, 635 192, 642 175
+             C 685 198, 735 255, 768 335 Z" fill="url(#tailFanGrad)" stroke="#0d5ca6" stroke-width="2" stroke-linejoin="round" />
+
+    <path d="M 768 345
+             C 715 265, 615 205, 535 222
+             C 575 235, 612 252, 625 268
+             C 608 265, 598 268, 592 275
+             C 620 280, 628 292, 612 305
+             C 645 305, 675 312, 685 322
+             C 655 318, 630 322, 618 332
+             C 655 345, 685 365, 698 378
+             C 725 375, 750 385, 765 400 Z" fill="url(#tailFanGrad)" stroke="#0d5ca6" stroke-width="2" stroke-linejoin="round" />
+
+    <!-- Tail Fan Fin Rays -->
+    <path d="M 765 340 C 715 265, 640 225, 565 222
+             M 765 350 C 715 295, 660 275, 605 275
+             M 765 360 C 725 325, 680 315, 630 328
+             M 765 375 C 735 358, 705 358, 675 365
+             M 768 325 C 745 250, 710 195, 665 145
+             M 778 335 C 768 265, 755 205, 730 160" fill="none" stroke="#0b469c" stroke-width="2" opacity="0.55" stroke-linecap="round" />
+
+    <!-- Glowing Tail Spots -->
+    <g fill="#7ef5e3" opacity="0.85">
+      <circle cx="595" cy="525" r="7" />
+      <circle cx="622" cy="538" r="6" />
+      <circle cx="650" cy="548" r="8" />
+      <circle cx="680" cy="550" r="6" />
+      <circle cx="712" cy="542" r="7" />
+      <circle cx="738" cy="525" r="5.5" />
+      <circle cx="758" cy="498" r="5" />
+      <circle cx="770" cy="465" r="4.5" />
+      <circle cx="775" cy="430" r="4" />
+    </g>
+  </g>
+
+  <!-- ================= FRONT RIGHT LEG (VIEWER'S LEFT) ================= -->
+  <g id="front-right-leg">
+    <!-- Outer & Inner Leg Fins -->
+    <path d="M 118 550 C 102 575, 115 605, 98 615 C 92 630, 108 655, 112 685 L 128 670 Z" fill="url(#finGrad)" stroke="#0f6bc2" stroke-width="1.5" />
+    <path d="M 200 575 C 202 615, 178 655, 185 695 C 172 695, 162 685, 158 670 Z" fill="url(#finGrad)" stroke="#0f6bc2" stroke-width="1.5" />
+
+    <!-- Muscular Shoulder & Foreleg -->
+    <path d="M 150 390
+             C 105 435, 102 505, 125 565
+             C 132 615, 125 660, 112 690
+             L 165 695
+             C 172 650, 188 605, 202 560
+             C 210 520, 195 450, 165 405 Z" fill="url(#bodyBlue)" stroke="#0b469c" stroke-width="2" />
+
+    <!-- Cream Inner Foreleg Shading -->
+    <path d="M 145 525 C 145 575, 148 625, 152 675 L 168 675 C 178 625, 192 580, 198 535 Z" fill="url(#creamBelly)" opacity="0.85" />
+
+    <!-- Webbed Foot & Toes (Viewer's Left) -->
+    <path d="M 115 685
+             C 92 708, 65 725, 45 732
+             C 55 745, 78 748, 92 745
+             C 95 758, 122 762, 142 752
+             C 155 748, 175 752, 190 742
+             C 182 720, 168 702, 162 685 Z" fill="url(#webFootGrad)" stroke="#0d5ca6" stroke-width="2" stroke-linejoin="round" />
+    <!-- Toe Rays & Rounded Toe Pads -->
+    <path d="M 125 688 L 62 735 M 138 690 L 105 752 M 148 690 L 152 742 M 158 688 L 182 738" stroke="#0d5ca6" stroke-width="3" stroke-linecap="round" />
+    <ellipse cx="52" cy="735" rx="13" ry="8" transform="rotate(-15 52 735)" fill="#1578d4" stroke="#0a3b6e" stroke-width="1.5" />
+    <ellipse cx="102" cy="752" rx="15" ry="10" fill="#1578d4" stroke="#0a3b6e" stroke-width="1.5" />
+    <ellipse cx="152" cy="742" rx="12" ry="8" fill="#1578d4" stroke="#0a3b6e" stroke-width="1.5" />
+    <ellipse cx="182" cy="738" rx="13" ry="9" transform="rotate(15 182 738)" fill="#1578d4" stroke="#0a3b6e" stroke-width="1.5" />
+  </g>
+
+  <!-- ================= MAIN BODY, NECK & NEAR HIND LEG ================= -->
+  <g id="main-torso-and-hind-leg">
+    <!-- Hind Left Leg Fin -->
+    <path d="M 565 605 C 605 608, 632 630, 622 650 C 612 658, 625 675, 640 685 C 618 692, 610 705, 612 718 L 575 680 Z" fill="url(#finGrad)" stroke="#0f6bc2" stroke-width="1.5" />
+
+    <!-- Torso, Arched Neck & Near Hind Leg Silhouette -->
+    <path d="M 185 210
+             C 165 295, 135 385, 145 465
+             C 155 535, 215 568, 285 560
+             C 345 552, 395 515, 442 532
+             C 475 568, 495 620, 535 645
+             C 548 675, 545 700, 535 720
+             L 595 720
+             C 590 685, 582 640, 560 605
+             C 545 545, 515 465, 455 425
+             C 395 385, 325 395, 285 375
+             C 272 335, 282 275, 295 235 Z" fill="url(#bodyBlue)" stroke="#0b469c" stroke-width="2" stroke-linejoin="round" />
+
+    <!-- Plated Cream Throat, Chest & Underbelly -->
+    <path d="M 190 220
+             C 175 305, 145 395, 148 468
+             C 152 532, 215 568, 285 560
+             C 345 552, 395 515, 442 532
+             C 415 505, 375 495, 335 505
+             C 265 520, 215 495, 212 435
+             C 210 365, 235 295, 265 240 Z" fill="url(#creamBelly)" stroke="#8c7d68" stroke-width="2" />
+
+    <!-- V-Shaped Neck & Chest Plate Lines -->
+    <g fill="none" stroke="#9e8d75" stroke-width="2" stroke-linecap="round">
+      <path d="M 188 258 L 212 275 L 252 258" />
+      <path d="M 182 292 L 205 312 L 242 292" />
+      <path d="M 174 328 L 198 350 L 232 328" />
+      <path d="M 165 365 L 190 388 L 222 365" />
+      <path d="M 156 402 L 182 428 L 215 402" />
+      <path d="M 150 442 L 178 468 L 212 442" />
+      <path d="M 154 482 L 182 505 L 218 478" />
+      <path d="M 172 520 L 202 535 L 235 505" />
+    </g>
+
+    <!-- Near Hind Webbed Foot & Toes -->
+    <path d="M 538 712
+             C 518 725, 502 738, 495 748
+             C 512 758, 535 758, 555 755
+             C 575 758, 598 758, 615 752
+             C 625 752, 642 752, 648 745
+             C 632 728, 608 718, 592 710 Z" fill="url(#webFootGrad)" stroke="#0d5ca6" stroke-width="2" stroke-linejoin="round" />
+    <path d="M 548 715 L 508 748 M 565 715 L 568 752 M 582 715 L 605 748 M 590 715 L 638 745" stroke="#0d5ca6" stroke-width="2.5" stroke-linecap="round" />
+    <ellipse cx="508" cy="748" rx="14" ry="9" fill="#1578d4" stroke="#0a3b6e" stroke-width="1.5" />
+    <ellipse cx="568" cy="752" rx="15" ry="10" fill="#1578d4" stroke="#0a3b6e" stroke-width="1.5" />
+    <ellipse cx="605" cy="748" rx="12" ry="8" fill="#1578d4" stroke="#0a3b6e" stroke-width="1.5" />
+    <ellipse cx="638" cy="745" rx="12" ry="8" fill="#1578d4" stroke="#0a3b6e" stroke-width="1.5" />
+
+    <!-- Turquoise Scales & Spots on Flank & Hind Leg -->
+    <g fill="#5ef2e6" stroke="#0d63b8" stroke-width="1" opacity="0.85">
+      <ellipse cx="375" cy="465" rx="14" ry="8" transform="rotate(15 375 465)" />
+      <ellipse cx="405" cy="472" rx="14" ry="8" transform="rotate(15 405 472)" />
+      <ellipse cx="435" cy="482" rx="13" ry="8" transform="rotate(20 435 482)" />
+      <circle cx="482" cy="512" r="10" />
+      <ellipse cx="495" cy="542" rx="14" ry="9" transform="rotate(35 495 542)" />
+      <circle cx="472" cy="548" r="7" />
+      <circle cx="515" cy="575" r="8" />
+      <circle cx="495" cy="585" r="10" />
+      <circle cx="515" cy="608" r="9" />
+    </g>
+  </g>
+
+  <!-- ================= FRONT LEFT LEG (CENTER FOREGROUND) ================= -->
+  <g id="front-left-leg">
+    <!-- Shoulder Finlet -->
+    <path d="M 315 425 C 345 445, 368 465, 378 462 C 362 475, 360 488, 362 500 C 345 485, 330 465, 315 445 Z" fill="url(#finGrad)" stroke="#0f6bc2" stroke-width="1.5" />
+
+    <!-- Foreleg Fin (Right Edge) -->
+    <path d="M 365 568 C 378 562, 385 552, 385 542 C 392 565, 378 595, 370 612 C 388 605, 402 595, 405 585 C 408 605, 395 622, 388 632 C 402 632, 412 638, 405 648 C 392 655, 382 662, 388 675 C 375 680, 365 692, 368 705 L 345 685 Z" fill="url(#finGrad)" stroke="#0f6bc2" stroke-width="1.5" stroke-linejoin="round" />
+
+    <!-- Muscular Shoulder & Foreleg -->
+    <path d="M 275 400
+             C 235 420, 232 495, 265 550
+             C 295 595, 305 645, 285 705
+             L 348 705
+             C 345 655, 365 605, 365 555
+             C 365 505, 325 415, 275 400 Z" fill="url(#bodyBlue)" stroke="#0b469c" stroke-width="2" />
+
+    <!-- Glowing Turquoise Shoulder Spots -->
+    <g fill="#68f7ed" opacity="0.9">
+      <ellipse cx="278" cy="422" rx="14" ry="9" transform="rotate(-20 278 422)" />
+      <ellipse cx="275" cy="458" rx="16" ry="12" transform="rotate(-15 275 458)" />
+      <circle cx="302" cy="442" r="8" />
+      <circle cx="305" cy="472" r="7" />
+      <ellipse cx="278" cy="495" rx="10" ry="14" transform="rotate(20 278 495)" />
+      <circle cx="298" cy="508" r="6" />
+      <circle cx="332" cy="568" r="9" />
+      <circle cx="322" cy="595" r="7" />
+    </g>
+
+    <!-- Foreground Webbed Foot & Toes -->
+    <path d="M 288 698
+             C 265 725, 235 748, 215 762
+             C 228 778, 252 782, 272 778
+             C 278 795, 308 798, 328 785
+             C 348 785, 372 785, 388 775
+             C 372 748, 355 725, 345 698 Z" fill="url(#webFootGrad)" stroke="#0d5ca6" stroke-width="2" stroke-linejoin="round" />
+    <!-- Toe Rays & Rounded Pads -->
+    <path d="M 295 702 L 232 765 M 310 705 L 288 782 M 325 705 L 332 775 M 338 702 L 375 770" stroke="#0d5ca6" stroke-width="3.5" stroke-linecap="round" />
+    <ellipse cx="228" cy="768" rx="15" ry="10" transform="rotate(-15 228 768)" fill="#1578d4" stroke="#0a3b6e" stroke-width="1.5" />
+    <ellipse cx="288" cy="785" rx="18" ry="12" fill="#1578d4" stroke="#0a3b6e" stroke-width="1.5" />
+    <ellipse cx="332" cy="775" rx="12" ry="8" fill="#1578d4" stroke="#0a3b6e" stroke-width="1.5" />
+    <ellipse cx="375" cy="772" rx="15" ry="10" transform="rotate(15 375 772)" fill="#1578d4" stroke="#0a3b6e" stroke-width="1.5" />
+  </g>
+
+  <!-- ================= HEAD, FRILL FINS & CORAL ANTLERS ================= -->
+  <g id="head-and-crown">
+    <!-- Right Cheek Fin (Far Side) -->
+    <path d="M 332 175 C 355 168, 372 170, 380 175 C 365 185, 355 198, 348 210 C 355 215, 362 222, 362 228 C 350 228, 338 225, 328 220 Z" fill="url(#finGrad)" stroke="#0f6bc2" stroke-width="1.5" />
+
+    <!-- Large Left Cheek Frill Fan -->
+    <path d="M 205 145
+             C 155 112, 105 98, 78 90
+             C 102 115, 118 135, 112 152
+             C 92 150, 75 152, 65 158
+             C 95 168, 115 188, 112 208
+             C 92 218, 78 232, 72 248
+             C 102 232, 122 242, 125 258
+             C 118 278, 112 295, 110 310
+             C 132 280, 152 255, 178 242
+             C 162 268, 152 288, 150 302
+             C 168 285, 185 268, 198 255 Z" fill="url(#finGrad)" stroke="#0f6bc2" stroke-width="2" stroke-linejoin="round" />
+    <!-- Cheek Frill Spine Rays -->
+    <path d="M 195 155 L 78 90 M 190 172 L 65 158 M 188 190 L 72 248 M 188 210 L 110 310" stroke="#1585e8" stroke-width="3.5" stroke-linecap="round" />
+
+    <!-- Back Crown Horns (Blue/Teal) -->
+    <path d="M 215 140 C 195 95, 178 65, 175 40 C 215 65, 250 100, 272 135 Z" fill="url(#bodyBlue)" stroke="#0b469c" stroke-width="2" />
+    <path d="M 248 135 C 235 95, 228 65, 232 45 C 262 72, 285 102, 298 135 Z" fill="url(#bodyBlue)" stroke="#0b469c" stroke-width="2" />
+
+    <!-- Main Head Structure & Snout -->
+    <path d="M 195 150
+             C 225 115, 295 120, 328 160
+             C 345 182, 345 215, 338 238
+             C 332 262, 318 282, 295 280
+             C 265 278, 235 255, 205 245
+             C 182 235, 175 185, 195 150 Z" fill="url(#bodyBlue)" stroke="#0b469c" stroke-width="2" />
+
+    <!-- Cream Lower Jaw & Chin -->
+    <path d="M 185 205
+             C 202 225, 232 238, 260 255
+             C 282 268, 305 270, 322 262
+             C 318 278, 302 284, 285 280
+             C 255 272, 222 252, 190 238
+             C 182 228, 180 215, 185 205 Z" fill="url(#creamBelly)" stroke="#8c7d68" stroke-width="1.5" />
+
+    <!-- Smile Line & Nostril -->
+    <path d="M 232 228 C 258 248, 285 268, 322 262" fill="none" stroke="#083366" stroke-width="2.5" stroke-linecap="round" />
+    <ellipse cx="298" cy="242" rx="5" ry="3.5" transform="rotate(25 298 242)" fill="#083366" />
+    <ellipse cx="332" cy="244" rx="3.5" ry="3" transform="rotate(-15 332 244)" fill="#083366" />
+
+    <!-- ================= EYES ================= -->
+    <!-- Left Eye (Main Foreground Eye) -->
+    <g id="left-eye">
+      <!-- Eyelashes / Socket -->
+      <path d="M 205 175 C 222 158, 252 168, 258 198 C 258 212, 245 220, 228 216 C 212 212, 208 190, 205 175 Z" fill="#061833" />
+      <!-- Sclera -->
+      <path d="M 212 180 C 225 166, 248 174, 254 198 C 252 210, 240 216, 226 212 C 215 208, 212 192, 212 180 Z" fill="#ffffff" />
+      <!-- Teal/Blue Iris -->
+      <ellipse cx="236" cy="194" rx="16" ry="18" fill="url(#eyeIris)" />
+      <!-- Pupil -->
+      <ellipse cx="238" cy="194" rx="9" ry="11" fill="#030a17" />
+      <!-- Catchlights -->
+      <circle cx="230" cy="185" r="5" fill="#ffffff" />
+      <circle cx="244" cy="202" r="2.5" fill="#ffffff" />
+      <!-- Expressive Brow Ridge -->
+      <path d="M 202 165 C 225 148, 255 160, 265 188" fill="none" stroke="#0b469c" stroke-width="3" stroke-linecap="round" />
+    </g>
+
+    <!-- Right Eye (Far Side) -->
+    <g id="right-eye">
+      <path d="M 318 198 C 325 182, 340 182, 344 198 C 342 212, 330 220, 320 215 Z" fill="#061833" />
+      <ellipse cx="328" cy="202" rx="9" ry="12" fill="url(#eyeIris)" />
+      <ellipse cx="329" cy="202" rx="5" ry="7" fill="#030a17" />
+      <circle cx="326" cy="196" r="3" fill="#ffffff" />
+    </g>
+
+    <!-- ================= BRANCHING CORAL CROWN ANTLERS ================= -->
+    <g id="coral-crown">
+      <!-- Left Coral Branch -->
+      <path d="M 192 115
+               C 168 108, 140 92, 138 72
+               C 138 62, 148 62, 152 72
+               C 155 60, 155 45, 165 45
+               C 175 45, 175 68, 178 82
+               C 188 78, 198 78, 200 88
+               C 202 98, 195 108, 192 115 Z" fill="url(#coralGrad)" stroke="#b02c46" stroke-width="1.5" stroke-linejoin="round" />
+
+      <!-- Left Forehead Coral Sprout -->
+      <path d="M 212 130
+               C 188 128, 172 108, 175 90
+               C 182 88, 188 102, 195 108
+               C 198 98, 208 98, 210 108
+               C 212 118, 215 125, 212 130 Z" fill="url(#coralGrad)" stroke="#b02c46" stroke-width="1.5" stroke-linejoin="round" />
+
+      <!-- Mid-Back Coral Branch -->
+      <path d="M 240 105
+               C 215 88, 192 65, 192 40
+               C 192 30, 205 32, 210 52
+               C 212 35, 212 22, 222 22
+               C 232 22, 232 52, 238 68
+               C 248 58, 258 58, 260 68
+               C 262 78, 250 95, 240 105 Z" fill="url(#coralGrad)" stroke="#b02c46" stroke-width="1.5" stroke-linejoin="round" />
+
+      <!-- Main Center Coral Antler (Extending Down Nose Bridge) -->
+      <path d="M 302 185
+               C 295 155, 290 135, 272 125
+               C 260 120, 258 105, 268 105
+               C 275 105, 280 112, 285 115
+               C 282 95, 255 75, 252 52
+               C 250 40, 262 38, 272 52
+               C 280 62, 285 55, 285 35
+               C 285 18, 302 15, 305 32
+               C 308 52, 305 72, 312 78
+               C 322 65, 338 45, 345 48
+               C 352 52, 345 78, 332 92
+               C 342 92, 355 88, 358 98
+               C 360 108, 342 115, 325 115
+               C 312 118, 310 155, 302 185 Z" fill="url(#coralGrad)" stroke="#b02c46" stroke-width="1.5" stroke-linejoin="round" />
+
+      <!-- Right Side Coral Branch -->
+      <path d="M 318 145
+               C 332 135, 345 120, 340 112
+               C 335 105, 325 112, 322 105
+               C 332 95, 348 92, 352 102
+               C 358 115, 345 138, 328 152 Z" fill="url(#coralGrad)" stroke="#b02c46" stroke-width="1.5" stroke-linejoin="round" />
+    </g>
+  </g>
+</svg>

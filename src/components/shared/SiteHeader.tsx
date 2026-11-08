@@ -14,7 +14,7 @@ import { useLocale } from "@/components/shared/LocaleProvider";
 export default function SiteHeader() {
   const { t } = useLocale();
   const pathname = usePathname();
-  const links: [string, string][] = [["/", "nav.overview"], ["/learn", "nav.learn"], ["/library", "nav.library"], ["/setup", "nav.practice"]];
+  const links: [string, string][] = [["/", "nav.overview"], ["/learn", "nav.learn"], ["/library", "nav.library"], ["/setup", "nav.practice"], ["/test", "nav.test"], ["/daily", "nav.daily"]];
   const isActive = (href: string) => (href === "/" ? pathname === "/" : pathname.startsWith(href));
   const ref = useRef<HTMLElement>(null);
   // The bar is position:fixed, so publish its real height (it wraps to two rows on phones) for the body offset.
