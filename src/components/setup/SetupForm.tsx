@@ -9,7 +9,7 @@ import { lessonCategories } from "@/data/categories";
 import type { LessonCategory, LessonConfig } from "@/types";
 import { useLocale } from "@/components/shared/LocaleProvider";
 import { RANDOM_LESSON, articleHref, pickArticle, suggestedTime } from "@/lib/lesson-picker";
-import { DURATIONS } from "@/lib/article-length";
+import { DURATIONS, MAX_DURATION, minutesToDuration } from "@/lib/article-length";
 
 const timeLimits = DURATIONS;
 
@@ -17,6 +17,7 @@ export default function SetupForm() {
   const { locale, setLocale, t } = useLocale();
   const router = useRouter();
   const [timeTouched, setTimeTouched] = useState(false);
+  const [customMinutes, setCustomMinutes] = useState("");
   const [config, setConfig] = useState<LessonConfig>({
     language: "english",
     categoryId: "english",
@@ -68,7 +69,20 @@ export default function SetupForm() {
         <fieldset>
           <legend className="text-[10px] font-bold tracking-[0.16em] text-[color:var(--muted)]">{t("setup.stepTime")}</legend>
           <div className="mt-3 grid grid-cols-3 gap-2 sm:grid-cols-5">
-            {timeLimits.map((seconds) => <button key={seconds} type="button" aria-pressed={config.timeLimit === seconds} onClick={() => { setTimeTouched(true); setConfig((current) => ({ ...current, timeLimit: seconds })); }} className={`rounded-lg border px-3 py-3 text-sm transition ${config.timeLimit === seconds ? "border-[color:var(--green)] bg-[color:var(--pale)] font-semibold text-[#3a4b67]" : "border-[color:var(--line)] bg-white text-[#6f747b] hover:border-[color:var(--line)]"}`}>{seconds / 60} {t("setup.min")}<span className="mt-1 block text-[10px] font-normal opacity-75">{seconds} {t("setup.seconds")}</span></button>)}
+            {timeLimits.map((seconds) => <button key={seconds} type="button" aria-pressed={config.timeLimit === seconds} onClick={() => { setTimeTouched(true); setCustomMinutes(""); setConfig((current) => ({ ...current, timeLimit: seconds })); }} className={`rounded-lg border px-3 py-3 text-sm transition ${config.timeLimit === seconds ? "border-[color:var(--green)] bg-[color:var(--pale)] font-semibold text-[#3a4b67]" : "border-[color:var(--line)] bg-white text-[#6f747b] hover:border-[color:var(--line)]"}`}>{seconds / 60} {t("setup.min")}<span className="mt-1 block text-[10px] font-normal opacity-75">{seconds} {t("setup.seconds")}</span></button>)}
+          </div>
+          <div className="mt-3 flex items-center gap-3">
+            <label htmlFor="custom-minutes" className="text-xs text-[color:var(--muted)]">{km ? "ឬបញ្ចូលរយៈពេលខ្លួនឯង" : "Or enter your own"}</label>
+            <input id="custom-minutes" type="number" inputMode="numeric" min={1} max={MAX_DURATION / 60} step={1} value={customMinutes} placeholder="e.g. 7"
+              onChange={(event) => {
+                const value = event.target.value;
+                setCustomMinutes(value);
+                const seconds = minutesToDuration(Number(value));
+                if (value !== "" && seconds) { setTimeTouched(true); setConfig((current) => ({ ...current, timeLimit: seconds })); }
+              }}
+              onBlur={() => { const seconds = minutesToDuration(Number(customMinutes)); if (seconds) setCustomMinutes(String(seconds / 60)); else setCustomMinutes(""); }}
+              className="w-24 rounded-lg border border-[#dee2e8] bg-white px-3 py-2 text-sm text-[#33373d] outline-none focus:border-[#717e94] focus:ring-2 focus:ring-[#717e94]/15" />
+            <span className="text-xs text-[color:var(--muted)]">{t("setup.min")} (1–{MAX_DURATION / 60})</span>
           </div>
         </fieldset>
         <div className="mt-8 flex flex-wrap items-center justify-between gap-4 border-t border-[#ebedf0] pt-5">

@@ -2,9 +2,12 @@ import { lessons, type Lesson } from "@/data/lessons";
 import type { ProgressStore } from "@/types/progress";
 import type { Language } from "@/types";
 
-/** Session lengths offered to the user, in seconds (1, 2, 3, 5 and 10 minutes). */
+/** Quick-pick session lengths, in seconds (1, 2, 3, 5 and 10 minutes). */
 export const DURATIONS = [60, 120, 180, 300, 600] as const;
 export const DEFAULT_DURATION = 60;
+/** Users may also type their own length, in whole minutes, within these bounds (seconds). */
+export const MIN_DURATION = 60;
+export const MAX_DURATION = 1800;
 
 /** Used until the user has enough history for us to learn their pace. */
 export const DEFAULT_WPM = 40;
@@ -24,7 +27,12 @@ const WHOLE_MAX = 1.25;
 const TRIM_MIN = 0.85;
 
 export const isDuration = (seconds: number): boolean => (DURATIONS as readonly number[]).includes(seconds);
-export const normalizeDuration = (seconds: number): number => (isDuration(seconds) ? seconds : DEFAULT_DURATION);
+/** Any whole number of seconds within bounds is accepted (custom lengths); anything else falls back to the default. */
+export const normalizeDuration = (seconds: number): number =>
+  Number.isFinite(seconds) && seconds >= MIN_DURATION ? Math.min(MAX_DURATION, Math.round(seconds)) : DEFAULT_DURATION;
+/** Whole minutes typed by the user -> a valid duration in seconds, or null when empty/invalid. */
+export const minutesToDuration = (minutes: number): number | null =>
+  Number.isFinite(minutes) && minutes >= 1 ? Math.min(MAX_DURATION, Math.round(minutes) * 60) : null;
 
 /** Length in standard typing words (5 characters each). Same unit as WPM, and meaningful for Khmer, which has no spaces. */
 export function typingWords(text: string): number {
@@ -100,13 +108,16 @@ export function buildArticle(language: Language, wpm: number, seconds: number, o
   if (fitting.length) return whole(fitting[Math.floor(random() * fitting.length)]);
 
   // Chain shuffled articles (fresh ones first, then the rest) until there is enough text.
-  const order = [...shuffle(pool, random), ...shuffle(all.filter((l) => !pool.includes(l)), random)];
+  // Long custom sessions can need more text than exists, so the order repeats with a fresh shuffle.
   const used: Lesson[] = [];
   let text = "";
-  for (const lesson of order) {
-    used.push(lesson);
-    text = text ? `${text} ${lesson.text}` : lesson.text;
-    if (typingWords(text) >= target) break;
+  for (let round = 0; round < 4 && typingWords(text) < target; round++) {
+    const order = [...shuffle(pool, random), ...shuffle(all.filter((l) => !pool.includes(l)), random)];
+    for (const lesson of order) {
+      used.push(lesson);
+      text = text ? `${text} ${lesson.text}` : lesson.text;
+      if (typingWords(text) >= target) break;
+    }
   }
   return compose(used, target);
 }

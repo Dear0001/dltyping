@@ -11,7 +11,8 @@ import { completeLesson, readUserProgress, recordPractice } from "@/lib/local-pr
 import { curricula, findLesson } from "@/data/curriculum";
 import { GameDialog } from "@/components/games/shared/GameDialog";
 import { pickArticle } from "@/lib/lesson-picker";
-import { isPlainLesson, type Article } from "@/lib/article-length";
+import { DURATIONS, MAX_DURATION, articleFromIds, averageWpm, isPlainLesson, minutesToDuration, targetWords, typingWords, type Article } from "@/lib/article-length";
+import { readStore } from "@/lib/progress/progress-storage";
 import VirtualKeyboard from "@/components/keyboard/VirtualKeyboard";
 import { osFromPlatform } from "@/lib/keyboard/keyboard-detection";
 import WeakKeysReport from "@/components/typing/WeakKeysReport";
@@ -28,13 +29,15 @@ type TypingPracticeProps = {
   /** Drill text built from a dashboard recommendation (weak keys, combinations or words). */
   initialDrill?: string | null;
   /** A generated article sized to the chosen duration (text from one or more lessons). */
-  initialArticle?: Pick<Article, "title" | "text"> | null;
+  initialArticle?: Pick<Article, "title" | "text" | "ids"> | null;
 };
 
-export default function TypingPractice({ language, platform = "Unknown", initialLessonId, timeLimit = 60, initialDrill = null, initialArticle = null }: TypingPracticeProps) {
+export default function TypingPractice({ language, platform = "Unknown", initialLessonId, timeLimit: initialTimeLimit = 60, initialDrill = null, initialArticle = null }: TypingPracticeProps) {
   const { locale, t } = useLocale();
   const list = lessons[language];
   const [lessonId, setLessonId] = useState(() => list.find((item) => item.id === initialLessonId)?.id ?? list[0].id);
+  const [timeLimit, setTimeLimit] = useState(initialTimeLimit);
+  const [customMinutes, setCustomMinutes] = useState("");
   const [input, setInput] = useState("");
   const [seconds, setSeconds] = useState(0);
   const [running, setRunning] = useState(false);
@@ -43,7 +46,7 @@ export default function TypingPractice({ language, platform = "Unknown", initial
   const [forcedDone, setForcedDone] = useState(false);
   const [resultClosed, setResultClosed] = useState(false);
   const [drillText, setDrillText] = useState<string | null>(initialDrill);
-  const [article, setArticle] = useState<Pick<Article, "title" | "text"> | null>(initialArticle);
+  const [article, setArticle] = useState<Pick<Article, "title" | "text" | "ids"> | null>(initialArticle);
   const [needsKhmerInputSwitch, setNeedsKhmerInputSwitch] = useState(false);
   const inputRef = useRef<HTMLTextAreaElement>(null);
   const audioRef = useRef<AudioContext | null>(null);
@@ -144,6 +147,23 @@ export default function TypingPractice({ language, platform = "Unknown", initial
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
+  /** Change the session length: the text is resized to fit it (a drill keeps its text), then the session restarts. */
+  function changeTime(nextSeconds: number) {
+    if (nextSeconds === timeLimit && !customMinutes) return;
+    setTimeLimit(nextSeconds);
+    let next: Pick<Article, "title" | "text" | "ids"> | null | undefined;
+    let nextId = lessonId;
+    if (!drillText) {
+      const goal = targetWords(averageWpm(readStore(), language), nextSeconds);
+      const sameLesson = typingWords(lesson.text) >= goal * 0.8 ? articleFromIds(language, lessonId, goal) : null;
+      const built = sameLesson ?? pickArticle(language, nextSeconds).article;
+      next = isPlainLesson(built) ? null : built;
+      nextId = built.ids[0];
+      try { window.history.replaceState(null, "", `/learn/${language}?lesson=${encodeURIComponent(built.ids.join(","))}&goal=${goal}&time=${nextSeconds}`); } catch {}
+    }
+    reset(nextId, drillText, next);
+  }
+
   /** New random article sized for the chosen duration and the user's own average speed. */
   function newArticle() {
     const { article: picked } = pickArticle(language, timeLimit, [lessonId]);
@@ -151,7 +171,7 @@ export default function TypingPractice({ language, platform = "Unknown", initial
   }
 
   /** Start over. A drill is kept on retry, and cleared when another lesson is chosen. */
-  function reset(nextId = lessonId, drill?: string | null, nextArticle?: Pick<Article, "title" | "text"> | null) {
+  function reset(nextId = lessonId, drill?: string | null, nextArticle?: Pick<Article, "title" | "text" | "ids"> | null) {
     recorder.flush();
     flushSession(language, sessionStatsRef.current);
     sessionStatsRef.current = {};
@@ -261,6 +281,16 @@ export default function TypingPractice({ language, platform = "Unknown", initial
         <div className="practice-grid">
           <section className="practice-main">
             <div className="lesson-bar"><div className="lesson-name"><span className="lesson-icon">✳</span><div><span className="small-label">{t("practice.currentLesson")}</span><strong>{drillText ? (locale === "km" ? "ហាត់គ្រាប់ចុចខ្សោយ" : "Weak-key drill") : article?.title ?? lesson.title}</strong></div></div><select value={lessonId} onChange={(event) => reset(event.target.value)} aria-label={locale === "km" ? "ជ្រើសរើសមេរៀន" : "Choose lesson"}>{list.map((item) => <option key={item.id} value={item.id}>{item.title}</option>)}</select></div>
+            <div className="flex flex-wrap items-center gap-2 border border-t-0 border-[color:var(--line)] bg-white px-4 py-2 text-xs text-[color:var(--muted)]">
+              <span className="mr-1 text-[9px] font-bold tracking-[0.14em]">{locale === "km" ? "រយៈពេល" : "TIME"}</span>
+              {DURATIONS.map((value) => <button key={value} type="button" disabled={running} aria-pressed={timeLimit === value} onClick={() => { setCustomMinutes(""); changeTime(value); }} className={`rounded-md border px-2.5 py-1 transition disabled:opacity-50 ${timeLimit === value ? "border-[color:var(--green)] bg-[color:var(--pale)] font-semibold text-[#3a4b67]" : "border-[color:var(--line)] bg-white hover:bg-[color:var(--pale)]"}`}>{value / 60} {t("setup.min")}</button>)}
+              <input type="number" inputMode="numeric" min={1} max={MAX_DURATION / 60} step={1} disabled={running} value={customMinutes} placeholder={locale === "km" ? "ផ្ទាល់ខ្លួន" : "Custom"} aria-label={locale === "km" ? "រយៈពេលជានាទី" : "Custom minutes"}
+                onChange={(event) => setCustomMinutes(event.target.value)}
+                onKeyDown={(event) => { if (event.key === "Enter") event.currentTarget.blur(); }}
+                onBlur={() => { const seconds = minutesToDuration(Number(customMinutes)); if (seconds) { setCustomMinutes(String(seconds / 60)); changeTime(seconds); } else setCustomMinutes(""); }}
+                className="w-20 rounded-md border border-[color:var(--line)] bg-white px-2 py-1 outline-none focus:border-[#717e94] disabled:opacity-50" />
+              <span>{t("setup.min")}</span>
+            </div>
             <div className="typing-card">
               <div className="text-meta"><span>{t("practice.typeBelow")}</span><span>{lessonLevel} <i>·</i> {lessonMinutes} {t("setup.min")}</span></div>
               <div className={`prompt ${language === "khmer" ? "khmer-prompt" : ""}`} onClick={() => inputRef.current?.focus()}>

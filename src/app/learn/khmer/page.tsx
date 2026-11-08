@@ -20,7 +20,7 @@ async function KhmerPracticeContent({ searchParams }: KhmerPracticeProps) {
   const initialDrill = buildDrillText("khmer", { drill, combo, words });
   // A generated article is sized to the chosen duration; a plain lesson id opens that lesson as written.
   const generated = resolveArticle("khmer", lesson, Number(goal) || 0, timeLimit);
-  const article = generated && !isPlainLesson(generated) ? { title: generated.title, text: generated.text } : null;
+  const article = generated && !isPlainLesson(generated) ? { title: generated.title, text: generated.text, ids: generated.ids } : null;
   const lessonId = generated ? generated.ids[0] : resolveLessonId("khmer", lesson);
 
   return <TypingPractice language="khmer" platform={platform} initialLessonId={lessonId} initialArticle={article} timeLimit={timeLimit} initialDrill={initialDrill} />;
