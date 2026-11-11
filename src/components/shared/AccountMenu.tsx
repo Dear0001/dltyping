@@ -126,7 +126,8 @@ export default function AccountMenu() {
     close();
   }
 
-  if (account.status === "loading") return <span className="h-9 w-24" aria-hidden="true" />;
+  // Sized from html[data-acct] (last known state) so the bar doesn't shift when /api/auth/me answers.
+  if (account.status === "loading") return <span className="acct-ph" aria-hidden="true" />;
   if (account.status === "user") {
     const label = account.name || account.email;
     return <div className="acct" ref={menuRef}>
@@ -151,7 +152,7 @@ export default function AccountMenu() {
     </div>;
   }
   return <>
-    <button type="button" className={`${primaryBtn} whitespace-nowrap !px-4 !py-2 !text-xs`} onClick={() => { setMode("login"); setError(null); setOpen(true); }}>{t("auth.signIn")}</button>
+    <button type="button" className={`${primaryBtn} acct-signin whitespace-nowrap !px-4 !py-2 !text-xs`} onClick={() => { setMode("login"); setError(null); setOpen(true); }}>{t("auth.signIn")}</button>
     {open && pending && <GameDialog title={t("auth.enterCode")} subtitle={pending.state === "sent" ? t("auth.emailedCode", { email: pending.email }) : pending.state === "unverified" ? t("auth.notVerified", { email: pending.email }) : t("auth.couldNotEmail", { email: pending.email })} logo onEscape={close}>
       <form onSubmit={confirmCode} className="space-y-3">
         <p className="text-center text-sm text-mute">{t(pending.state === "sent" ? "auth.verifyThenSignIn" : "auth.pressSend")}</p>

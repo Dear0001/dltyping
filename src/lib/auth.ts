@@ -60,6 +60,11 @@ export async function destroySession() {
 /** CSRF defence on top of SameSite=Lax: only JSON bodies from our own origin. */
 export async function assertSameOrigin(request: Request) {
   if (!request.headers.get("content-type")?.includes("application/json")) return false;
+  return isSameOrigin(request);
+}
+
+/** True when the request has no Origin (non-browser client) or comes from this site. For form/multipart endpoints. */
+export async function isSameOrigin(request: Request) {
   const origin = request.headers.get("origin");
   if (!origin) return true; // non-browser clients; browsers always send Origin on cross-site POSTs
   const host = (await headers()).get("host");

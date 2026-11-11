@@ -2,7 +2,8 @@
 
 import { useEffect, useRef, useState, useSyncExternalStore } from "react";
 import { useLocale } from "@/components/shared/LocaleProvider";
-import { AUTO_THEME, THEMES, THEME_KEY, isThemeId, isThemeMode, themeForHour, type ThemeId, type ThemeMode } from "@/lib/themes";
+import BiText from "@/components/shared/BiText";
+import { AUTO_THEME, THEMES, THEME_KEY, THEME_MODE_ATTR, isThemeId, isThemeMode, themeForHour, type ThemeId, type ThemeMode } from "@/lib/themes";
 
 const listeners = new Set<() => void>();
 const subscribe = (cb: () => void) => { listeners.add(cb); return () => { listeners.delete(cb); }; };
@@ -21,6 +22,7 @@ function paint(id: ThemeId) {
 
 function apply(mode: ThemeMode) {
   paint(resolve(mode));
+  document.documentElement.setAttribute(THEME_MODE_ATTR, mode); // drives the button label CSS (THEME_LABEL_CSS)
   try { localStorage.setItem(THEME_KEY, mode); } catch { /* storage unavailable */ }
   listeners.forEach((l) => l());
 }
@@ -59,8 +61,11 @@ export default function ThemeSwitcher() {
   return (
     <div className="theme-switcher" ref={ref}>
       <button type="button" className="ts-btn" aria-haspopup="menu" aria-expanded={open} aria-label={`${tr("nav.theme")}: ${isAuto ? tr("theme.auto") : tr(`theme.${cur.id}`)}`} onClick={() => setOpen((v) => !v)}>
-        <span className="ts-dot" style={dot(cur)} aria-hidden="true" />
-        <span className="ts-name">{isAuto ? tr("theme.auto") : tr(`theme.${cur.id}`)}</span>
+        {/* Every option is rendered; CSS shows the stored one from the first paint, before React reads localStorage. */}
+        <span className="ts-cur" data-t={AUTO_THEME}><span className="ts-dot ts-auto" aria-hidden="true" /><span className="ts-name"><BiText k="theme.auto" /></span></span>
+        {THEMES.map((th) => (
+          <span key={th.id} className="ts-cur" data-t={th.id}><span className="ts-dot" style={dot(th)} aria-hidden="true" /><span className="ts-name"><BiText k={`theme.${th.id}`} /></span></span>
+        ))}
         <span className="ts-caret" aria-hidden="true">⌄</span>
       </button>
       {open && <div className="ts-menu" role="menu" aria-label={tr("nav.theme")}>

@@ -3,6 +3,7 @@ import common from "./messages/common";
 import navigation from "./messages/navigation";
 import authentication from "./messages/authentication";
 import footer from "./messages/footer";
+import support from "./messages/support";
 import dashboard from "./messages/dashboard";
 import practice from "./messages/practice";
 import games from "./messages/games";
@@ -21,7 +22,7 @@ import overview from "./messages/overview";
 export type { AppLocale, Vars };
 
 /** Add a namespace file under ./messages and list it here. Keys are "<namespace>.<name>". */
-export const namespaces: Record<string, Dict> = { common, navigation, authentication, footer, dashboard, practice, games, overview, learn, library, daily, test, setup, progress, pets, gm, help, mastery };
+export const namespaces: Record<string, Dict> = { common, navigation, authentication, footer, support, dashboard, practice, games, overview, learn, library, daily, test, setup, progress, pets, gm, help, mastery };
 
 const table: Dict = {};
 for (const [name, dict] of Object.entries(namespaces)) {

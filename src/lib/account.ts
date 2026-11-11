@@ -2,6 +2,7 @@
 
 // Client account store: who is signed in, plus sign-in / sign-up / sign-out actions.
 import { useSyncExternalStore } from "react";
+import { ACCOUNT_HINT_KEY } from "@/lib/prepaint";
 import { clearLocalProgress, getDeviceId, setSyncAccount, syncProgress } from "@/lib/sync";
 
 export type Account = { status: "loading" | "anon" | "user"; email?: string; name?: string | null; /** Granted by the server for this email (see src/lib/perks.ts). */ perks?: { allPets?: boolean } };
@@ -11,8 +12,16 @@ const LOADING: Account = { status: "loading" };
 
 function set(next: Account) {
   account = next;
+  if (next.status !== "loading") rememberStatus(next.status);
   setSyncAccount(next.status === "user");
   listeners.forEach((l) => l());
+}
+
+/** Saves a first-paint hint (html[data-acct]) so the navbar is laid out for the right state on the next refresh. */
+function rememberStatus(status: "anon" | "user") {
+  if (typeof document === "undefined") return;
+  document.documentElement.setAttribute("data-acct", status);
+  try { localStorage.setItem(ACCOUNT_HINT_KEY, status); } catch { /* storage unavailable: only the hint is lost */ }
 }
 
 export function useAccount(): Account {

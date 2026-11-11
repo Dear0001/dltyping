@@ -2,6 +2,7 @@
 
 import { createContext, useCallback, useContext, useEffect, useMemo, useSyncExternalStore, type ReactNode } from "react";
 import { translate, type AppLocale, type Vars } from "@/lib/i18n";
+import { LOCALE_KEY as STORAGE_KEY } from "@/lib/prepaint";
 
 type LocaleContextValue = {
   locale: AppLocale;
@@ -10,7 +11,6 @@ type LocaleContextValue = {
 };
 
 const LocaleContext = createContext<LocaleContextValue | null>(null);
-const STORAGE_KEY = "keyflow-locale";
 const listeners = new Set<() => void>();
 let memoryLocale: AppLocale = "en";
 
@@ -55,7 +55,11 @@ export function LocaleProvider({ children }: { children: ReactNode }) {
   const locale = useSyncExternalStore(subscribeToLocale, getLocaleSnapshot, getServerLocaleSnapshot);
 
   useEffect(() => {
-    document.documentElement.lang = locale === "km" ? "km" : "en";
+    const root = document.documentElement;
+    root.lang = locale === "km" ? "km" : "en";
+    // CSS for always-visible chrome (BiText) reads this; the pre-paint script sets it on refresh.
+    if (locale === "km") root.setAttribute("data-locale", "km");
+    else root.removeAttribute("data-locale");
     document.title = locale === "km" ? "DL Typing — ហាត់វាយអក្សរខ្មែរ និងអង់គ្លេស" : "DL Typing — Find your typing rhythm";
   }, [locale]);
 

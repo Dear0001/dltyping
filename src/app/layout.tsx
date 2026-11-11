@@ -3,13 +3,13 @@ import { Poppins } from "next/font/google";
 import { Suspense } from "react";
 import { LocaleProvider } from "@/components/shared/LocaleProvider";
 import SiteHeader from "@/components/shared/SiteHeader";
-import { SiteHeaderSkeleton } from "@/components/skeleton/Skeleton";
 import SiteFooter from "@/components/shared/SiteFooter";
 import ProgressSync from "@/components/shared/ProgressSync";
 import PetCompanion from "@/components/pets/PetCompanion";
 import PetRewards from "@/components/pets/PetRewards";
 import StreakCelebration from "@/components/shared/StreakCelebration";
-import { THEME_INIT_SCRIPT } from "@/lib/themes";
+import { THEME_LABEL_CSS } from "@/lib/themes";
+import { NAV_ACTIVE_SCRIPT, PREPAINT_SCRIPT } from "@/lib/prepaint";
 import GoogleAnalytics from "@/components/shared/GoogleAnalytics";
 import { SITE_URL } from "@/lib/site";
 import "./globals.css";
@@ -36,8 +36,8 @@ export const metadata: Metadata = {
 export default function RootLayout({ children }: LayoutProps<"/">) {
   return (
     <html lang="en" data-scroll-behavior="smooth" className={poppins.variable} suppressHydrationWarning>
-      <head><script dangerouslySetInnerHTML={{ __html: THEME_INIT_SCRIPT }} /></head>
-      <body id="top" suppressHydrationWarning><LocaleProvider><Suspense fallback={<SiteHeaderSkeleton />}><SiteHeader /></Suspense>{children}<SiteFooter /><ProgressSync /><Suspense fallback={null}><PetCompanion /></Suspense><PetRewards /><StreakCelebration /></LocaleProvider><GoogleAnalytics /></body>
+      <head><script dangerouslySetInnerHTML={{ __html: PREPAINT_SCRIPT }} /><style dangerouslySetInnerHTML={{ __html: THEME_LABEL_CSS }} /></head>
+      <body id="top" suppressHydrationWarning><LocaleProvider><SiteHeader /><script dangerouslySetInnerHTML={{ __html: NAV_ACTIVE_SCRIPT }} />{children}<SiteFooter /><ProgressSync /><Suspense fallback={null}><PetCompanion /></Suspense><PetRewards /><StreakCelebration /></LocaleProvider><GoogleAnalytics /></body>
     </html>
   );
 }

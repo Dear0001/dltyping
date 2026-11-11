@@ -1,7 +1,8 @@
 import "server-only";
 import nodemailer from "nodemailer";
 
-type Message = { to: string; subject: string; html: string; text: string };
+type Attachment = { filename: string; content: Buffer; contentType: string };
+type Message = { to: string; subject: string; html: string; text: string; replyTo?: string; attachments?: Attachment[] };
 
 /**
  * Sends one email. Tries Gmail first (set GMAIL_USER and GMAIL_APP_PASSWORD; needs a Google App Password),
@@ -33,7 +34,7 @@ async function sendViaGmail(user: string, pass: string, msg: Message): Promise<b
   try {
     // App passwords are shown with spaces ("abcd efgh ijkl mnop"); Gmail wants them without.
     const transport = nodemailer.createTransport({ host: "smtp.gmail.com", port: 465, secure: true, auth: { user, pass: pass.replace(/\s+/g, "") } });
-    await transport.sendMail({ from: process.env.GMAIL_FROM || `DL Typing <${user}>`, to: msg.to, subject: msg.subject, html: msg.html, text: msg.text });
+    await transport.sendMail({ from: process.env.GMAIL_FROM || `DL Typing <${user}>`, to: msg.to, replyTo: msg.replyTo, subject: msg.subject, html: msg.html, text: msg.text, attachments: msg.attachments });
     return true;
   } catch (error) {
     console.error("[mailer] Gmail could not send the email", error);
@@ -46,7 +47,10 @@ async function sendViaResend(key: string, msg: Message): Promise<boolean> {
     const res = await fetch("https://api.resend.com/emails", {
       method: "POST",
       headers: { Authorization: `Bearer ${key}`, "Content-Type": "application/json" },
-      body: JSON.stringify({ from: process.env.EMAIL_FROM || "DL Typing <onboarding@resend.dev>", to: [msg.to], subject: msg.subject, html: msg.html, text: msg.text }),
+      body: JSON.stringify({ from: process.env.EMAIL_FROM || "DL Typing <onboarding@resend.dev>", to: [msg.to], subject: msg.subject, html: msg.html, text: msg.text,
+        ...(msg.replyTo && { reply_to: msg.replyTo }),
+        ...(msg.attachments?.length && { attachments: msg.attachments.map((a) => ({ filename: a.filename, content: a.content.toString("base64"), content_type: a.contentType })) }),
+      }),
     });
     if (!res.ok) console.error("[mailer] Resend rejected the email", res.status, await res.text().catch(() => ""));
     return res.ok;

@@ -30,4 +30,17 @@ export function themeForHour(hour: number): ThemeId {
 }
 
 /** Runs before first paint so the saved theme never flashes. Resolves "auto" with the same schedule as themeForHour. */
-export const THEME_INIT_SCRIPT = `try{var t=localStorage.getItem(${JSON.stringify(THEME_KEY)});if(t==="auto"){var h=new Date().getHours(),S=${JSON.stringify(AUTO_SCHEDULE)},p=S[S.length-1][1];for(var i=0;i<S.length;i++)if(h>=S[i][0])p=S[i][1];t=p}if(t&&t!=="developer-blue"&&/^[a-z-]+$/.test(t))document.documentElement.setAttribute("data-theme",t)}catch(e){}`;
+export const THEME_INIT_SCRIPT = `try{var t=localStorage.getItem(${JSON.stringify(THEME_KEY)});if(t&&/^[a-z-]+$/.test(t))document.documentElement.setAttribute("data-theme-mode",t);if(t==="auto"){var h=new Date().getHours(),S=${JSON.stringify(AUTO_SCHEDULE)},p=S[S.length-1][1];for(var i=0;i<S.length;i++)if(h>=S[i][0])p=S[i][1];t=p}if(t&&t!=="developer-blue"&&/^[a-z-]+$/.test(t))document.documentElement.setAttribute("data-theme",t)}catch(e){}`;
+
+/** The <html> attribute that mirrors the stored mode (a theme id or "auto"), set before paint and by ThemeSwitcher. */
+export const THEME_MODE_ATTR = "data-theme-mode";
+
+/**
+ * The theme button renders every theme's dot + name; this CSS shows the one matching html[data-theme-mode], so the
+ * button is right in the server HTML (before React knows the stored theme). Built from THEMES so it can't drift.
+ */
+const shownLabels = [
+  `html:not([${THEME_MODE_ATTR}]) .ts-cur[data-t="developer-blue"]`,
+  ...[...THEMES.map((t) => t.id), AUTO_THEME].map((id) => `html[${THEME_MODE_ATTR}="${id}"] .ts-cur[data-t="${id}"]`),
+].join(",");
+export const THEME_LABEL_CSS = `.ts-cur{display:none}${shownLabels}{display:contents}`;

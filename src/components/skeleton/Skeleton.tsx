@@ -68,10 +68,3 @@ export function SkPage({ children, width = "max-w-6xl" }: { children: React.Reac
 }
 
 /** Navbar placeholder: same `.topbar` box as SiteHeader, shown while the header's route data resolves. */
-export function SiteHeaderSkeleton() {
-  return <header className="topbar" aria-hidden="true">
-    <Sk className="h-7 w-28" />
-    <nav className="topnav">{Array.from({ length: 6 }, (_, i) => <Sk key={i} className="h-3 w-14" />)}</nav>
-    <Sk className="h-5 w-16" /><Sk className="h-7 w-14" /><Sk className="h-8 w-8 rounded-full" />
-  </header>;
-}

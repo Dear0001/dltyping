@@ -1,7 +1,7 @@
 import type { MetadataRoute } from "next";
 import { SITE_URL } from "@/lib/site";
 
-const ROUTES = ["", "/learn", "/games", "/library", "/pets", "/help", "/test", "/daily",
+const ROUTES = ["", "/learn", "/games", "/library", "/pets", "/help", "/support", "/support/contact", "/support/feedback", "/support/report", "/test", "/daily",
   "/games/letter-jump", "/games/english-quest", "/games/sentence-rush", "/games/mario-khmer-quest", "/games/word-sprint"];
 
 export default function sitemap(): MetadataRoute.Sitemap {
