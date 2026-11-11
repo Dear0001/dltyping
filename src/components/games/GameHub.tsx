@@ -4,11 +4,11 @@ import Link from "next/link";
 import { useState } from "react";
 import GameThumb from "@/components/games/shared/GameThumb";
 import { primaryBtn, secondaryBtn } from "@/components/games/shared/GameDialog";
-import { typingGames, type GameCategory } from "@/data/games";
+import { GAME_CATEGORIES, typingGames, type GameCategory } from "@/data/games";
 import { useLocale } from "@/components/shared/LocaleProvider";
 import { useGameText } from "@/hooks/useGameText";
 import { useScores } from "@/hooks/use-stored-value";
-import type { Difficulty } from "@/lib/game-engine";
+import { ARCADE_DIFFICULTIES, type ArcadeDifficulty } from "@/lib/arcade/difficulty";
 import { bestForGame } from "@/lib/local-progress";
 import type { Language } from "@/types";
 
@@ -26,7 +26,7 @@ export default function GameHub() {
   const gt = useGameText();
   const scores = useScores();
   const [language, setLanguage] = useState<Filter<Language>>("all");
-  const [difficulty, setDifficulty] = useState<Filter<Difficulty>>("all");
+  const [difficulty, setDifficulty] = useState<Filter<ArcadeDifficulty>>("all");
   const [category, setCategory] = useState<Filter<GameCategory>>("all");
 
   const shown = typingGames.filter((g) => (language === "all" || g.languages.includes(language)) && (difficulty === "all" || g.difficulties.includes(difficulty)) && (category === "all" || g.category === category));
@@ -41,8 +41,8 @@ export default function GameHub() {
       </div>
       <div className="mb-6 space-y-2.5 rounded-2xl border border-slate-200 bg-white p-4 shadow-sm">
         <Chips label={t("gamehub.language")} value={language} onChange={setLanguage} options={[{ value: "all", label: t("gamehub.all") }, { value: "english", label: t("category.english") }, { value: "khmer", label: t("category.khmer") }]} />
-        <Chips label={t("gamehub.difficulty")} value={difficulty} onChange={setDifficulty} options={[{ value: "all", label: t("gamehub.all") }, ...(["easy", "medium", "hard"] as const).map((d) => ({ value: d, label: gt.difficulty(d) }))]} />
-        <Chips label={t("gamehub.category")} value={category} onChange={setCategory} options={[{ value: "all", label: t("gamehub.all") }, ...(["accuracy", "speed", "adventure"] as GameCategory[]).map((c) => ({ value: c, label: gt.category(c) }))]} />
+        <Chips label={t("gamehub.difficulty")} value={difficulty} onChange={setDifficulty} options={[{ value: "all", label: t("gamehub.all") }, ...ARCADE_DIFFICULTIES.map((d) => ({ value: d, label: gt.difficulty(d) }))]} />
+        <Chips label={t("gamehub.category")} value={category} onChange={setCategory} options={[{ value: "all", label: t("gamehub.all") }, ...GAME_CATEGORIES.filter((c) => typingGames.some((g) => g.category === c)).map((c) => ({ value: c, label: gt.category(c) }))]} />
       </div>
 
       {shown.length === 0
@@ -56,11 +56,12 @@ export default function GameHub() {
             {shown.map((game) => {
               const best = bestForGame(scores, game.id);
               return <li key={game.id} className="flex flex-col overflow-hidden rounded-3xl border border-slate-200 bg-white shadow-sm transition hover:-translate-y-0.5 hover:shadow-md">
-                <Link href={game.href} className={`block h-40 bg-gradient-to-br ${game.gradient}`} tabIndex={-1} aria-hidden="true"><GameThumb id={game.id} /></Link>
+                <Link href={game.href} className={`relative block h-40 bg-gradient-to-br ${game.gradient}`} tabIndex={-1} aria-hidden="true"><GameThumb id={game.id} />{game.isNew && <span className="absolute right-3 top-3 rounded-full bg-amber-400 px-2.5 py-1 text-[11px] font-extrabold uppercase tracking-wider text-navy shadow">{t("arc.new")}</span>}</Link>
                 <div className="flex flex-1 flex-col p-5">
                   <div className="mb-2 flex flex-wrap gap-1.5 text-[11px] font-bold">
                     {game.languages.map((l) => <span key={l} className="rounded-full bg-blue-50 px-2.5 py-1 text-brand">{gt.language(l)}</span>)}
                     <span className="rounded-full bg-slate-100 px-2.5 py-1 text-slate-600">{gt.category(game.category)}</span>
+                    <span className="rounded-full bg-slate-100 px-2.5 py-1 text-slate-600">{t("arc.singlePlayer")}</span>
                     <span className="rounded-full bg-slate-100 px-2.5 py-1 text-slate-600">{gt.difficulty(game.difficulties[0])}–{gt.difficulty(game.difficulties[game.difficulties.length - 1])}</span>
                   </div>
                   <h2 className="text-xl font-extrabold">{gt.title(game)}</h2>

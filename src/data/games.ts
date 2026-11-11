@@ -1,8 +1,11 @@
-import type { Difficulty } from "@/lib/game-engine";
+import type { ArcadeDifficulty } from "@/lib/arcade/difficulty";
 import type { Language } from "@/types";
 
-export type GameCategory = "accuracy" | "speed" | "adventure";
-export type GameId = "mario-khmer-quest" | "english-quest" | "sentence-rush" | "letter-jump" | "word-sprint";
+/** Game Center categories. Add "strategy" / "casual" here when the first game of that kind ships. */
+export type GameCategory = "racing" | "survival" | "battle" | "adventure" | "skill";
+export const GAME_CATEGORIES: readonly GameCategory[] = ["racing", "survival", "battle", "adventure", "skill"];
+export type GameMode = "single";
+export type GameId = "car-racing" | "zombie-survival" | "battle-arena" | "mario-khmer-quest" | "english-quest" | "sentence-rush" | "letter-jump" | "word-sprint";
 
 export type TypingGame = {
   id: GameId;
@@ -10,14 +13,57 @@ export type TypingGame = {
   title: string;
   description: string;
   languages: Language[];
-  difficulties: Difficulty[];
+  difficulties: ArcadeDifficulty[];
   category: GameCategory;
+  /** Play modes that really exist. Multiplayer is added here only once it works. */
+  modes: GameMode[];
+  /** Shown with a "New" badge in the Game Center. */
+  isNew?: boolean;
   skill: string;
   /** Tailwind gradient classes for the card thumbnail background. */
   gradient: string;
 };
 
 export const typingGames: TypingGame[] = [
+  {
+    id: "car-racing",
+    href: "/games/car-racing",
+    title: "Typing Car Racing",
+    description: "Every correct key pushes your car forward. Build a combo to charge the nitro, fire it with Enter and beat three computer cars to the finish line.",
+    languages: ["english", "khmer"],
+    difficulties: ["easy", "medium", "hard", "expert"],
+    category: "racing",
+    modes: ["single"],
+    isNew: true,
+    skill: "Sustained speed & rhythm",
+    gradient: "from-rose-500 via-orange-500 to-amber-400",
+  },
+  {
+    id: "zombie-survival",
+    href: "/games/zombie-survival",
+    title: "Zombie Survival",
+    description: "Zombies close in from every side, each carrying a word. Type a word to stop its zombie, grab power-ups and survive wave after wave.",
+    languages: ["english", "khmer"],
+    difficulties: ["easy", "medium", "hard", "expert"],
+    category: "survival",
+    modes: ["single"],
+    isNew: true,
+    skill: "Fast word recognition under pressure",
+    gradient: "from-lime-600 via-emerald-700 to-slate-900",
+  },
+  {
+    id: "battle-arena",
+    href: "/games/battle-arena",
+    title: "Typing Battle Arena",
+    description: "Cast spells by typing their words. Clean, fast typing hits harder, a shield blocks the enemy's strike, and a long streak unlocks your ultimate spell.",
+    languages: ["english", "khmer"],
+    difficulties: ["easy", "medium", "hard", "expert"],
+    category: "battle",
+    modes: ["single"],
+    isNew: true,
+    skill: "Accuracy & decision making",
+    gradient: "from-violet-600 via-indigo-700 to-slate-900",
+  },
   {
     id: "mario-khmer-quest",
     href: "/games/mario-khmer-quest",
@@ -26,6 +72,7 @@ export const typingGames: TypingGame[] = [
     languages: ["khmer"],
     difficulties: ["easy", "medium", "hard"],
     category: "adventure",
+    modes: ["single"],
     skill: "Khmer letters, clusters & words",
     gradient: "from-emerald-500 via-teal-500 to-sky-500",
   },
@@ -37,6 +84,7 @@ export const typingGames: TypingGame[] = [
     languages: ["english"],
     difficulties: ["easy", "medium", "hard"],
     category: "adventure",
+    modes: ["single"],
     skill: "English letters, words & capitals",
     gradient: "from-amber-400 via-orange-500 to-rose-500",
   },
@@ -47,7 +95,8 @@ export const typingGames: TypingGame[] = [
     description: "One letter, one hop. Type the glowing target to leap between floating platforms before the clock or your lives run out.",
     languages: ["english", "khmer"],
     difficulties: ["easy", "medium", "hard"],
-    category: "accuracy",
+    category: "skill",
+    modes: ["single"],
     skill: "Key recognition & accuracy",
     gradient: "from-sky-400 via-blue-500 to-indigo-600",
   },
@@ -58,7 +107,8 @@ export const typingGames: TypingGame[] = [
     description: "Type whole sentences against the clock. Spaces, punctuation and flow all count — finish clean sentences to build your combo and WPM.",
     languages: ["english", "khmer"],
     difficulties: ["easy", "medium", "hard"],
-    category: "speed",
+    category: "skill",
+    modes: ["single"],
     skill: "Sentence flow & punctuation",
     gradient: "from-fuchsia-500 via-purple-600 to-indigo-700",
   },
@@ -69,14 +119,15 @@ export const typingGames: TypingGame[] = [
     description: "Race the timer: type each word to score, keep your combo alive and push your WPM in 30, 60 or 120 seconds.",
     languages: ["english", "khmer"],
     difficulties: ["easy", "medium", "hard"],
-    category: "speed",
+    category: "skill",
+    modes: ["single"],
     skill: "Word speed & flow",
     gradient: "from-blue-600 via-blue-700 to-slate-900",
   },
 ];
 
-export const categoryLabels: Record<GameCategory, string> = { accuracy: "Accuracy", speed: "Speed", adventure: "Adventure" };
-export const difficultyLabels: Record<Difficulty, string> = { easy: "Easy", medium: "Medium", hard: "Hard" };
+export const categoryLabels: Record<GameCategory, string> = { racing: "Racing", survival: "Survival", battle: "Battle", adventure: "Adventure", skill: "Skill Training" };
+export const difficultyLabels: Record<ArcadeDifficulty, string> = { easy: "Easy", medium: "Medium", hard: "Hard", expert: "Expert" };
 
 export function getGame(id: GameId) {
   return typingGames.find((game) => game.id === id)!;

@@ -11,6 +11,9 @@ export const ACTIVITY_TYPES = [
   "sentence-rush",
   "mario-khmer-quest",
   "english-quest",
+  "car-racing",
+  "zombie-survival",
+  "battle-arena",
 ] as const;
 export type ActivityType = (typeof ACTIVITY_TYPES)[number];
 

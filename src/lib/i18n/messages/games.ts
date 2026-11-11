@@ -63,8 +63,6 @@ const messages = {
   "game.word-sprint.title": { en: "Word Sprint", km: "ប្រណាំងវាយពាក្យ" },
   "game.word-sprint.desc": { en: "Race the timer: type each word to score, keep your combo alive and push your WPM in 30, 60 or 120 seconds.", km: "ប្រណាំងនឹងម៉ោង៖ វាយពាក្យនីមួយៗដើម្បីបានពិន្ទុ រក្សាកុំបូឱ្យបន្ត ហើយបង្កើន WPM របស់អ្នកក្នុងរយៈពេល 30, 60 ឬ 120 វិនាទី។" },
   "game.word-sprint.skill": { en: "Word speed & flow", km: "ល្បឿន និងភាពរលូនក្នុងការវាយពាក្យ" },
-  "game.cat.accuracy": { en: "Accuracy", km: "ភាពត្រឹមត្រូវ" },
-  "game.cat.speed": { en: "Speed", km: "ល្បឿន" },
   "game.cat.adventure": { en: "Adventure", km: "ដំណើរផ្សងព្រេង" },
   "gamehub.kicker": { en: "Play · Practice · Improve", km: "លេង · ហាត់ · រីកចម្រើន" },
   "gamehub.title": { en: "Typing games", km: "ហ្គេមវាយអក្សរ" },

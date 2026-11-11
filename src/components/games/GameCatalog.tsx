@@ -6,6 +6,9 @@ import { typingGames } from "@/data/games";
 import { useGameText } from "@/hooks/useGameText";
 
 export const gameIcons: Record<(typeof typingGames)[number]["id"], string> = {
+  "car-racing": "🏎️",
+  "zombie-survival": "🧟",
+  "battle-arena": "🧙",
   "mario-khmer-quest": "🍄",
   "english-quest": "🗻",
   "sentence-rush": "📝",

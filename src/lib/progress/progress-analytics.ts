@@ -23,6 +23,9 @@ export const ACTIVITY_META: Record<ActivityType, ActivityMeta> = {
   "sentence-rush": { label: "Sentence Rush", icon: "📝", kind: "game" },
   "mario-khmer-quest": { label: "Mario Khmer Quest", icon: "🍄", kind: "game" },
   "english-quest": { label: "English Quest", icon: "🗺️", kind: "game" },
+  "car-racing": { label: "Typing Car Racing", icon: "🏎️", kind: "game" },
+  "zombie-survival": { label: "Zombie Survival", icon: "🧟", kind: "game" },
+  "battle-arena": { label: "Typing Battle Arena", icon: "🧙", kind: "game" },
 };
 export const isGame = (activity: ActivityType) => ACTIVITY_META[activity].kind === "game";
 export const languageName = (language: Language) => (language === "khmer" ? "Khmer" : "English");
@@ -39,6 +42,9 @@ export function describeSession(s: SessionRecord): string {
     case "sentence-rush": return "Sentence Rush result";
     case "mario-khmer-quest": return "Mario Khmer Quest";
     case "english-quest": return "English Quest";
+    case "car-racing": return "Typing Car Racing race";
+    case "zombie-survival": return "Zombie Survival run";
+    case "battle-arena": return "Typing Battle Arena battle";
   }
 }
 

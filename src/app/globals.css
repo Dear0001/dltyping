@@ -100,6 +100,18 @@
 @keyframes gm-pop { 0% { transform: scale(.7); opacity: 0; } 60% { transform: scale(1.12); } 100% { transform: scale(1); opacity: 1; } }
 .gm-pop { animation: gm-pop .22s ease-out; }
 
+/* ---------- Arcade games (racing, zombie survival, battle arena) ---------- */
+/* The stage takes the height left over by the navbar, HUD and typing panel, so the text to type is always on screen. */
+.arc-stage { width: 100%; height: clamp(200px, calc(100dvh - var(--topbar-h, 64px) - 372px), 540px); background: #0f172a; }
+.arc-stage canvas { touch-action: manipulation; }
+/* Phones: a shorter stage leaves room for the typing panel and the on-screen keyboard. */
+@media (max-width: 640px) { .arc-stage { height: clamp(190px, 62vw, 300px); } }
+.arc-frame { scroll-margin-top: calc(var(--topbar-h, 64px) + 8px); }
+.arc-frame:fullscreen { display: flex; flex-direction: column; width: 100vw; height: 100vh; border-radius: 0; }
+.arc-frame:fullscreen .arc-stage { flex: 1; min-height: 0; height: auto; }
+@keyframes arc-pulse { 50% { filter: brightness(1.35); transform: scale(1.03); } }
+.arc-pulse { animation: arc-pulse .9s ease-in-out infinite; }
+
 /* Respect reduced motion (OS setting or the in-game toggle). */
 @media (prefers-reduced-motion: reduce) {
   .gm-page *, .gm-page *::before, .gm-page *::after { animation-duration: .01ms !important; animation-iteration-count: 1 !important; transition-duration: .01ms !important; scroll-behavior: auto !important; }

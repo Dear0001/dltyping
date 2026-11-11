@@ -5,7 +5,7 @@ import { charForCode } from "@/lib/keyboard/keyboard-mapping";
 import { isKhmerChar } from "@/lib/khmer-unicode";
 import type { Language } from "@/types";
 
-type Handlers = { onChar: (char: string) => void; onBackspace?: () => void; onEscape?: () => void };
+type Handlers = { onChar: (char: string) => void; onBackspace?: () => void; onEscape?: () => void; /** Enter, for a game's special action (e.g. a boost). */ onEnter?: () => void };
 
 /**
  * Turns a keydown into the character it should type, or null.
@@ -47,6 +47,11 @@ export function useKeyInput(enabled: boolean, language: Language, handlers: Hand
       if (event.key === "Backspace") {
         event.preventDefault();
         ref.current.onBackspace?.();
+        return;
+      }
+      if (event.key === "Enter" && ref.current.onEnter) {
+        event.preventDefault();
+        if (!event.repeat) ref.current.onEnter();
         return;
       }
       if (event.key === "Shift" || event.key === "CapsLock" || event.key === "Tab" || event.key === "Enter") return;
