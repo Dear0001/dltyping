@@ -1,6 +1,7 @@
 "use client";
 
-import { difficultyLabels } from "@/data/games";
+import { useLocale } from "@/components/shared/LocaleProvider";
+import { useGameText } from "@/hooks/useGameText";
 import type { Difficulty } from "@/lib/game-engine";
 import type { Language } from "@/types";
 
@@ -22,9 +23,12 @@ export function Segmented<T extends string | number>({ label, value, options, on
 }
 
 export function DifficultySelector({ value, onChange }: { value: Difficulty; onChange: (value: Difficulty) => void }) {
-  return <Segmented label="Difficulty" value={value} onChange={onChange} options={(["easy", "medium", "hard"] as const).map((d) => ({ value: d, label: difficultyLabels[d] }))} />;
+  const { t } = useLocale();
+  const gt = useGameText();
+  return <Segmented label={t("gamehub.difficulty")} value={value} onChange={onChange} options={(["easy", "medium", "hard"] as const).map((d) => ({ value: d, label: gt.difficulty(d) }))} />;
 }
 
 export function LanguageSelector({ value, onChange, options = ["english", "khmer"] }: { value: Language; onChange: (value: Language) => void; options?: Language[] }) {
-  return <Segmented label="Language" value={value} onChange={onChange} options={options.map((l) => ({ value: l, label: l === "khmer" ? "ខ្មែរ Khmer" : "English" }))} />;
+  const { t } = useLocale();
+  return <Segmented label={t("gamehub.language")} value={value} onChange={onChange} options={options.map((l) => ({ value: l, label: t(l === "khmer" ? "category.khmer" : "category.english") }))} />;
 }

@@ -2,12 +2,15 @@
 
 import Link from "next/link";
 import { primaryBtn, secondaryBtn } from "@/components/games/shared/GameDialog";
-import { curricula, findLesson, findLessonCourse, findLessonModule, nextLesson, prevLesson, levelLabels, levelColors } from "@/data/curriculum";
+import { curricula, findLesson, findLessonCourse, findLessonModule, nextLesson, prevLesson, levelColors } from "@/data/curriculum";
 import { typingGames } from "@/data/games";
 import { LessonStreakGuide } from "@/components/learn/StreakGuide";
 import GameThumb from "@/components/games/shared/GameThumb";
 import { useUserProgress } from "@/hooks/use-stored-value";
 import { lessons as practiceLessons } from "@/data/lessons";
+import { useLocale } from "@/components/shared/LocaleProvider";
+import { useCurriculumText } from "@/hooks/useCurriculumText";
+import { useGameText } from "@/hooks/useGameText";
 import type { Language } from "@/types";
 
 type Props = { language: Language; lessonId: string };
@@ -34,6 +37,9 @@ function ObjectiveList({ objectives }: { objectives: string[] }) {
 }
 
 export default function LessonDetail({ language, lessonId }: Props) {
+  const { t } = useLocale();
+  const ct = useCurriculumText();
+  const gt = useGameText();
   const curriculum = curricula[language];
   const lesson = findLesson(curriculum, lessonId);
   const course = findLessonCourse(curriculum, lessonId);
@@ -51,9 +57,9 @@ export default function LessonDetail({ language, lessonId }: Props) {
       <div className="min-h-screen bg-surface text-navy">
         <main className="mx-auto max-w-3xl px-4 py-16 text-center">
           <p className="text-4xl" aria-hidden="true">🔍</p>
-          <h1 className="mt-4 text-2xl font-extrabold">Lesson not found</h1>
-          <p className="mt-2 text-mute">This lesson doesn&apos;t exist in the {language} curriculum.</p>
-          <Link href="/learn" className={`${primaryBtn} mt-6 inline-flex`}>Back to Learn</Link>
+          <h1 className="mt-4 text-2xl font-extrabold">{t("learn.notFound")}</h1>
+          <p className="mt-2 text-mute">{t("learn.notFoundText", { language: t(`category.${language}`) })}</p>
+          <Link href="/learn" className={`${primaryBtn} mt-6 inline-flex`}>{t("learn.backToLearn")}</Link>
         </main>
       </div>
     );
@@ -70,28 +76,28 @@ export default function LessonDetail({ language, lessonId }: Props) {
       <main className="mx-auto max-w-3xl px-4 pb-16 pt-8 sm:px-6">
 
         {/* Breadcrumb */}
-        <nav className="mb-5 flex flex-wrap items-center gap-1.5 text-xs text-mute" aria-label="Breadcrumb">
-          <Link href="/learn" className="hover:text-brand">Learn</Link>
+        <nav className="mb-5 flex flex-wrap items-center gap-1.5 text-xs text-mute" aria-label={t("learn.breadcrumb")}>
+          <Link href="/learn" className="hover:text-brand">{t("nav.learn")}</Link>
           <span>/</span>
-          <span>{language === "english" ? "English" : "ខ្មែរ Khmer"}</span>
+          <span>{t(`category.${language}`)}</span>
           <span>/</span>
-          <span className="font-semibold text-navy">{lesson.titleKm ?? lesson.title}</span>
+          <span className="font-semibold text-navy">{ct.lessonTitle(lesson)}</span>
         </nav>
 
         {/* Level + Course badge */}
         <div className="mb-3 flex flex-wrap items-center gap-2">
           <span className={`rounded-full px-3 py-1 text-xs font-bold ${levelColors[course.level]}`}>
-            {levelLabels[course.level]}
+            {ct.level(course.level)}
           </span>
-          <span className="text-xs text-mute">{course.title}</span>
+          <span className="text-xs text-mute">{ct.courseTitle(course)}</span>
           <span className="text-xs text-mute">·</span>
-          <span className="text-xs text-mute">{mod.titleKm ?? mod.title}</span>
+          <span className="text-xs text-mute">{ct.moduleTitle(mod)}</span>
         </div>
 
         {/* Lesson header */}
         <div className="mb-6 flex items-start justify-between gap-4">
           <h1 className="text-2xl font-extrabold tracking-tight sm:text-3xl">
-            {lesson.titleKm ?? lesson.title}
+            {ct.lessonTitle(lesson)}
           </h1>
           <span className="flex-none rounded-2xl bg-amber-50 px-3 py-1.5 text-xs font-bold text-amber-700 ring-1 ring-amber-200">
             +{lesson.xpReward} XP
@@ -103,40 +109,40 @@ export default function LessonDetail({ language, lessonId }: Props) {
 
           {/* Objectives */}
           <section className="rounded-2xl border border-slate-200 bg-white p-5 shadow-sm">
-            <h2 className="mb-4 text-sm font-extrabold uppercase tracking-wider text-brand">Learning Objectives</h2>
-            <ObjectiveList objectives={lesson.objectives} />
+            <h2 className="mb-4 text-sm font-extrabold uppercase tracking-wider text-brand">{t("learn.objectives")}</h2>
+            <ObjectiveList objectives={ct.objectives(lesson)} />
           </section>
 
           {/* Key focus */}
           <section className="rounded-2xl border border-slate-200 bg-white p-5 shadow-sm">
-            <h2 className="mb-3 text-sm font-extrabold uppercase tracking-wider text-brand">Key Focus</h2>
+            <h2 className="mb-3 text-sm font-extrabold uppercase tracking-wider text-brand">{t("learn.keyFocus")}</h2>
             <div className="flex flex-wrap gap-2">
-              {lesson.keyFocus.map((k) => <KeyBadge key={k} text={k} />)}
+              {lesson.keyFocus.map((k) => <KeyBadge key={k} text={ct.keyFocus(k)} />)}
             </div>
           </section>
 
           {/* Instructions */}
           <section className="rounded-2xl border border-slate-200 bg-white p-5 shadow-sm">
-            <h2 className="mb-3 text-sm font-extrabold uppercase tracking-wider text-brand">Instructions</h2>
+            <h2 className="mb-3 text-sm font-extrabold uppercase tracking-wider text-brand">{t("learn.instructions")}</h2>
             <p className={`text-sm leading-relaxed text-slate-700 ${language === "khmer" ? "font-khmer text-base" : ""}`}>
-              {lesson.instructions}
+              {ct.instructions(lesson)}
             </p>
             {lesson.tip && (
               <div className="mt-4 flex items-start gap-2.5 rounded-xl bg-blue-50 p-3.5">
                 <span className="text-base" aria-hidden="true">💡</span>
-                <p className="text-xs leading-relaxed text-blue-800">{lesson.tip}</p>
+                <p className="text-xs leading-relaxed text-blue-800">{ct.tip(lesson)}</p>
               </div>
             )}
           </section>
 
           {/* Completion criteria */}
           <section className="rounded-2xl border border-slate-200 bg-white p-5 shadow-sm">
-            <h2 className="mb-3 text-sm font-extrabold uppercase tracking-wider text-brand">Completion Criteria</h2>
+            <h2 className="mb-3 text-sm font-extrabold uppercase tracking-wider text-brand">{t("learn.criteria")}</h2>
             <div className="flex flex-wrap gap-3">
               <div className="flex items-center gap-2 rounded-xl bg-slate-50 px-3.5 py-2.5">
                 <span className="text-xl" aria-hidden="true">🎯</span>
                 <div>
-                  <p className="text-[11px] font-bold uppercase tracking-wider text-mute">Min Accuracy</p>
+                  <p className="text-[11px] font-bold uppercase tracking-wider text-mute">{t("learn.minAccuracy")}</p>
                   <p className="text-lg font-extrabold text-navy">{lesson.completionCriteria.minAccuracy}%</p>
                 </div>
               </div>
@@ -144,7 +150,7 @@ export default function LessonDetail({ language, lessonId }: Props) {
                 <div className="flex items-center gap-2 rounded-xl bg-slate-50 px-3.5 py-2.5">
                   <span className="text-xl" aria-hidden="true">⚡</span>
                   <div>
-                    <p className="text-[11px] font-bold uppercase tracking-wider text-mute">Min WPM</p>
+                    <p className="text-[11px] font-bold uppercase tracking-wider text-mute">{t("learn.minWpm")}</p>
                     <p className="text-lg font-extrabold text-navy">{lesson.completionCriteria.minWpm}</p>
                   </div>
                 </div>
@@ -157,13 +163,13 @@ export default function LessonDetail({ language, lessonId }: Props) {
           {/* Practice preview */}
           {previewText && (
             <section className="rounded-2xl border border-slate-200 bg-white p-5 shadow-sm">
-              <h2 className="mb-3 text-sm font-extrabold uppercase tracking-wider text-brand">Practice Text Preview</h2>
+              <h2 className="mb-3 text-sm font-extrabold uppercase tracking-wider text-brand">{t("learn.preview")}</h2>
               <p className={`text-sm leading-relaxed text-slate-500 italic ${language === "khmer" ? "font-khmer text-base not-italic" : ""}`}>
                 &ldquo;{previewText}{previewText.length < (practiceLesson?.text?.length ?? 0) ? "…" : ""}&rdquo;
               </p>
               <div className="mt-4">
                 <Link href={practiceUrl} className={primaryBtn}>
-                  Practice This Lesson →
+                  {t("learn.practiceThis")}
                 </Link>
               </div>
             </section>
@@ -172,8 +178,8 @@ export default function LessonDetail({ language, lessonId }: Props) {
           {/* Recommended games */}
           {recommendedGames.length > 0 && (
             <section className="rounded-2xl border border-slate-200 bg-white p-5 shadow-sm">
-              <h2 className="mb-1 text-sm font-extrabold uppercase tracking-wider text-brand">Reinforce with a Game</h2>
-              <p className="mb-4 text-xs text-mute">Play these games to practise the same skills in an interactive format.</p>
+              <h2 className="mb-1 text-sm font-extrabold uppercase tracking-wider text-brand">{t("learn.reinforce")}</h2>
+              <p className="mb-4 text-xs text-mute">{t("learn.reinforceText")}</p>
               <div className="space-y-3">
                 {recommendedGames.map(({ gameId, reason, game }) => (
                   <div key={gameId} className="flex items-center gap-3 overflow-hidden rounded-xl border border-slate-200 bg-slate-50">
@@ -181,11 +187,11 @@ export default function LessonDetail({ language, lessonId }: Props) {
                       <GameThumb id={game!.id} />
                     </div>
                     <div className="flex-1 min-w-0 py-2 pr-2">
-                      <p className="font-bold text-sm">{game!.title}</p>
-                      <p className="mt-0.5 text-xs text-mute leading-snug">{reason}</p>
+                      <p className="font-bold text-sm">{gt.title(game!)}</p>
+                      <p className="mt-0.5 text-xs text-mute leading-snug">{ct.reason(reason)}</p>
                     </div>
                     <Link href={game!.href} className={`${primaryBtn} mr-3 flex-none !py-2 !px-4 text-xs`}>
-                      Play →
+                      {t("learn.play")}
                     </Link>
                   </div>
                 ))}
@@ -199,15 +205,15 @@ export default function LessonDetail({ language, lessonId }: Props) {
               <div className="flex items-center gap-3">
                 <span className="text-3xl" aria-hidden="true">🏆</span>
                 <div>
-                  <p className="font-extrabold text-emerald-800">Lesson Complete!</p>
-                  <p className="text-sm text-emerald-700">You earned {lesson.xpReward} XP for this lesson.</p>
+                  <p className="font-extrabold text-emerald-800">{t("learn.lessonComplete")}</p>
+                  <p className="text-sm text-emerald-700">{t("learn.earned", { xp: lesson.xpReward })}</p>
                 </div>
               </div>
             ) : (
               <div>
-                <h2 className="mb-1 text-sm font-extrabold uppercase tracking-wider text-brand">Complete by practising</h2>
-                <p className="mb-4 text-xs text-mute">Type the whole practice text and reach the accuracy{lesson.completionCriteria.minWpm ? " and speed" : ""} above. The lesson completes by itself and you earn +{lesson.xpReward} XP. No button needed.</p>
-                <Link href={practiceUrl} className={`${primaryBtn} inline-flex`}>Start practice →</Link>
+                <h2 className="mb-1 text-sm font-extrabold uppercase tracking-wider text-brand">{t("learn.completeBy")}</h2>
+                <p className="mb-4 text-xs text-mute">{t(lesson.completionCriteria.minWpm ? "learn.completeByTextWpm" : "learn.completeByText", { xp: lesson.xpReward })}</p>
+                <Link href={practiceUrl} className={`${primaryBtn} inline-flex`}>{t("learn.startPractice")}</Link>
               </div>
             )}
           </section>
@@ -216,14 +222,14 @@ export default function LessonDetail({ language, lessonId }: Props) {
           <nav className="flex items-center justify-between gap-3 pt-2">
             {prev ? (
               <Link href={`/learn/${language}/${prev.id}`} className={`${secondaryBtn} flex items-center gap-2 !py-2 text-xs`}>
-                ← {prev.titleKm ?? prev.title}
+                ← {ct.lessonTitle(prev)}
               </Link>
             ) : (
-              <Link href="/learn" className={`${secondaryBtn} !py-2 text-xs`}>← All courses</Link>
+              <Link href="/learn" className={`${secondaryBtn} !py-2 text-xs`}>{t("learn.allCourses")}</Link>
             )}
             {next && (
               <Link href={`/learn/${language}/${next.id}`} className={`${primaryBtn} flex items-center gap-2 !py-2 text-xs`}>
-                {next.titleKm ?? next.title} →
+                {ct.lessonTitle(next)} →
               </Link>
             )}
           </nav>

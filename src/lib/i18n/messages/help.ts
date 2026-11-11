@@ -1,0 +1,35 @@
+import type { Dict } from "../types";
+
+/** help: each key carries both languages side by side. English is the reference; Khmer follows docs/khmer-glossary.md. */
+const messages = {
+  "otp.group": { en: "6-digit verification code", km: "លេខកូដផ្ទៀងផ្ទាត់ 6 ខ្ទង់" },
+  "otp.digit": { en: "Digit {n}", km: "ខ្ទង់ទី {n}" },
+  "gm.sceneAria": { en: "Game scene. Current target: {target}", km: "ឈុតហ្គេម។ គោលដៅបច្ចុប្បន្ន៖ {target}" },
+  "gm.finishGate": { en: "Finish gate", km: "ទ្វារបញ្ចប់" },
+  "help.title": { en: "Help & guides", km: "ជំនួយ និងការណែនាំ" },
+  "help.subtitle": { en: "Everything you need to get started with English and Khmer typing practice.", km: "អ្វីៗទាំងអស់ដែលអ្នកត្រូវការដើម្បីចាប់ផ្តើមហាត់វាយអក្សរអង់គ្លេស និងខ្មែរ។" },
+  "help.howTitle": { en: "How to use DL Typing", km: "របៀបប្រើ DL Typing" },
+  "help.step1t": { en: "Pick a language", km: "ជ្រើសរើសភាសា" },
+  "help.step1": { en: "Choose English or Khmer from Learn, or start a Quick Practice from Practice.", km: "ជ្រើសរើសអង់គ្លេស ឬខ្មែរពីផ្នែកមេរៀន ឬចាប់ផ្តើមហាត់រហ័សពីផ្នែកហាត់វាយ។" },
+  "help.step2t": { en: "Follow a lesson", km: "រៀនតាមមេរៀន" },
+  "help.step2": { en: "Lessons are grouped by level. Start with Beginner and move up when your accuracy feels steady.", km: "មេរៀនត្រូវបានចាត់ជាក្រុមតាមកម្រិត។ ចាប់ផ្តើមពីកម្រិតដំបូង ហើយឡើងបន្ទាប់ពេលភាពត្រឹមត្រូវរបស់អ្នកមានស្ថិរភាព។" },
+  "help.step3t": { en: "Reinforce with games", km: "ពង្រឹងជាមួយហ្គេម" },
+  "help.step3": { en: "Each game trains letters, words or sentences in a different way. Use them between lessons.", km: "ហ្គេមនីមួយៗហ្វឹកហាត់អក្សរ ពាក្យ ឬប្រយោគតាមរបៀបផ្សេងៗគ្នា។ សូមលេងរវាងមេរៀន។" },
+  "help.step4t": { en: "Check your progress", km: "ពិនិត្យវឌ្ឍនភាពរបស់អ្នក" },
+  "help.step4": { en: "The Progress page shows speed (WPM), accuracy and the lessons you have completed.", km: "ទំព័រវឌ្ឍនភាពបង្ហាញល្បឿន (WPM) ភាពត្រឹមត្រូវ និងមេរៀនដែលអ្នកបានបញ្ចប់។" },
+  "help.kbTitle": { en: "Keyboard guide", km: "ការណែនាំអំពីក្តារចុច" },
+  "help.qwertyTitle": { en: "English QWERTY", km: "អង់គ្លេស QWERTY" },
+  "help.qwerty": { en: "Rest your fingers on the home row (A S D F · J K L ;), use the bumps on F and J to find position, and look at the screen, not the keys.", km: "ដាក់ម្រាមដៃលើជួរកណ្តាល (A S D F · J K L ;) ប្រើស្នាមប៉ោងលើ F និង J ដើម្បីរកទីតាំង ហើយមើលអេក្រង់ កុំមើលគ្រាប់ចុច។" },
+  "help.nidaTitle": { en: "Khmer NiDA", km: "ខ្មែរ NiDA" },
+  "help.nida": { en: "NiDA is the national Khmer layout. Enable it in your system input settings, then follow the on-screen keyboard, which shows the Khmer character for each key.", km: "NiDA គឺជាប្លង់ក្តារចុចខ្មែរជាតិ។ សូមបើកវាក្នុងការកំណត់វិធីបញ្ចូលរបស់ប្រព័ន្ធ រួចធ្វើតាមក្តារចុចលើអេក្រង់ ដែលបង្ហាញតួអក្សរខ្មែរសម្រាប់គ្រាប់ចុចនីមួយៗ។" },
+  "help.faqTitle": { en: "Frequently asked questions", km: "សំណួរដែលសួរញឹកញាប់" },
+  "help.faq1q": { en: "Do I need an account?", km: "តើខ្ញុំត្រូវការគណនីទេ?" },
+  "help.faq1": { en: "No. Everything works without signing in. An account is optional and only used to sync progress.", km: "មិនត្រូវទេ។ អ្វីៗដំណើរការដោយមិនបាច់ចូលគណនី។ គណនីជាជម្រើស ហើយប្រើសម្រាប់ធ្វើសមកាលកម្មវឌ្ឍនភាពតែប៉ុណ្ណោះ។" },
+  "help.faq2q": { en: "Where is my progress saved?", km: "វឌ្ឍនភាពរបស់ខ្ញុំត្រូវបានរក្សាទុកនៅឯណា?" },
+  "help.faq2": { en: "On this device, in your browser. Clearing site data removes it unless you use the optional account.", km: "នៅលើឧបករណ៍នេះ ក្នុងកម្មវិធីរុករករបស់អ្នក។ ការលុបទិន្នន័យគេហទំព័រនឹងលុបវាចោល លុះត្រាតែអ្នកប្រើគណនី (ជាជម្រើស)។" },
+  "help.faq3q": { en: "How do I type Khmer?", km: "តើខ្ញុំវាយអក្សរខ្មែរយ៉ាងដូចម្តេច?" },
+  "help.faq3": { en: "Switch your computer's input method to Khmer (NiDA layout) before you start, then type as the on-screen keyboard shows.", km: "មុនចាប់ផ្តើម សូមប្តូរវិធីបញ្ចូលអក្សររបស់កុំព្យូទ័រទៅជាខ្មែរ (ប្លង់ NiDA) រួចវាយតាមក្តារចុចលើអេក្រង់។" },
+  "help.faq4q": { en: "Can I change the look?", km: "តើខ្ញុំអាចប្តូររូបរាងបានទេ?" },
+  "help.faq4": { en: "Yes. Use the theme menu in the header to switch themes (or pick Auto to follow the time of day), and EN / ខ្មែរ to change the interface language.", km: "បាន។ ប្រើម៉ឺនុយពណ៌រចនាប័ទ្មនៅផ្នែកខាងលើដើម្បីប្តូរ (ឬជ្រើសរើស «ស្វ័យប្រវត្តិ» ដើម្បីឱ្យប្តូរតាមម៉ោង) និង EN / ខ្មែរ ដើម្បីប្តូរភាសាចំណុចប្រទាក់។" },
+} satisfies Dict;
+export default messages;

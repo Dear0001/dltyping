@@ -1,9 +1,11 @@
 "use client";
 
+import { useLocale } from "@/components/shared/LocaleProvider";
+import { useProgressText } from "@/hooks/useProgressText";
 import { useMemo } from "react";
 import VirtualKeyboard from "@/components/keyboard/VirtualKeyboard";
-import { keyTooltip, MASTERY_META, physicalKeyName, type KeyAnalysis, type MasteryLevel } from "@/lib/progress/keyboard-analytics";
-import { msToWpm, SPEED_META, type SpeedSummary } from "@/lib/progress/key-speed";
+import { type KeyAnalysis, type MasteryLevel } from "@/lib/progress/keyboard-analytics";
+import { type SpeedSummary } from "@/lib/progress/key-speed";
 import type { Language } from "@/types";
 
 const LEGEND: { level: MasteryLevel; swatch: string; mark: string }[] = [
@@ -24,29 +26,29 @@ type Props = {
   speed?: SpeedSummary;
 };
 
-const speedTip = (code: string, s: SpeedSummary["keys"][string]) =>
-  s.avgMs === null ? `${physicalKeyName(code)}: no timing data` : `${physicalKeyName(code)}: ${Math.round(s.avgMs)} ms per press (~${msToWpm(s.avgMs)} WPM) · ${s.timed} timed presses`;
 
 /**
  * The shared virtual keyboard (same layouts, Mac/Windows detection and controls as
  * practice), coloured by how accurately each physical key has been typed.
  */
 export default function KeyboardHeatmap({ language, analysis, selected, onSelect, mode = "accuracy", speed }: Props) {
+  const { t } = useLocale();
+  const pt = useProgressText();
   const keyStatus = useMemo(
     () => mode === "speed" && speed
-      ? Object.fromEntries(Object.values(speed.keys).map((k) => [k.code, { level: k.level, tip: speedTip(k.code, k) }]))
-      : Object.fromEntries(Object.values(analysis).map((k) => [k.code, { level: k.level, tip: keyTooltip(k) }])),
-    [analysis, mode, speed],
+      ? Object.fromEntries(Object.values(speed.keys).map((k) => [k.code, { level: k.level, tip: pt.speedTip(k.code, k) }]))
+      : Object.fromEntries(Object.values(analysis).map((k) => [k.code, { level: k.level, tip: pt.keyTooltip(k) }])),
+    // eslint-disable-next-line react-hooks/exhaustive-deps -- pt only changes with the locale
+    [analysis, mode, speed, pt.locale],
   );
-  const meta = mode === "speed" ? SPEED_META : MASTERY_META;
   return (
     <div>
       <VirtualKeyboard language={language} guidance={false} disabled keyStatus={keyStatus} selectedKey={selected} onKeySelect={onSelect} />
-      <ul className="mt-4 flex flex-wrap gap-x-5 gap-y-2 text-xs text-mute" aria-label="Colour legend">
+      <ul className="mt-4 flex flex-wrap gap-x-5 gap-y-2 text-xs text-mute" aria-label={t("km.legend")}>
         {LEGEND.map(({ level, swatch, mark }) => (
-          <li key={level} className="flex items-center gap-2" title={meta[level].blurb}>
+          <li key={level} className="flex items-center gap-2" title={mode === "speed" ? pt.speedBlurb(level) : pt.masteryBlurb(level)}>
             <span className={`grid h-5 w-5 place-items-center rounded border text-[10px] font-extrabold ${swatch} ${level === "excellent" ? "text-white" : "text-navy"}`} aria-hidden="true">{mark}</span>
-            <span><strong className="text-navy">{meta[level].label}</strong> · {meta[level].blurb}</span>
+            <span><strong className="text-navy">{mode === "speed" ? pt.speedLabel(level) : pt.masteryLabel(level)}</strong> · {mode === "speed" ? pt.speedBlurb(level) : pt.masteryBlurb(level)}</span>
           </li>
         ))}
       </ul>

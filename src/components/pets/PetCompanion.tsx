@@ -9,6 +9,8 @@ import PetSprite from "@/components/pets/PetSprite";
 import PetAbility, { type AbilityRun } from "@/components/pets/PetAbility";
 import PetUltimate, { type UltimateRun } from "@/components/pets/PetUltimate";
 import { usePetState } from "@/hooks/usePets";
+import { useLocale } from "@/components/shared/LocaleProvider";
+import { petSay, usePetText } from "@/hooks/usePetText";
 import { playPetSound, stopPetSounds, unlockAudio } from "@/lib/pets/pet-sound";
 import { createBrain, stepBrain, ULTIMATE_SECONDS, type MotionMode } from "@/lib/pets/pet-brain";
 import { PETS, type Ability, type PetDefinition } from "@/lib/pets/pet-catalog";
@@ -32,6 +34,7 @@ export function effectiveMotion(setting: PetSettings["animations"], systemReduce
 }
 
 export default function PetCompanion() {
+  const pt = usePetText();
   const { state, hydrated, active, actives } = usePetState();
   const pathname = usePathname();
   const systemReduced = useSystemReducedMotion();
@@ -43,7 +46,7 @@ export default function PetCompanion() {
   return (
     <>
       {show && actives.map((pet, index) => <PetStage key={pet.id} def={pet} index={index} settings={state.settings} motion={effectiveMotion(state.settings.animations, systemReduced)} typingRoute={typingRoute} />)}
-      <PetControls name={actives.length > 1 ? `${actives.length} pets are` : `${active.name} is`} enabled={state.enabled} ultimates={actives.filter((p) => p.ultimate && !p.keyCast)} abilities={actives.filter((p) => !p.keyCast).flatMap((p) => (p.abilities ?? []).map((ab) => ({ pet: p, ab })))} keyCasters={actives.filter((p) => p.keyCast)} canCast={state.enabled && !isPetHiddenRoute(pathname) && effectiveMotion(state.settings.animations, systemReduced) === "full"} />
+      <PetControls name={pt.name(active)} count={actives.length} enabled={state.enabled} ultimates={actives.filter((p) => p.ultimate && !p.keyCast)} abilities={actives.filter((p) => !p.keyCast).flatMap((p) => (p.abilities ?? []).map((ab) => ({ pet: p, ab })))} keyCasters={actives.filter((p) => p.keyCast)} canCast={state.enabled && !isPetHiddenRoute(pathname) && effectiveMotion(state.settings.animations, systemReduced) === "full"} />
     </>
   );
 }
@@ -59,9 +62,11 @@ function PetStage({ def, index, settings, motion, typingRoute }: StageProps) {
   const [ult, setUlt] = useState<UltimateRun | null>(null);
   const [abil, setAbil] = useState<AbilityRun | null>(null);
   const startIndex = useRef(index); // only used for the first position, so reordering the team never moves a pet
-  const live = useRef({ settings, motion, typingRoute });
+  const { locale } = useLocale();
+  const pt = usePetText();
+  const live = useRef({ settings, motion, typingRoute, locale, pt });
   useEffect(() => {
-    live.current = { settings, motion, typingRoute };
+    live.current = { settings, motion, typingRoute, locale, pt };
   });
 
   useEffect(() => {
@@ -154,7 +159,7 @@ function PetStage({ def, index, settings, motion, typingRoute }: StageProps) {
     // Key-to-cast: a letter key casts its skill. Never while typing in a field, on the typing pages, or during another cast.
     let comboEl: HTMLSpanElement | null = null, comboTimer = 0;
     const readyAt: Record<string, number> = {}; // per-skill cooldowns (ms timestamps)
-    const skillName = (id: string) => (id === "ultimate" ? def.ultimate?.name : def.abilities?.find((a) => a.id === id)?.name) ?? "";
+    const skillName = (id: string) => live.current.pt.skill((id === "ultimate" ? def.ultimate?.name : def.abilities?.find((a) => a.id === id)?.name) ?? "");
     const casting = () => ultTimers.length > 0 || abilTimers.length > 0 || brain.ultT > 0;
     const clearCombo = () => { window.clearTimeout(comboTimer); comboEl?.remove(); comboEl = null; };
     const castKey = (e: KeyboardEvent) => {
@@ -295,7 +300,7 @@ function PetStage({ def, index, settings, motion, typingRoute }: StageProps) {
 
       if (brain.say && brain.say.id !== sayId) {
         sayId = brain.say.id;
-        bubble.textContent = brain.say.text;
+        bubble.textContent = petSay(live.current.locale, brain.say.text);
         const cx = brain.x + size / 2, margin = 100;
         bubble.style.setProperty("--bshift", `${cx < margin ? margin - cx : cx > window.innerWidth - margin ? window.innerWidth - margin - cx : 0}px`);
         bubble.classList.add("show");
@@ -409,7 +414,9 @@ function PetStage({ def, index, settings, motion, typingRoute }: StageProps) {
 }
 
 /** Small always-available control: hide or show the companion, or open the collection. */
-function PetControls({ name, enabled, locked = false, ultimates = [], abilities = [], keyCasters = [], canCast = false }: { name: string; enabled: boolean; locked?: boolean; ultimates?: PetDefinition[]; abilities?: { pet: PetDefinition; ab: Ability }[]; keyCasters?: PetDefinition[]; canCast?: boolean }) {
+function PetControls({ name, count = 1, enabled, locked = false, ultimates = [], abilities = [], keyCasters = [], canCast = false }: { name: string; count?: number; enabled: boolean; locked?: boolean; ultimates?: PetDefinition[]; abilities?: { pet: PetDefinition; ab: Ability }[]; keyCasters?: PetDefinition[]; canCast?: boolean }) {
+  const { t } = useLocale();
+  const pt = usePetText();
   const [open, setOpen] = useState(false);
   const [wait, setWait] = useState(0);
   const ref = useRef<HTMLDivElement>(null);
@@ -430,32 +437,32 @@ function PetControls({ name, enabled, locked = false, ultimates = [], abilities 
   return (
     <div ref={ref} className="pet-ctl">
       {open && (
-        <div className="pet-ctl-menu" role="menu" aria-label="Pet companion">
-          {locked ? <small>Locked · reach a {nextGoal ?? 3}-day streak to unlock your first pet</small> : <>
-            <small>{name} {enabled ? "keeping you company" : "resting"}</small>
-            <button type="button" role="menuitem" onClick={() => { setPetEnabled(!enabled); setOpen(false); }}>{enabled ? "🙈 Hide companion" : "👀 Show companion"}</button>
+        <div className="pet-ctl-menu" role="menu" aria-label={t("pets.menuAria")}>
+          {locked ? <small>{t("pets.menuLocked", { n: nextGoal ?? 3 })}</small> : <>
+            <small>{count > 1 ? t(enabled ? "pets.keepingCompanyMany" : "pets.restingMany", { n: count }) : t(enabled ? "pets.keepingCompany" : "pets.resting", { name })}</small>
+            <button type="button" role="menuitem" onClick={() => { setPetEnabled(!enabled); setOpen(false); }}>{t(enabled ? "pets.hideCompanion" : "pets.showCompanion")}</button>
           </>}
           {ultimates.map((p) => (
             <button key={p.id} type="button" role="menuitem" disabled={!canCast || wait > 0} onClick={() => { emitPetEvent({ type: "ultimate", pet: p.id }); setOpen(false); }}>
-              ⚡ {p.ultimate?.name}{wait > 0 ? ` · ${wait}s` : !canCast ? " · needs animations" : ""}
+              ⚡ {pt.skill(p.ultimate?.name ?? "")}{wait > 0 ? ` · ${wait}s` : !canCast ? t("pets.needsAnim") : ""}
             </button>
           ))}
           {abilities.map(({ pet, ab }) => (
-            <button key={`${pet.id}-${ab.id}`} type="button" role="menuitem" disabled={!canCast} title={ab.blurb} onClick={() => { emitPetEvent({ type: "ability", pet: pet.id, id: ab.id }); setOpen(false); }}>✨ {ab.name}</button>
+            <button key={`${pet.id}-${ab.id}`} type="button" role="menuitem" disabled={!canCast} title={pt.blurb(ab.blurb)} onClick={() => { emitPetEvent({ type: "ability", pet: pet.id, id: ab.id }); setOpen(false); }}>✨ {pt.skill(ab.name)}</button>
           ))}
-          {keyCasters.map((p) => <small key={p.id}>⌨️ Press {Object.keys(p.keyCast ?? {}).join(" ").toUpperCase()} to cast {p.name.split(" ")[0]}&apos;s skills (not while typing).</small>)}
-          {ultimates.length > 0 && <small>Or click your pet five times, fast.</small>}
-          <small>🔥 {streak}-day streak{nextGoal ? ` · next pet at ${nextGoal} days` : ""}</small>
-          <small>{doneToday ? "✅ Today counted. Come back tomorrow to keep it going." : "Finish a lesson or game with 10+ correct characters to add streak points."}</small>
+          {keyCasters.map((p) => <small key={p.id}>{t("pets.pressCast", { keys: Object.keys(p.keyCast ?? {}).join(" ").toUpperCase(), name: pt.firstName(p) })}</small>)}
+          {ultimates.length > 0 && <small>{t("pets.clickFive")}</small>}
+          <small>{t("pets.streakLine", { n: streak })}{nextGoal ? t("pets.nextAt", { n: nextGoal }) : ""}</small>
+          <small>{t(doneToday ? "pets.todayCounted" : "pets.todayHow")}</small>
           {!doneToday && <>
-            <Link href="/learn/english" role="menuitem" onClick={() => setOpen(false)}>⌨️ Practice English</Link>
-            <Link href="/learn/khmer" role="menuitem" onClick={() => setOpen(false)}>⌨️ Practice Khmer</Link>
+            <Link href="/learn/english" role="menuitem" onClick={() => setOpen(false)}>{t("pets.practiceEn")}</Link>
+            <Link href="/learn/khmer" role="menuitem" onClick={() => setOpen(false)}>{t("pets.practiceKh")}</Link>
           </>}
-          {!locked && <button type="button" role="menuitemcheckbox" aria-checked={sound} onClick={() => { patchPetSettings({ sound: !sound }); if (sound) stopPetSounds(); else unlockAudio(); }}>{sound ? "🔊 Skill sounds: on" : "🔇 Skill sounds: off"}</button>}
-          <Link href="/pets" role="menuitem" onClick={() => setOpen(false)}>🐾 Pet collection</Link>
+          {!locked && <button type="button" role="menuitemcheckbox" aria-checked={sound} onClick={() => { patchPetSettings({ sound: !sound }); if (sound) stopPetSounds(); else unlockAudio(); }}>{t(sound ? "pets.soundOn" : "pets.soundOff")}</button>}
+          <Link href="/pets" role="menuitem" onClick={() => setOpen(false)}>{t("pets.collectionLink")}</Link>
         </div>
       )}
-      <button type="button" className="pet-ctl-btn" aria-haspopup="menu" aria-expanded={open} aria-label={locked ? "Pet companion (locked)" : "Pet companion menu"} title={locked ? "Locked: build a streak to unlock" : "Pet companion"} onClick={() => { setWait(Math.max(0, Math.ceil((ultimateCooldown.readyAt - Date.now()) / 1000))); setOpen((v) => !v); }}>{locked ? "🔒" : "🐾"}</button>
+      <button type="button" className="pet-ctl-btn" aria-haspopup="menu" aria-expanded={open} aria-label={t(locked ? "pets.btnLockedAria" : "pets.btnMenuAria")} title={t(locked ? "pets.btnLockedTip" : "pets.btnTip")} onClick={() => { setWait(Math.max(0, Math.ceil((ultimateCooldown.readyAt - Date.now()) / 1000))); setOpen((v) => !v); }}>{locked ? "🔒" : "🐾"}</button>
     </div>
   );
 }

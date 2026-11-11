@@ -1,6 +1,6 @@
 import { drillHref, letterJumpHref } from "@/lib/progress/drill-params";
 import { analyzeKeyboard, drillCharsFor, physicalKeyName, weakKeysOf, keyCapGlyph, MIN_SAMPLES } from "@/lib/progress/keyboard-analytics";
-import { languageName } from "@/lib/progress/progress-analytics";
+import { enT, type Translate } from "@/lib/i18n";
 import type { Language } from "@/types";
 import type { ProgressStore, SessionRecord } from "@/types/progress";
 
@@ -55,11 +55,12 @@ function recentFor(sessions: SessionRecord[], language: Language) {
     .slice(0, THRESHOLDS.recentWindow);
 }
 
-function languageRecommendations(store: ProgressStore, language: Language): Recommendation[] {
+function languageRecommendations(store: ProgressStore, language: Language, t: Translate): Recommendation[] {
   const out: Recommendation[] = [];
-  const name = languageName(language);
+  const name = t(`category.${language}`);
   const analysis = analyzeKeyboard(store, language);
   const recent = recentFor(store.sessions, language);
+  const start = t("rec.actStart");
   const practiceHref = (extra?: Record<string, string>) => drillHref(language, {}, extra);
 
   // 1. Frequently mistyped keys (only keys with enough keystrokes to be rated).
@@ -72,12 +73,12 @@ function languageRecommendations(store: ProgressStore, language: Language): Reco
       priority: worst < 75 ? "high" : "medium",
       category: "weak-keys",
       language,
-      title: `Drill your weakest ${name} keys`,
-      reason: `${list(weak.map((k) => `${language === "khmer" ? `${keyCapGlyph(language, k.code)} (${physicalKeyName(k.code)})` : physicalKeyName(k.code)} ${k.accuracy}%`))} accuracy, each over ${MIN_SAMPLES}+ keystrokes.`,
+      title: t("rec.weakTitle", { lang: name }),
+      reason: t("rec.weakReason", { list: list(weak.map((k) => t("rec.weakItem", { key: language === "khmer" ? `${keyCapGlyph(language, k.code)} (${physicalKeyName(k.code)})` : physicalKeyName(k.code), acc: k.accuracy ?? 0 }))), n: MIN_SAMPLES }),
       minutes: 5,
       actions: [
-        { label: "Start practice", href: drillHref(language, { drill: chars.join("") }, { time: "300" }), kind: "practice" },
-        { label: "Play Letter Jump with these keys", href: letterJumpHref(language, chars), kind: "game" },
+        { label: start, href: drillHref(language, { drill: chars.join("") }, { time: "300" }), kind: "practice" },
+        { label: t("rec.actJumpKeys"), href: letterJumpHref(language, chars), kind: "game" },
       ],
     });
   }
@@ -93,12 +94,12 @@ function languageRecommendations(store: ProgressStore, language: Language): Reco
         priority: acc < 85 ? "high" : "medium",
         category: "home-row",
         language,
-        title: "Practice the English home row for 5 minutes",
-        reason: `Home-row keys (A S D F G H J K L ;) are at ${acc}% accuracy over ${total} keystrokes.`,
+        title: t("rec.homeTitle"),
+        reason: t("rec.homeReason", { acc, n: total }),
         minutes: 5,
         actions: [
-          { label: "Start practice", href: drillHref(language, { drill: "asdfghjkl;" }, { time: "300" }), kind: "practice" },
-          { label: "Play Letter Jump (home row)", href: letterJumpHref(language, ["a", "s", "d", "f", "j", "k", "l"]), kind: "game" },
+          { label: start, href: drillHref(language, { drill: "asdfghjkl;" }, { time: "300" }), kind: "practice" },
+          { label: t("rec.actJumpHome"), href: letterJumpHref(language, ["a", "s", "d", "f", "j", "k", "l"]), kind: "game" },
         ],
       });
     }
@@ -116,10 +117,10 @@ function languageRecommendations(store: ProgressStore, language: Language): Reco
       priority: "medium",
       category: "combinations",
       language,
-      title: language === "khmer" ? "Practice Khmer consonant combinations" : "Practice tricky English letter pairs",
-      reason: `${list(pairs.map((p) => `${p.pair} ${p.acc}%`))} accuracy when typed in sequence (${pairs.reduce((s, p) => s + p.n, 0)} attempts).`,
+      title: t(language === "khmer" ? "rec.comboTitleKm" : "rec.comboTitleEn"),
+      reason: t("rec.comboReason", { list: list(pairs.map((p) => `${p.pair} ${p.acc}%`)), n: pairs.reduce((s, p) => s + p.n, 0) }),
       minutes: 5,
-      actions: [{ label: "Start practice", href: drillHref(language, { combo: pairs.map((p) => p.pair).join(",") }, { time: "300" }), kind: "practice" }],
+      actions: [{ label: start, href: drillHref(language, { combo: pairs.map((p) => p.pair).join(",") }, { time: "300" }), kind: "practice" }],
     });
   }
 
@@ -136,12 +137,12 @@ function languageRecommendations(store: ProgressStore, language: Language): Reco
         priority: "medium",
         category: "words",
         language,
-        title: "Re-type the words you often misspell",
-        reason: `${list(words.map((w) => `"${w.word}" (${w.e} of ${w.n} attempts wrong)`))}.`,
+        title: t("rec.wordsTitle"),
+        reason: t("rec.wordsReason", { list: list(words.map((w) => t("rec.wordItem", { word: w.word, e: w.e, n: w.n }))) }),
         minutes: 3,
         actions: [
-          { label: "Start practice", href: drillHref(language, { words: words.map((w) => w.word).join(",") }, { time: "120" }), kind: "practice" },
-          { label: "Try Word Sprint", href: "/games/word-sprint", kind: "game" },
+          { label: start, href: drillHref(language, { words: words.map((w) => w.word).join(",") }, { time: "120" }), kind: "practice" },
+          { label: t("rec.actWordSprint"), href: "/games/word-sprint", kind: "game" },
         ],
       });
     }
@@ -158,10 +159,10 @@ function languageRecommendations(store: ProgressStore, language: Language): Reco
         priority: avgAcc < 80 ? "high" : "medium",
         category: "accuracy",
         language,
-        title: `Slow down and aim for clean ${name} typing`,
-        reason: `Accuracy averaged ${avgAcc}% over your last ${recent.length} ${name} sessions. Accuracy first, speed follows.`,
+        title: t("rec.accTitle", { lang: name }),
+        reason: t("rec.accReason", { acc: avgAcc, n: recent.length, lang: name }),
         minutes: 5,
-        actions: [{ label: "Start practice", href: practiceHref({ time: "120" }), kind: "practice" }],
+        actions: [{ label: start, href: practiceHref({ time: "120" }), kind: "practice" }],
       });
     } else if (avgWpm < THRESHOLDS.slowWpm[language]) {
       out.push({
@@ -169,12 +170,12 @@ function languageRecommendations(store: ProgressStore, language: Language): Reco
         priority: "low",
         category: "speed",
         language,
-        title: `Build ${name} typing speed`,
-        reason: `You average ${avgWpm} WPM at ${avgAcc}% accuracy over your last ${recent.length} sessions. Accuracy is solid, so you can push the pace.`,
+        title: t("rec.speedTitle", { lang: name }),
+        reason: t("rec.speedReason", { wpm: avgWpm, acc: avgAcc, n: recent.length }),
         minutes: 5,
         actions: [
-          { label: "Try Word Sprint (beginner vocabulary)", href: "/games/word-sprint", kind: "game" },
-          { label: "Start practice", href: practiceHref({ time: "300" }), kind: "practice" },
+          { label: t("rec.actWordSprintBeg"), href: "/games/word-sprint", kind: "game" },
+          { label: start, href: practiceHref({ time: "300" }), kind: "practice" },
         ],
       });
     }
@@ -190,10 +191,10 @@ function languageRecommendations(store: ProgressStore, language: Language): Reco
           priority: "low",
           category: "consistency",
           language,
-          title: `Build a steady ${name} rhythm`,
-          reason: `Your last ${recent.length} sessions ranged from ${Math.min(...wpms)} to ${Math.max(...wpms)} WPM and ${Math.min(...accs)}% to ${Math.max(...accs)}% accuracy. Longer, calmer sessions even this out.`,
+          title: t("rec.consTitle", { lang: name }),
+          reason: t("rec.consReason", { n: recent.length, w1: Math.min(...wpms), w2: Math.max(...wpms), a1: Math.min(...accs), a2: Math.max(...accs) }),
           minutes: 5,
-          actions: [{ label: "Start a 5-minute practice", href: practiceHref({ time: "300" }), kind: "practice" }],
+          actions: [{ label: t("rec.actStart5"), href: practiceHref({ time: "300" }), kind: "practice" }],
         });
       }
     }
@@ -204,9 +205,9 @@ function languageRecommendations(store: ProgressStore, language: Language): Reco
 const ORDER = { high: 0, medium: 1, low: 2 } as const;
 
 /** Recommendations computed only from stored sessions and key statistics, never random. */
-export function buildRecommendations(store: ProgressStore): Recommendation[] {
+export function buildRecommendations(store: ProgressStore, t: Translate = enT): Recommendation[] {
   return (["english", "khmer"] as const)
-    .flatMap((language) => languageRecommendations(store, language))
+    .flatMap((language) => languageRecommendations(store, language, t))
     .sort((a, b) => ORDER[a.priority] - ORDER[b.priority]);
 }
 

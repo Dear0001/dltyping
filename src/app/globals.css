@@ -57,7 +57,7 @@
 .gm-icon{width:36px;height:36px;border-radius:9px;background:var(--lime);display:grid;place-items:center;font-size:19px;flex:none}
 .gm-text{display:flex;flex-direction:column;gap:3px}.gm-text strong{font-size:13px;font-weight:600}.gm-text small{font-size:11px;color:var(--muted)}
 .topnav .gm-all{justify-content:flex-end;padding:9px 10px 5px;margin-top:4px;border-top:1px solid var(--line);font-size:12px;color:var(--green)!important;font-weight:600}
-@media(max-width:650px){.gm-menu{display:none}}
+@media(max-width:1040px){.gm-menu{display:none}}
 
 /* ---------- Design tokens (Developer Blue + Deep Navy) ---------- */
 @theme {
@@ -130,9 +130,6 @@
 }
 
 /* ---------- Color themes (set via <html data-theme="…">) ---------- */
-.theme-switcher{display:flex;align-items:center;gap:6px;margin-right:8px}
-.theme-switcher button{width:18px;height:18px;border-radius:50%;border:2px solid #fff;padding:0;cursor:pointer;box-shadow:0 0 0 1px var(--line)}
-.theme-switcher button.active{box-shadow:0 0 0 2px var(--green)}
 
 /* Each theme supplies five inputs; everything else is derived from them.
    --t-brand is a deepened shade of the palette primary so white text on buttons stays readable. */
@@ -191,23 +188,9 @@
 @media(max-width:1000px){.site-footer-inner{grid-template-columns:repeat(2,1fr)}.sf-brand{grid-column:1/-1}}
 @media(max-width:480px){.site-footer-inner{padding:32px 16px 24px;gap:26px 16px}.site-footer-bar{padding:16px 16px 22px}.sf-col a{padding:8px 0}}
 .gm-page~.site-footer,body:has(.gm-page) .site-footer{display:none}
-.topbar>:not(.topnav){flex:none}.topbar button{white-space:nowrap}
-@media(max-width:650px){.topbar{gap:8px;padding:0 12px}.topbar .brand svg{height:26px}.theme-switcher{gap:4px;margin-right:0}.theme-switcher button{width:15px;height:15px}.locale-toggle button{padding:5px 6px}}
-/* Phones: keep every nav link reachable in a scrollable second row instead of hiding them. */
-@media(max-width:650px){
-  .topbar{height:auto;flex-wrap:wrap;padding:8px 12px 0;row-gap:4px}
-  .topbar .theme-switcher{margin-left:auto}
-  .topnav{order:5;flex:0 0 calc(100% + 24px);width:calc(100% + 24px);margin:0 -12px;padding:0 12px;height:40px;gap:20px;justify-content:flex-start;overflow-x:auto;border-top:1px solid var(--line);scrollbar-width:none}
-  .topnav::-webkit-scrollbar{display:none}
-  .topnav a{display:flex;flex:none;font-size:12px;white-space:nowrap}
-  .topnav a.active{font-size:12px}
-  .gm-wrap{display:flex;height:100%;flex:none}.gm-caret{display:none}
-}
-
 /* Streak increase celebration: lasts --streak-ms (3s), never blocks clicks. */
 
 /* Fixed navbar: SiteHeader lives in the root layout and stays pinned while the page body scrolls or loads. */
-.topbar{position:fixed;top:0;left:0;right:0;z-index:60;background:var(--paper)}
 /* No backdrop-filter/transform on .topbar: it would become the containing block of the fixed sign-in dialog rendered inside it and clip it to the bar. */
 body{padding-top:var(--topbar-h,74px)}html{scroll-padding-top:calc(var(--topbar-h,74px) + 8px)}
 
@@ -240,3 +223,78 @@ body{padding-top:var(--topbar-h,74px)}html{scroll-padding-top:calc(var(--topbar-
 @keyframes best-pop{0%{opacity:0;transform:scale(.4) translateY(-30px)}14%{opacity:1;transform:scale(1.12)}24%{transform:scale(1)}84%{opacity:1;transform:scale(1)}100%{opacity:0;transform:scale(.9) translateY(-14px)}}
 @keyframes best-bounce{from{transform:translateY(0) rotate(-6deg)}to{transform:translateY(-8px) rotate(6deg) scale(1.1)}}
 @media (prefers-reduced-motion: reduce){.best-burst,.best-burst-card{animation:streak-fade var(--best-ms,4s) both}.best-burst-trophy{animation:none}.best-burst-sparks{display:none}}
+
+/* ---------- Navbar v2 ---------- */
+.topbar{position:fixed;top:0;left:0;right:0;z-index:60;height:64px;display:flex;align-items:center;gap:10px;padding:0 max(calc((100vw - 1200px)/2),20px);background:color-mix(in srgb,var(--paper) 84%,transparent);box-shadow:0 1px 0 color-mix(in srgb,var(--line) 55%,transparent),0 8px 24px -12px #0f172a40}
+/* Blur lives on a pseudo-element: backdrop-filter on .topbar itself would clip the fixed sign-in dialog rendered inside it. */
+.topbar::before{content:"";position:absolute;inset:0;z-index:-1;backdrop-filter:saturate(1.4) blur(14px);-webkit-backdrop-filter:saturate(1.4) blur(14px)}
+.topbar>*{flex:none}.topbar button{white-space:nowrap}
+.brand{margin-right:10px;border-radius:8px}
+.topnav{flex:1;min-width:0;height:auto;gap:2px;justify-content:center;font-size:13.5px;color:var(--ink)}
+.topnav a,.topnav .gm-trigger{height:36px;padding:0 12px;border-radius:9px;display:flex;align-items:center;font-weight:500;color:color-mix(in srgb,var(--ink) 74%,var(--paper));transition:background-color .18s,color .18s}
+.topnav a:hover,.topnav .gm-wrap:hover .gm-trigger,.topnav .gm-wrap:focus-within .gm-trigger{background:color-mix(in srgb,var(--ink) 7%,transparent);color:var(--ink)}
+.topnav a.active{background:color-mix(in srgb,var(--green) 12%,transparent);color:var(--green);font-weight:600}
+.topnav a.active:after{display:none}
+.topbar a:focus-visible,.topbar button:focus-visible{outline:2px solid var(--green);outline-offset:2px}
+.gm-wrap{height:36px}.gm-menu{top:calc(100% + 10px);left:-8px}
+.gm-wrap::after{content:"";position:absolute;left:0;right:0;top:100%;height:12px}
+.tb-tools{display:flex;align-items:center;gap:8px}
+.locale-toggle{display:flex;align-items:center;gap:2px;height:34px;padding:3px;border:0;border-radius:999px;background:color-mix(in srgb,var(--ink) 7%,transparent);margin:0}
+.theme-switcher{position:relative}
+.ts-btn{display:flex;align-items:center;gap:8px;height:34px;padding:0 10px 0 9px;border:0;border-radius:999px;background:color-mix(in srgb,var(--ink) 7%,transparent);color:var(--ink);font-size:12.5px;font-weight:600;cursor:pointer;transition:background-color .18s}
+.ts-btn:hover,.ts-btn[aria-expanded="true"]{background:color-mix(in srgb,var(--ink) 12%,transparent)}
+.ts-dot{width:16px;height:16px;flex:none;border-radius:50%;background:linear-gradient(135deg,var(--sw1) 50%,var(--sw2) 50%);box-shadow:inset 0 0 0 1px #0000001f}
+.ts-caret{font-size:12px;margin-top:-3px;opacity:.6}
+.ts-menu{position:absolute;right:0;top:calc(100% + 10px);z-index:70;min-width:210px;padding:6px;border:1px solid var(--line);border-radius:14px;background:var(--paper);box-shadow:0 18px 40px #1a263a26;animation:tb-pop .16s ease}
+.ts-item{display:flex;align-items:center;gap:10px;width:100%;padding:9px 10px;border:0;border-radius:9px;background:transparent;color:var(--ink);font-size:13px;font-weight:500;text-align:left;cursor:pointer}
+.ts-item:hover,.ts-item:focus-visible{background:color-mix(in srgb,var(--ink) 8%,transparent)}
+.ts-item.active{color:var(--green);font-weight:600}.ts-check{margin-left:auto}
+.locale-toggle button{height:28px;padding:0 11px;border-radius:999px;font-size:12px;font-weight:600;color:color-mix(in srgb,var(--ink) 70%,var(--paper));transition:background-color .2s,color .2s}
+.locale-toggle button:hover{color:var(--ink)}
+.locale-toggle button.active{background:var(--paper);color:var(--green);box-shadow:0 1px 3px #0000002b}
+.acct{position:relative}
+.acct-btn{display:flex;align-items:center;gap:8px;height:36px;max-width:190px;padding:3px 10px 3px 3px;border:0;border-radius:999px;background:color-mix(in srgb,var(--ink) 7%,transparent);color:var(--ink);font-size:12.5px;font-weight:600;cursor:pointer;transition:background-color .18s}
+.acct-btn:hover,.acct-btn[aria-expanded="true"]{background:color-mix(in srgb,var(--ink) 12%,transparent)}
+.acct-avatar{width:30px;height:30px;flex:none;border-radius:50%;display:grid;place-items:center;background:var(--green);color:#fff;font-size:13px;font-weight:700}
+.acct-name{overflow:hidden;text-overflow:ellipsis;min-width:0}
+.acct-caret{font-size:12px;margin-top:-3px;opacity:.6}
+.acct-menu{display:flex;flex-direction:column;align-items:stretch;gap:2px;position:absolute;right:0;top:calc(100% + 10px);width:230px;padding:6px;border:1px solid var(--line);border-radius:14px;background:var(--paper);box-shadow:0 18px 40px #1a263a26;animation:tb-pop .16s ease}
+.acct-info{display:flex;flex-direction:column;gap:2px;padding:10px 10px 12px;border-bottom:1px solid var(--line);margin-bottom:4px}.acct-info small{color:var(--muted);font-size:12px;overflow-wrap:anywhere}
+.acct-item{display:flex;align-items:center;width:100%;box-sizing:border-box;text-align:left;padding:9px 10px;border:0;border-radius:9px;background:transparent;color:var(--ink);font-size:13px;font-weight:500;cursor:pointer}
+.acct-sep{height:1px;margin:4px 6px;background:var(--line)}
+.acct-item:hover,.acct-item:focus-visible{background:color-mix(in srgb,var(--ink) 8%,transparent)}
+@keyframes tb-pop{from{opacity:0;transform:translateY(-4px)}}
+.tb-burger,.tb-drawer{display:none}
+@media(max-width:1180px){.topbar{gap:8px;padding:0 16px}.topnav a,.topnav .gm-trigger{padding:0 9px;font-size:13px}.brand{margin-right:2px}}
+@media(max-width:1040px){
+  .topnav,.tb-tools{display:none}
+  .topbar{height:60px}.topbar>.acct,.topbar>button:not(.tb-burger){margin-left:auto}
+  .acct-name,.acct-caret{display:none}.acct-btn{padding:3px}
+  .tb-burger{display:grid;place-content:center;gap:4px;width:38px;height:38px;border:0;border-radius:10px;background:color-mix(in srgb,var(--ink) 7%,transparent);cursor:pointer}
+  .tb-burger span{display:block;width:18px;height:2px;border-radius:2px;background:var(--ink);transition:transform .22s,opacity .18s}
+  .topbar[data-open] .tb-burger span:nth-child(1){transform:translateY(6px) rotate(45deg)}
+  .topbar[data-open] .tb-burger span:nth-child(2){opacity:0}
+  .topbar[data-open] .tb-burger span:nth-child(3){transform:translateY(-6px) rotate(-45deg)}
+  .tb-drawer{display:block;position:absolute;left:0;right:0;top:100%;max-height:calc(100dvh - 60px);overflow-y:auto;padding:10px 16px 18px;background:var(--paper);border-bottom:1px solid var(--line);box-shadow:0 20px 30px #1a263a1a;visibility:hidden;opacity:0;transform:translateY(-8px);transition:opacity .2s,transform .2s,visibility .2s}
+  .topbar[data-open] .tb-drawer{visibility:visible;opacity:1;transform:none}
+  .tb-drawer nav{display:grid;grid-template-columns:1fr 1fr;gap:4px}
+  .tb-drawer nav a{display:flex;align-items:center;height:44px;padding:0 12px;border-radius:10px;font-size:15px;font-weight:500;color:var(--ink)}
+  .tb-drawer nav a:hover{background:color-mix(in srgb,var(--ink) 7%,transparent)}
+  .tb-drawer nav a.active{background:color-mix(in srgb,var(--green) 12%,transparent);color:var(--green);font-weight:600}
+  .tb-drawer-tools{display:flex;align-items:center;justify-content:space-between;gap:10px;margin-top:12px;padding-top:14px;border-top:1px solid var(--line)}
+  .tb-drawer .ts-menu{right:auto;left:0;top:auto;bottom:calc(100% + 10px)}
+}
+@media(max-width:380px){.tb-drawer nav{grid-template-columns:1fr}}
+@media(prefers-reduced-motion:reduce){.topbar *{transition-duration:.01ms!important;animation-duration:.01ms!important}}
+
+/* ---------- Khmer typography ----------
+   Khmer stacks vowels and subscripts above and below the line, so it needs more line height than Latin text,
+   and the smallest Latin sizes (10-11px) are too small to read in Khmer script. Scoped to <html lang="km">. */
+html[lang="km"] body{line-height:1.7;letter-spacing:0}
+html[lang="km"] :is(h1,h2,h3,h4){line-height:1.4!important;letter-spacing:0!important}
+html[lang="km"] :is(.text-xs,.text-\[11px\],.text-\[10px\]){font-size:.8125rem;line-height:1.6}
+html[lang="km"] .uppercase{text-transform:none;letter-spacing:0}
+html[lang="km"] .topnav a,html[lang="km"] .topnav .gm-trigger{white-space:nowrap}
+html[lang="km"] :is(button,.btn){line-height:1.5}
+.ts-auto{background:conic-gradient(#E06D73 0 25%,#2563eb 0 50%,#FF6B6B 0 75%,#C8A2C8 0)}
+.ts-sep{height:1px;margin:4px 6px;background:var(--line)}

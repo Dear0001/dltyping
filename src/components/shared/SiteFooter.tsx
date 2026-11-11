@@ -51,7 +51,7 @@ export default function SiteFooter() {
     { label: t("footer.library"), href: "/library" },
     { label: t("footer.quick"), href: "/setup" },
   ];
-  const games: Item[] = [...typingGames.map((g) => ({ label: g.title, href: g.href })), { label: t("footer.allGames"), href: "/games" }];
+  const games: Item[] = [...typingGames.map((g) => ({ label: t(`game.${g.id}.title`), href: g.href })), { label: t("footer.allGames"), href: "/games" }];
   const resources: Item[] = [
     { label: t("footer.howto"), href: "/help#how-to" },
     { label: t("footer.qwerty"), href: "/help#qwerty" },

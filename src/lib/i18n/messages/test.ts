@@ -1,0 +1,35 @@
+import type { Dict } from "../types";
+
+/** test: each key carries both languages side by side. English is the reference; Khmer follows docs/khmer-glossary.md. */
+const messages = {
+  "test.speedOverTime": { en: "Speed over time", km: "ល្បឿនតាមវិនាទី" },
+  "test.rawWpmInclErrors": { en: "Raw WPM (incl. errors)", km: "WPM សរុប (រាប់ទាំងកំហុស)" },
+  "test.error": { en: "Error", km: "កំហុស" },
+  "test.speed": { en: "Speed", km: "ល្បឿន" },
+  "test.raw": { en: "Raw", km: "សរុប" },
+  "test.timeLeft": { en: "Time left", km: "ពេលនៅសល់" },
+  "test.typeTheTextShown": { en: "Type the text shown", km: "វាយអត្ថបទនៅទីនេះ" },
+  "test.clickHereToFocusAnd": { en: "Click here to focus and type", km: "ចុចទីនេះ ដើម្បីបន្តវាយ" },
+  "test.timerRunning": { en: "Timer running…", km: "កំពុងរាប់ម៉ោង…" },
+  "test.theTimerStartsWithYour": { en: "The timer starts with your first keystroke.", km: "ម៉ោងចាប់ផ្តើមនៅពេលអ្នកចុចគ្រាប់ទីមួយ។" },
+  "test.typingTest": { en: "Typing test", km: "តេស្តវាយអក្សរ" },
+  "test.howFastDoYouType": { en: "How fast do you type?", km: "តើអ្នកវាយលឿនប៉ុណ្ណា?" },
+  "test.randomWordsFixedTimeThe": { en: "Random words, fixed time. The clock starts when you do.", km: "ពាក្យចៃដន្យ ម៉ោងកំណត់។ ម៉ោងចាប់ផ្តើមនៅពេលអ្នកវាយ។" },
+  "test.personalBest": { en: "Personal best", km: "កំណត់ត្រាល្អបំផុត" },
+  "test.time": { en: "Time", km: "ពេល" },
+  "test.words": { en: "Words", km: "ពាក្យ" },
+  "test.newTest": { en: "new test", km: "តេស្តថ្មី" },
+  "test.rawWpm": { en: "Raw WPM", km: "WPM សរុប" },
+  "test.countsErrorsToo": { en: "counts errors too", km: "រាប់ទាំងកំហុស" },
+  "test.consistency": { en: "Consistency", km: "ភាពស្ថិតស្ថេរ" },
+  "test.howEvenYourPaceWas": { en: "how even your pace was", km: "ល្បឿនស្មើ" },
+  "test.correctChars": { en: "Correct chars", km: "តួអក្សរត្រូវ" },
+  "test.yourSpeed": { en: "Your speed", km: "លទ្ធផល" },
+  "test.newPersonalBest": { en: "New personal best!", km: "កំណត់ត្រាថ្មី!" },
+  "test.best": { en: "Best", km: "កំណត់ត្រា" },
+  "test.recordsNeed80Accuracy": { en: " · records need 80%+ accuracy", km: " · ត្រូវការ 80%+ ដើម្បីកំណត់ត្រា" },
+  "test.nextTest": { en: "Next test", km: "តេស្តបន្ទាប់" },
+  "test.retrySameWords": { en: "Retry same words", km: "សាកម្តងទៀត" },
+  "test.seeYourSlowKeys": { en: "See your slow keys", km: "មើលគ្រាប់ចុចយឺត" },
+} satisfies Dict;
+export default messages;

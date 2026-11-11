@@ -11,6 +11,7 @@
     "postinstall": "prisma generate",
     "db:pull": "prisma db pull",
     "db:generate": "prisma generate",
+    "i18n:check": "node scripts/i18n-check.mjs",
     "test": "node --import ./tests/register.mjs --test --test-reporter=spec tests/*.test.mts"
   },
   "dependencies": {

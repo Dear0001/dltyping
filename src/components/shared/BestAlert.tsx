@@ -2,6 +2,7 @@
 
 import { useEffect, useState } from "react";
 import { createPortal } from "react-dom";
+import { useLocale } from "@/components/shared/LocaleProvider";
 import { useHydrated } from "@/hooks/useTypingProgress";
 
 export const BEST_ANIMATION_MS = 4000;
@@ -15,6 +16,7 @@ const CONFETTI = ["🎉", "⭐", "✨", "🎊", "🌟", "💫", "🎈", "✨"].m
  * and removes itself after a few seconds.
  */
 export default function BestAlert({ score }: { score: number }) {
+  const { t } = useLocale();
   const mounted = useHydrated();
   const [visible, setVisible] = useState(true);
   useEffect(() => {
@@ -29,7 +31,7 @@ export default function BestAlert({ score }: { score: number }) {
           {CONFETTI.map((c, i) => <span key={i} style={{ "--sx": c.x, "--sy": c.y, animationDelay: c.delay } as React.CSSProperties}>{c.symbol}</span>)}
         </div>
         <span className="best-burst-trophy" aria-hidden="true">🏆</span>
-        <p className="best-burst-label">New personal best</p>
+        <p className="best-burst-label">{t("gm.newBestTitle")}</p>
         <p className="best-burst-score">{score.toLocaleString("en-US")}</p>
       </div>
     </div>,

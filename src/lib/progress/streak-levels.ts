@@ -29,14 +29,14 @@ export function sessionLevel(s: SessionRecord): number {
   return best;
 }
 
-export type LevelStatus = StreakLevel & { unlocked: boolean; by: string | null; at: string | null };
+export type LevelStatus = StreakLevel & { unlocked: boolean; by: string | null; activity: SessionRecord["activity"] | null; at: string | null };
 
 /** Per-level status over every saved session; `by` names the first course/practice that unlocked it. */
 export function levelStatuses(sessions: SessionRecord[]): LevelStatus[] {
   const ordered = [...sessions].sort((a, b) => Date.parse(a.completedAt) - Date.parse(b.completedAt));
   return STREAK_LEVELS.map((l) => {
     const hit = ordered.find((s) => meetsLevel(s, l));
-    return { ...l, unlocked: !!hit, by: hit ? ACTIVITY_META[hit.activity].label : null, at: hit ? hit.completedAt : null };
+    return { ...l, unlocked: !!hit, by: hit ? ACTIVITY_META[hit.activity].label : null, activity: hit ? hit.activity : null, at: hit ? hit.completedAt : null };
   });
 }
 

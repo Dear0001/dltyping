@@ -1,9 +1,14 @@
 // Original characters drawn as inline SVG (no third-party artwork).
+"use client";
+
+import { useLocale } from "@/components/shared/LocaleProvider";
+
 export type HeroVariant = "blob" | "explorer";
 
 export default function Hero({ variant, className = "" }: { variant: HeroVariant; className?: string }) {
+  const { t } = useLocale();
   if (variant === "blob") {
-    return <svg viewBox="0 0 56 64" className={className} role="img" aria-label="Jumpy the blue blob">
+    return <svg viewBox="0 0 56 64" className={className} role="img" aria-label={t("gm.heroBlob")}>
       <ellipse cx="28" cy="61" rx="16" ry="3" fill="#0F172A" opacity=".18" />
       <line x1="28" y1="8" x2="28" y2="1" stroke="#0F172A" strokeWidth="2.5" strokeLinecap="round" />
       <circle cx="28" cy="3" r="3.4" fill="#38BDF8" />
@@ -15,7 +20,7 @@ export default function Hero({ variant, className = "" }: { variant: HeroVariant
       <ellipse cx="17" cy="59" rx="6" ry="3" fill="#1E3A8A" /><ellipse cx="39" cy="59" rx="6" ry="3" fill="#1E3A8A" />
     </svg>;
   }
-  return <svg viewBox="0 0 56 64" className={className} role="img" aria-label="Explorer hero">
+  return <svg viewBox="0 0 56 64" className={className} role="img" aria-label={t("gm.heroExplorer")}>
     <ellipse cx="28" cy="62" rx="15" ry="2.6" fill="#0F172A" opacity=".2" />
     <rect x="9" y="30" width="13" height="22" rx="5" fill="#B45309" />
     <rect x="16" y="28" width="26" height="26" rx="8" fill="#0D9488" />

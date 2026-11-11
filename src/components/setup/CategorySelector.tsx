@@ -10,9 +10,9 @@ type CategorySelectorProps = {
 };
 
 export default function CategorySelector({ categories, selectedId, onSelect }: CategorySelectorProps) {
-  const { locale, t } = useLocale();
+  const { t } = useLocale();
   return (
-    <div className="grid gap-3 sm:grid-cols-2" role="radiogroup" aria-label={locale === "km" ? "ប្រភេទមេរៀន" : "Lesson category"}>
+    <div className="grid gap-3 sm:grid-cols-2" role="radiogroup" aria-label={t("setup.lessonCategory")}>
       {categories.map((category) => {
         const selected = category.id === selectedId;
         return (

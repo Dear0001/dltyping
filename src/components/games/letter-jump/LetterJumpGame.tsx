@@ -1,5 +1,6 @@
 "use client";
 
+import { useLocale } from "@/components/shared/LocaleProvider";
 import { useEffect, useReducer, useRef, useState } from "react";
 import VirtualKeyboard from "@/components/keyboard/VirtualKeyboard";
 import GameControls from "@/components/games/shared/GameControls";
@@ -25,12 +26,7 @@ import type { Language } from "@/types";
 type Mode = "timed" | "endless";
 const TIMED_MS = 60_000;
 const DEMO = ["A", "S", "D", "F", "J", "K", "L"].map((c) => c.toLowerCase());
-const STEPS = [
-  { icon: "🎯", title: "Read the target", text: "The glowing platform shows the letter to type next. Khmer targets may be a whole syllable, so type every part." },
-  { icon: "⌨️", title: "Type to jump", text: "Press the matching key on your keyboard (or tap the on-screen one). A correct key makes the hero hop to the next platform." },
-  { icon: "🔥", title: "Build a streak", text: "Correct hops grow your combo and score multiplier. A wrong key resets it, and enough mistakes cost a heart." },
-  { icon: "⏱️", title: "Beat the clock", text: "Each target has its own timer that gets tighter as you advance. Press Esc any time to pause." },
-];
+const STEP_ICONS = ["🎯", "⌨️", "🔥", "⏱️"];
 
 type State = {
   status: GameStatus; language: Language; difficulty: Difficulty; mode: Mode; seed: number;
@@ -102,6 +98,8 @@ function reducer(s: State, a: Action): State {
 }
 
 export default function LetterJumpGame({ focusKeys = [], focusLanguage }: { focusKeys?: string[]; focusLanguage?: Language }) {
+  const { t } = useLocale();
+  const steps = STEP_ICONS.map((icon, i) => ({ icon, title: t(`lj.s${i + 1}t`), text: t(`lj.s${i + 1}`) }));
   const [settings, updateSettings] = useSettings();
   const scores = useScores();
   const seen = useSeen();
@@ -169,33 +167,33 @@ export default function LetterJumpGame({ focusKeys = [], focusLanguage }: { focu
         <GameScore score={state.score} />
         <ComboBadge combo={state.combo} multiplier={comboMultiplier(state.combo)} />
         <Hearts lives={state.lives} max={LIVES} />
-        {state.mode === "timed" ? <GameTimer ms={active ? timeLeft : TIMED_MS} /> : <HudStat label="Stage" value={stage} />}
-        <HudStat label="Accuracy" value={`${accuracy}%`} tone={accuracy >= 90 ? "good" : "default"} />
+        {state.mode === "timed" ? <GameTimer ms={active ? timeLeft : TIMED_MS} /> : <HudStat label={t("gm.stage")} value={stage} />}
+        <HudStat label={t("gm.accuracy")} value={`${accuracy}%`} tone={accuracy >= 90 ? "good" : "default"} />
       </div>
       <GameScene theme="sky" hero="blob" units={units} index={state.index} typed={state.cp} jumpKey={state.jumpKey} errorKey={state.errorKey} language={state.language} />
       <VirtualKeyboard language={state.status === "idle" ? language : state.language} expected={expected} disabled={!playing} onChar={handleChar} controls={<GameControls status={state.status} onPause={() => dispatch({ type: "pause" })} onResume={() => dispatch({ type: "resume" })} onRestart={start} onMenu={() => dispatch({ type: "menu" })} />} />
     </div>
 
-    {state.status === "idle" && <GameStartDialog title="Letter Jump" subtitle="Type each target to leap across the sky." icon="🦘" onStart={start}>
+    {state.status === "idle" && <GameStartDialog title={t("lj.title")} subtitle={t("lj.subtitle")} icon="🦘" onStart={start}>
       <div className="grid gap-3 sm:grid-cols-2">
         {focus
-          ? <div className="rounded-xl border border-blue-100 bg-blue-50 px-3 py-2 text-xs text-navy"><strong>Weak-key focus</strong> ({language === "khmer" ? "Khmer" : "English"}): <span className={language === "khmer" ? "font-khmer" : ""}>{focus.keys.join(" ")}</span></div>
+          ? <div className="rounded-xl border border-blue-100 bg-blue-50 px-3 py-2 text-xs text-navy"><strong>{t("gm.weakFocus")}</strong> ({t(language === "khmer" ? "category.khmer" : "category.english")}): <span className={language === "khmer" ? "font-khmer" : ""}>{focus.keys.join(" ")}</span></div>
           : <LanguageSelector value={language} onChange={(v) => updateSettings({ language: v })} />}
         <DifficultySelector value={difficulty} onChange={(v) => updateSettings({ difficulty: v })} />
       </div>
-      <Segmented label="Mode" value={mode} onChange={setMode} options={[{ value: "timed", label: "Timed · 60s" }, { value: "endless", label: "Endless" }]} />
-      <p className="text-xs text-mute">Best on this setup: <strong className="text-navy">{(scores[`letter-jump:${language}:${difficulty}:${mode}${focus ? ":focus" : ""}`]?.best ?? 0).toLocaleString("en-US")}</strong></p>
-      <GameInstructions steps={STEPS} firstTime={!seen["letter-jump"]} />
+      <Segmented label={t("gm.mode")} value={mode} onChange={setMode} options={[{ value: "timed", label: t("lj.timed") }, { value: "endless", label: t("lj.endless") }]} />
+      <p className="text-xs text-mute">{t("gm.bestOnSetup")}<strong className="text-navy">{(scores[`letter-jump:${language}:${difficulty}:${mode}${focus ? ":focus" : ""}`]?.best ?? 0).toLocaleString("en-US")}</strong></p>
+      <GameInstructions steps={steps} firstTime={!seen["letter-jump"]} />
     </GameStartDialog>}
     {state.status === "paused" && <GamePauseDialog onResume={() => dispatch({ type: "resume" })} onRestart={start} />}
-    {state.status === "finished" && <GameOverDialog title={state.reason === "time" ? "Time's up!" : state.reason === "lives" ? "Out of lives" : "Run finished"} subtitle={`${state.completed} hops · stage ${stage}`} icon={state.reason === "lives" ? "💔" : "🏁"} onRetry={start}>
+    {state.status === "finished" && <GameOverDialog title={state.reason === "time" ? t("gm.timesUp") : state.reason === "lives" ? t("lj.lives") : t("lj.finished")} subtitle={t("lj.sub", { n: state.completed, stage })} icon={state.reason === "lives" ? "💔" : "🏁"} onRetry={start}>
       <GameResults newBest={newBest} best={bestNow} rows={[
-        { label: "Score", value: state.score.toLocaleString("en-US"), tone: "brand" },
-        { label: "Accuracy", value: `${accuracy}%`, tone: accuracy >= 90 ? "good" : "default" },
-        { label: "Correct chars", value: state.correctKeys, tone: "good" },
-        { label: "Mistakes", value: state.mistakes, tone: state.mistakes ? "bad" : "default" },
-        { label: "Best combo", value: state.bestCombo },
-        { label: "Speed", value: `${wpm} WPM` },
+        { label: t("gm.score"), value: state.score.toLocaleString("en-US"), tone: "brand" },
+        { label: t("gm.accuracy"), value: `${accuracy}%`, tone: accuracy >= 90 ? "good" : "default" },
+        { label: t("gm.correctChars"), value: state.correctKeys, tone: "good" },
+        { label: t("gm.mistakes"), value: state.mistakes, tone: state.mistakes ? "bad" : "default" },
+        { label: t("gm.bestCombo"), value: state.bestCombo },
+        { label: t("gm.speed"), value: `${wpm} WPM` },
       ]} />
     </GameOverDialog>}
   </GameLayout>;

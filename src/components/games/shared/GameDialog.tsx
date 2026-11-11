@@ -5,6 +5,7 @@ import Link from "next/link";
 import { useEffect, useRef } from "react";
 import { createPortal } from "react-dom";
 import { useHydrated } from "@/hooks/useTypingProgress";
+import { useLocale } from "@/components/shared/LocaleProvider";
 
 export function GameDialog({ title, subtitle, icon, logo, children, onEscape, wide }: { title: string; subtitle?: string; icon?: string; /** Show the DL Typing logo above the title instead of an emoji icon. */ logo?: boolean; children: React.ReactNode; onEscape?: () => void; wide?: boolean }) {
   const ref = useRef<HTMLDivElement>(null);
@@ -51,36 +52,39 @@ export function GameDialog({ title, subtitle, icon, logo, children, onEscape, wi
 export const primaryBtn = "inline-flex items-center justify-center gap-2 rounded-xl bg-brand px-5 py-3 text-sm font-bold text-white shadow-sm transition hover:bg-blue-700 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-brand";
 export const secondaryBtn = "inline-flex items-center justify-center gap-2 rounded-xl border border-slate-300 bg-white px-5 py-3 text-sm font-bold text-navy transition hover:bg-slate-50 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-brand";
 
-export function GameStartDialog({ title, subtitle, icon, children, onStart, startLabel = "Start Game" }: { title: string; subtitle: string; icon: string; children: React.ReactNode; onStart: () => void; startLabel?: string }) {
+export function GameStartDialog({ title, subtitle, icon, children, onStart, startLabel }: { title: string; subtitle: string; icon: string; children: React.ReactNode; onStart: () => void; startLabel?: string }) {
+  const { t } = useLocale();
   return <GameDialog title={title} subtitle={subtitle} icon={icon} wide>
     <div className="space-y-5">
       {children}
       <div className="flex flex-col gap-2 sm:flex-row">
-        <button data-autofocus type="button" className={`${primaryBtn} flex-1`} onClick={onStart}>{startLabel} →</button>
-        <Link href="/games" className={`${secondaryBtn} flex-1`}>All games</Link>
+        <button data-autofocus type="button" className={`${primaryBtn} flex-1`} onClick={onStart}>{startLabel ?? t("gm.startGame")} →</button>
+        <Link href="/games" className={`${secondaryBtn} flex-1`}>{t("gm.allGames")}</Link>
       </div>
     </div>
   </GameDialog>;
 }
 
 export function GamePauseDialog({ onResume, onRestart }: { onResume: () => void; onRestart: () => void }) {
-  return <GameDialog title="Paused" subtitle="Take a breath. Your progress is safe." icon="⏸️" onEscape={onResume}>
+  const { t } = useLocale();
+  return <GameDialog title={t("gm.paused")} subtitle={t("gm.pausedSub")} icon="⏸️" onEscape={onResume}>
     <div className="flex flex-col gap-2">
-      <button data-autofocus type="button" className={primaryBtn} onClick={onResume}>Resume</button>
-      <button type="button" className={secondaryBtn} onClick={onRestart}>Restart</button>
-      <Link href="/games" className={secondaryBtn}>Exit to games</Link>
+      <button data-autofocus type="button" className={primaryBtn} onClick={onResume}>{t("gm.resume")}</button>
+      <button type="button" className={secondaryBtn} onClick={onRestart}>{t("gm.restart")}</button>
+      <Link href="/games" className={secondaryBtn}>{t("gm.exitToGames")}</Link>
     </div>
   </GameDialog>;
 }
 
 export function GameOverDialog({ title, subtitle, icon, children, onRetry, extra }: { title: string; subtitle: string; icon: string; children: React.ReactNode; onRetry: () => void; extra?: React.ReactNode }) {
+  const { t } = useLocale();
   return <GameDialog title={title} subtitle={subtitle} icon={icon} wide>
     <div className="space-y-5">
       {children}
       <div className="flex flex-col gap-2 sm:flex-row">
         {extra}
-        <button data-autofocus={extra ? undefined : true} type="button" className={`${extra ? secondaryBtn : primaryBtn} flex-1`} onClick={onRetry}>Retry ↻</button>
-        <Link href="/games" className={`${secondaryBtn} flex-1`}>All games</Link>
+        <button data-autofocus={extra ? undefined : true} type="button" className={`${extra ? secondaryBtn : primaryBtn} flex-1`} onClick={onRetry}>{t("gm.retry")}</button>
+        <Link href="/games" className={`${secondaryBtn} flex-1`}>{t("gm.allGames")}</Link>
       </div>
     </div>
   </GameDialog>;

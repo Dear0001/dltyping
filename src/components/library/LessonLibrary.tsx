@@ -3,9 +3,11 @@
 import Link from "next/link";
 import { useMemo, useState } from "react";
 import ContinueCard from "@/components/learn/ContinueCard";
-import { curricula, levelLabels, levelColors } from "@/data/curriculum";
+import { curricula, levelColors } from "@/data/curriculum";
+import { useLocale } from "@/components/shared/LocaleProvider";
+import { useCurriculumText } from "@/hooks/useCurriculumText";
 import { useUserProgress } from "@/hooks/use-stored-value";
-import type { CurriculumLevel, Language } from "@/types";
+import type { CurriculumCourse, CurriculumLesson, CurriculumLevel, CurriculumModule, Language } from "@/types";
 
 type Entry = {
   key: string;
@@ -20,6 +22,9 @@ type Entry = {
   xpReward: number;
   minAccuracy: number;
   order: number;
+  course: CurriculumCourse;
+  mod: CurriculumModule;
+  lesson: CurriculumLesson;
 };
 
 type LangFilter = "all" | Language;
@@ -46,6 +51,9 @@ const ENTRIES: Entry[] = (["english", "khmer"] as const).flatMap((language) => {
         xpReward: lesson.xpReward,
         minAccuracy: lesson.completionCriteria.minAccuracy,
         order: order++,
+        course,
+        mod,
+        lesson,
       })),
     ),
   );
@@ -57,6 +65,8 @@ const chip = (active: boolean) =>
   }`;
 
 export default function LessonLibrary() {
+  const { t } = useLocale();
+  const ct = useCurriculumText();
   const progress = useUserProgress();
   const [query, setQuery] = useState("");
   const [lang, setLang] = useState<LangFilter>("all");
@@ -73,7 +83,7 @@ export default function LessonLibrary() {
       if (status === "done" && !done) return false;
       if (status === "todo" && done) return false;
       if (!q) return true;
-      const haystack = [e.title, e.titleKm ?? "", e.courseTitle, e.moduleTitle, ...e.keyFocus].join(" ").toLowerCase();
+      const haystack = [e.title, e.titleKm ?? "", e.courseTitle, e.moduleTitle, ct.lessonTitle(e.lesson), ct.courseTitle(e.course), ct.moduleTitle(e.mod), ...e.keyFocus].join(" ").toLowerCase();
       return haystack.includes(q);
     });
     const sorted = [...filtered];
@@ -83,7 +93,7 @@ export default function LessonLibrary() {
       sorted.sort((a, b) => LEVEL_ORDER.indexOf(a.level) - LEVEL_ORDER.indexOf(b.level) || a.order - b.order);
     else sorted.sort((a, b) => a.language.localeCompare(b.language) || a.order - b.order);
     return sorted;
-  }, [query, lang, level, status, sort, progress.completedLessons]);
+  }, [query, lang, level, status, sort, progress.completedLessons, ct]);
 
   const hasFilters = query !== "" || lang !== "all" || level !== "all" || status !== "all";
   const reset = () => {
@@ -97,10 +107,10 @@ export default function LessonLibrary() {
     <div className="min-h-screen bg-surface text-navy">
       <main className="mx-auto max-w-5xl px-4 pb-16 pt-8 sm:px-6">
         <div className="mb-6">
-          <p className="text-xs font-bold uppercase tracking-widest text-brand">Library</p>
-          <h1 className="mt-1 text-3xl font-extrabold tracking-tight sm:text-4xl">All lessons</h1>
+          <p className="text-xs font-bold uppercase tracking-widest text-brand">{t("library.kicker")}</p>
+          <h1 className="mt-1 text-3xl font-extrabold tracking-tight sm:text-4xl">{t("library.title")}</h1>
           <p className="mt-2 max-w-2xl text-mute">
-            Every English and Khmer lesson in one list. Search by title or key, filter by level and status, and jump straight in.
+            {t("library.subtitle")}
           </p>
         </div>
 
@@ -112,41 +122,41 @@ export default function LessonLibrary() {
               type="search"
               value={query}
               onChange={(e) => setQuery(e.target.value)}
-              placeholder="Search lessons, courses or keys…"
-              aria-label="Search lessons"
+              placeholder={t("library.search")}
+              aria-label={t("library.searchLabel")}
               className="min-w-[220px] flex-1 rounded-xl border border-slate-200 bg-slate-50 px-4 py-2.5 text-sm outline-none focus:border-brand focus:bg-white"
             />
             <select
               value={sort}
               onChange={(e) => setSort(e.target.value as SortKey)}
-              aria-label="Sort lessons"
+              aria-label={t("library.sortLabel")}
               className="rounded-xl border border-slate-200 bg-slate-50 px-3 py-2.5 text-sm font-semibold outline-none focus:border-brand"
             >
-              <option value="path">Sort: Learning path</option>
-              <option value="level">Sort: Level</option>
-              <option value="xp">Sort: Most XP</option>
-              <option value="title">Sort: A–Z</option>
+              <option value="path">{t("library.sortPath")}</option>
+              <option value="level">{t("library.sortLevel")}</option>
+              <option value="xp">{t("library.sortXp")}</option>
+              <option value="title">{t("library.sortTitle")}</option>
             </select>
           </div>
 
-          <div className="flex flex-wrap items-center gap-2" role="group" aria-label="Language">
+          <div className="flex flex-wrap items-center gap-2" role="group" aria-label={t("gamehub.language")}>
             {(["all", "english", "khmer"] as const).map((v) => (
               <button key={v} type="button" aria-pressed={lang === v} onClick={() => setLang(v)} className={chip(lang === v)}>
-                {v === "all" ? "All languages" : v === "english" ? "English" : "Khmer"}
+                {v === "all" ? t("library.allLanguages") : t(`category.${v}`)}
               </button>
             ))}
           </div>
-          <div className="flex flex-wrap items-center gap-2" role="group" aria-label="Level">
+          <div className="flex flex-wrap items-center gap-2" role="group" aria-label={t("library.level")}>
             {(["all", ...LEVEL_ORDER] as const).map((v) => (
               <button key={v} type="button" aria-pressed={level === v} onClick={() => setLevel(v)} className={chip(level === v)}>
-                {v === "all" ? "All levels" : levelLabels[v]}
+                {v === "all" ? t("library.allLevels") : ct.level(v)}
               </button>
             ))}
           </div>
-          <div className="flex flex-wrap items-center gap-2" role="group" aria-label="Status">
+          <div className="flex flex-wrap items-center gap-2" role="group" aria-label={t("library.status")}>
             {(["all", "todo", "done"] as const).map((v) => (
               <button key={v} type="button" aria-pressed={status === v} onClick={() => setStatus(v)} className={chip(status === v)}>
-                {v === "all" ? "Any status" : v === "todo" ? "Not completed" : "Completed"}
+                {v === "all" ? t("library.anyStatus") : t(`library.${v}`)}
               </button>
             ))}
           </div>
@@ -154,20 +164,20 @@ export default function LessonLibrary() {
 
         <div className="mb-3 flex items-center justify-between text-sm text-mute" aria-live="polite">
           <span>
-            {results.length} {results.length === 1 ? "lesson" : "lessons"}
-            {hasFilters ? ` of ${ENTRIES.length}` : ""}
+            {t(results.length === 1 ? "library.countOne" : "library.countMany", { n: results.length })}
+            {hasFilters ? t("library.ofTotal", { total: ENTRIES.length }) : ""}
           </span>
           {hasFilters && (
             <button type="button" onClick={reset} className="font-bold text-brand hover:underline">
-              Clear filters
+              {t("library.clear")}
             </button>
           )}
         </div>
 
         {results.length === 0 ? (
           <div className="rounded-2xl border border-dashed border-slate-300 bg-white p-10 text-center">
-            <p className="font-bold">No lessons match your filters</p>
-            <p className="mt-1 text-sm text-mute">Try a different search term or clear the filters.</p>
+            <p className="font-bold">{t("library.emptyTitle")}</p>
+            <p className="mt-1 text-sm text-mute">{t("library.emptyText")}</p>
           </div>
         ) : (
           <ul className="space-y-2">
@@ -181,24 +191,24 @@ export default function LessonLibrary() {
                   >
                     <span
                       className={`grid h-8 w-8 flex-none place-items-center rounded-full text-sm font-bold ${done ? "bg-brand text-white" : "bg-slate-200 text-slate-500"}`}
-                      aria-label={done ? "Completed" : "Not completed"}
+                      aria-label={done ? t("library.done") : t("library.todo")}
                     >
                       {done ? "✓" : "→"}
                     </span>
                     <div className="min-w-0 flex-1">
                       <p className={`truncate text-sm font-semibold ${e.language === "khmer" ? "font-khmer" : ""}`}>
-                        {e.titleKm ?? e.title}
+                        {ct.lessonTitle(e.lesson)}
                       </p>
                       <p className="truncate text-[11px] text-mute">
-                        {e.courseTitle} · {e.keyFocus.slice(0, 4).join(" · ")}
+                        {ct.courseTitle(e.course)} · {e.keyFocus.slice(0, 4).map(ct.keyFocus).join(" · ")}
                         {e.keyFocus.length > 4 ? " …" : ""}
                       </p>
                     </div>
                     <span className="hidden flex-none rounded-full bg-slate-100 px-2.5 py-0.5 text-[11px] font-bold text-slate-600 sm:inline">
-                      {e.language === "english" ? "EN" : "KM"}
+                      {t(e.language === "english" ? "library.langEn" : "library.langKm")}
                     </span>
                     <span className={`hidden flex-none rounded-full px-2.5 py-0.5 text-[11px] font-bold sm:inline ${levelColors[e.level]}`}>
-                      {levelLabels[e.level]}
+                      {ct.level(e.level)}
                     </span>
                     <span className="flex-none text-xs font-bold text-amber-600">+{e.xpReward} XP</span>
                   </Link>

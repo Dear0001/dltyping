@@ -1,9 +1,11 @@
 "use client";
 
 import { useRef } from "react";
+import { useLocale } from "@/components/shared/LocaleProvider";
 
 /** A row of single-digit boxes for a one-time code. Handles typing, backspace, arrow keys and pasting the whole code. */
 export default function OtpInput({ value, onChange, length = 6, disabled, autoFocus }: { value: string; onChange: (next: string) => void; length?: number; disabled?: boolean; autoFocus?: boolean }) {
+  const { t } = useLocale();
   const refs = useRef<(HTMLInputElement | null)[]>([]);
   const digits = Array.from({ length }, (_, i) => value[i] ?? "");
   const focus = (i: number) => refs.current[Math.max(0, Math.min(length - 1, i))]?.focus();
@@ -16,7 +18,7 @@ export default function OtpInput({ value, onChange, length = 6, disabled, autoFo
     focus(Math.min(next.length, length - 1));
   }
 
-  return <div role="group" aria-label="6-digit verification code" className="flex justify-center gap-2">
+  return <div role="group" aria-label={t("otp.group")} className="flex justify-center gap-2">
     {digits.map((digit, i) => <input
       key={i}
       ref={(el) => { refs.current[i] = el; }}
@@ -24,7 +26,7 @@ export default function OtpInput({ value, onChange, length = 6, disabled, autoFo
       type="text"
       inputMode="numeric"
       autoComplete={i === 0 ? "one-time-code" : "off"}
-      aria-label={`Digit ${i + 1}`}
+      aria-label={t("otp.digit", { n: i + 1 })}
       maxLength={length}
       disabled={disabled}
       value={digit}

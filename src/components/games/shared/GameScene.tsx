@@ -1,3 +1,6 @@
+"use client";
+
+import { useLocale } from "@/components/shared/LocaleProvider";
 import { codepoints } from "@/lib/khmer-unicode";
 import { getCharStates } from "@/lib/typing-engine";
 import type { Language } from "@/types";
@@ -31,6 +34,7 @@ type Props = {
 
 /** Side-scrolling scene shared by Letter Jump and Mario Khmer Quest. */
 export default function GameScene({ theme, units, index, typed, total, jumpKey, errorKey, language, hero }: Props) {
+  const { t } = useLocale();
   const temple = theme === "temple";
   const from = Math.max(0, index - 1);
   const to = total !== undefined ? Math.min(total, index + 5) : index + 5;
@@ -38,7 +42,7 @@ export default function GameScene({ theme, units, index, typed, total, jumpKey, 
   for (let i = from; i <= to; i++) slots.push(i);
   const khmer = language === "khmer";
 
-  return <div className={`gm-scene relative h-[330px] overflow-hidden rounded-3xl border border-slate-200 shadow-sm sm:h-[380px] ${temple ? "gm-scene-temple" : "gm-scene-sky"}`} role="img" aria-label={`Game scene. Current target: ${units[index] ?? ""}`}>
+  return <div className={`gm-scene relative h-[330px] overflow-hidden rounded-3xl border border-slate-200 shadow-sm sm:h-[380px] ${temple ? "gm-scene-temple" : "gm-scene-sky"}`} role="img" aria-label={t("gm.sceneAria", { target: units[index] ?? "" })}>
     {temple ? <>
       <div className="gm-sun" />
       <svg className="gm-parallax absolute bottom-16 left-0 h-48 w-[1600px] text-teal-900/40" style={{ transform: `translateX(${-index * 14}px)` }} viewBox="0 0 1600 190" preserveAspectRatio="none" aria-hidden="true">
@@ -57,7 +61,7 @@ export default function GameScene({ theme, units, index, typed, total, jumpKey, 
         const bottom = BASE + yOf(i);
         if (isFinish) {
           return <div key={i} className="absolute flex flex-col items-center" style={{ left, bottom, width: PLAT_W }}>
-            <svg viewBox="0 0 80 90" className="h-24 w-20" aria-label="Finish gate"><path d="M6 88V44h68v44z" fill="#475569" /><path d="M14 44c0-24 12-34 26-34s26 10 26 34z" fill="#64748B" /><path d="M40 4v14M34 10h12" stroke="#F59E0B" strokeWidth="4" strokeLinecap="round" /><rect x="30" y="56" width="20" height="32" rx="10" fill="#0F172A" /><path d="M14 44h52" stroke="#F59E0B" strokeWidth="3" /></svg>
+            <svg viewBox="0 0 80 90" className="h-24 w-20" aria-label={t("gm.finishGate")}><path d="M6 88V44h68v44z" fill="#475569" /><path d="M14 44c0-24 12-34 26-34s26 10 26 34z" fill="#64748B" /><path d="M40 4v14M34 10h12" stroke="#F59E0B" strokeWidth="4" strokeLinecap="round" /><rect x="30" y="56" width="20" height="32" rx="10" fill="#0F172A" /><path d="M14 44h52" stroke="#F59E0B" strokeWidth="3" /></svg>
             <div className={`h-3 rounded-full ${temple ? "bg-stone-500" : "bg-white"}`} style={{ width: PLAT_W }} />
           </div>;
         }

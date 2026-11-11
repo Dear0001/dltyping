@@ -1,5 +1,6 @@
 "use client";
 
+import { useLocale } from "@/components/shared/LocaleProvider";
 import { useEffect, useReducer, useRef, useState } from "react";
 import VirtualKeyboard from "@/components/keyboard/VirtualKeyboard";
 import GameControls from "@/components/games/shared/GameControls";
@@ -22,12 +23,7 @@ import { calcAccuracy, calcWpm, getCharStates } from "@/lib/typing-engine";
 import type { Language } from "@/types";
 
 type Duration = 30 | 60 | 120;
-const STEPS = [
-  { icon: "👀", title: "Read the word", text: "The current word is shown large in the middle. The next few words queue up beneath it." },
-  { icon: "⌨️", title: "Type it exactly", text: "Correct letters turn green, mistakes turn red. Press Backspace to fix an error — the word advances automatically when it's right." },
-  { icon: "🔥", title: "Keep the combo", text: "Words typed with zero mistakes build a combo and a score multiplier. Any mistake breaks it." },
-  { icon: "⏱️", title: "Beat the timer", text: "Pick 30, 60 or 120 seconds. Press Esc to pause. Your best score is saved on this device." },
-];
+const STEP_ICONS = ["👀", "⌨️", "🔥", "⏱️"];
 
 type State = {
   status: GameStatus; language: Language; difficulty: Difficulty; durationMs: number; words: string[]; wordIdx: number; typed: string[];
@@ -91,6 +87,8 @@ function reducer(s: State, a: Action): State {
 }
 
 export default function WordSprintGame() {
+  const { t } = useLocale();
+  const steps = STEP_ICONS.map((icon, i) => ({ icon, title: t(`ws.s${i + 1}t`), text: t(`ws.s${i + 1}`) }));
   const [settings, updateSettings] = useSettings();
   const recorder = useActivityRecorder();
   const scores = useScores();
@@ -156,15 +154,15 @@ export default function WordSprintGame() {
         <GameTimer ms={state.status === "idle" ? duration * 1000 : timeLeft} />
         <GameScore score={state.score} />
         <HudStat label="WPM" value={wpm} tone="brand" />
-        <HudStat label="Accuracy" value={`${accuracy}%`} tone={accuracy >= 90 ? "good" : "default"} />
-        <HudStat label="Errors" value={state.errors} tone={state.errors ? "bad" : "default"} />
+        <HudStat label={t("gm.accuracy")} value={`${accuracy}%`} tone={accuracy >= 90 ? "good" : "default"} />
+        <HudStat label={t("gm.errors")} value={state.errors} tone={state.errors ? "bad" : "default"} />
         <ComboBadge combo={state.combo} multiplier={comboMultiplier(state.combo)} />
       </div>
-      <GameProgress label="Time elapsed" value={(state.elapsedMs / (state.status === "idle" ? duration * 1000 : state.durationMs)) * 100} />
+      <GameProgress label={t("gm.timeElapsed")} value={(state.elapsedMs / (state.status === "idle" ? duration * 1000 : state.durationMs)) * 100} />
 
-      <section className="rounded-3xl bg-gradient-to-br from-navy via-slate-900 to-blue-900 p-6 text-white shadow-lg sm:p-10" aria-label="Typing area">
+      <section className="rounded-3xl bg-gradient-to-br from-navy via-slate-900 to-blue-900 p-6 text-white shadow-lg sm:p-10" aria-label={t("gm.typingArea")}>
         <div className="mb-4 flex items-center justify-between text-xs font-bold uppercase tracking-widest text-sky-300">
-          <span>Current word</span><span>{state.completedWords} words</span>
+          <span>{t("ws.currentWord")}</span><span>{t("ws.nWords", { n: state.completedWords })}</span>
         </div>
         <div key={state.errorKey} className={`flex min-h-24 flex-wrap items-center justify-center text-center ${state.errorKey ? "gm-shake" : ""}`} aria-live="polite" lang={khmer ? "km" : "en"}>
           <span className={`${khmer ? "font-khmer text-6xl sm:text-8xl" : "text-6xl font-extrabold tracking-wide sm:text-8xl"}`}>
@@ -172,10 +170,10 @@ export default function WordSprintGame() {
           </span>
         </div>
         <p className="mt-4 h-5 text-center text-sm text-sky-200">
-          {state.status === "idle" ? "Press Start to begin" : state.typed.length >= goal.length && state.wordHadError ? "Press Backspace to fix the mistake" : " "}
+          {state.status === "idle" ? t("gm.pressStart") : state.typed.length >= goal.length && state.wordHadError ? t("gm.fixMistake") : " "}
         </p>
-        <div className="mt-6 flex flex-wrap items-center justify-center gap-2" aria-label="Upcoming words">
-          <span className="mr-1 text-xs font-bold uppercase tracking-widest text-slate-400">Next</span>
+        <div className="mt-6 flex flex-wrap items-center justify-center gap-2" aria-label={t("ws.upcoming")}>
+          <span className="mr-1 text-xs font-bold uppercase tracking-widest text-slate-400">{t("gm.next")}</span>
           {(state.status === "idle" ? DEMO_WORDS.slice(1) : upcoming).map((w, i) => <span key={`${w}-${i}`} className={`rounded-full bg-white/10 px-4 py-1.5 text-lg ${khmer ? "font-khmer" : "font-semibold"}`} style={{ opacity: 1 - i * 0.14 }}>{w}</span>)}
         </div>
       </section>
@@ -183,24 +181,24 @@ export default function WordSprintGame() {
       <VirtualKeyboard language={state.status === "idle" ? language : state.language} expected={nextCp} disabled={!playing} onChar={handleChar} onBackspace={() => dispatch({ type: "backspace" })} controls={<GameControls status={state.status} onPause={() => dispatch({ type: "pause" })} onResume={() => dispatch({ type: "resume" })} onRestart={start} onFinish={() => dispatch({ type: "finish" })} onMenu={() => dispatch({ type: "menu" })} />} />
     </div>
 
-    {state.status === "idle" && <GameStartDialog title="Word Sprint" subtitle="Type fast, type clean, keep the combo alive." icon="⚡" onStart={start}>
+    {state.status === "idle" && <GameStartDialog title={t("ws.title")} subtitle={t("ws.subtitle")} icon="⚡" onStart={start}>
       <div className="grid gap-3 sm:grid-cols-2">
         <LanguageSelector value={language} onChange={(v) => updateSettings({ language: v })} />
         <DifficultySelector value={difficulty} onChange={(v) => updateSettings({ difficulty: v })} />
       </div>
-      <Segmented label="Duration" value={duration} onChange={setDuration} options={[{ value: 30, label: "30 sec" }, { value: 60, label: "60 sec" }, { value: 120, label: "120 sec" }]} />
-      <p className="text-xs text-mute">Best on this setup: <strong className="text-navy">{(scores[`word-sprint:${language}:${difficulty}:${duration}`]?.best ?? 0).toLocaleString("en-US")}</strong></p>
-      <GameInstructions steps={STEPS} firstTime={!seen["word-sprint"]} />
+      <Segmented label={t("gm.duration")} value={duration} onChange={setDuration} options={[30, 60, 120].map((v) => ({ value: v as Duration, label: t("gm.nSec", { n: v }) }))} />
+      <p className="text-xs text-mute">{t("gm.bestOnSetup")}<strong className="text-navy">{(scores[`word-sprint:${language}:${difficulty}:${duration}`]?.best ?? 0).toLocaleString("en-US")}</strong></p>
+      <GameInstructions steps={steps} firstTime={!seen["word-sprint"]} />
     </GameStartDialog>}
     {state.status === "paused" && <GamePauseDialog onResume={() => dispatch({ type: "resume" })} onRestart={start} />}
-    {state.status === "finished" && <GameOverDialog title={state.reason === "time" ? "Time's up!" : "Sprint finished"} subtitle={`${state.completedWords} words in ${Math.round(state.elapsedMs / 1000)}s`} icon="🏁" onRetry={start}>
+    {state.status === "finished" && <GameOverDialog title={state.reason === "time" ? t("gm.timesUp") : t("ws.finished")} subtitle={t("ws.sub", { n: state.completedWords, s: Math.round(state.elapsedMs / 1000) })} icon="🏁" onRetry={start}>
       <GameResults newBest={newBest} best={Math.max(state.bestAtStart, state.score)} rows={[
-        { label: "Score", value: state.score.toLocaleString("en-US"), tone: "brand" },
+        { label: t("gm.score"), value: state.score.toLocaleString("en-US"), tone: "brand" },
         { label: "WPM", value: wpm, tone: "brand" },
-        { label: "Accuracy", value: `${accuracy}%`, tone: accuracy >= 90 ? "good" : "default" },
-        { label: "Words", value: state.completedWords, tone: "good" },
-        { label: "Errors", value: state.errors, tone: state.errors ? "bad" : "default" },
-        { label: "Best combo", value: state.bestCombo },
+        { label: t("gm.accuracy"), value: `${accuracy}%`, tone: accuracy >= 90 ? "good" : "default" },
+        { label: t("gm.words"), value: state.completedWords, tone: "good" },
+        { label: t("gm.errors"), value: state.errors, tone: state.errors ? "bad" : "default" },
+        { label: t("gm.bestCombo"), value: state.bestCombo },
       ]} />
     </GameOverDialog>}
   </GameLayout>;

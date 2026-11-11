@@ -32,8 +32,7 @@ const countMatches = (typed: readonly string[], goal: readonly string[]) => type
  * Remount it (change `key`) to start over.
  */
 export default function TypingRun({ language, text, durationSec, detail, difficulty = null, onFinish, keyboard = true }: Props) {
-  const { locale } = useLocale();
-  const km = locale === "km";
+  const { t } = useLocale();
   const [input, setInput] = useState("");
   const [elapsed, setElapsed] = useState(0);
   const [running, setRunning] = useState(false);
@@ -159,10 +158,10 @@ export default function TypingRun({ language, text, durationSec, detail, difficu
   return (
     <div>
       <div className="mb-3 flex items-end justify-between gap-4" aria-live="off">
-        <div className="text-4xl font-extrabold tabular-nums text-brand" aria-label={km ? "ពេលនៅសល់" : "Time left"}>{remaining}<span className="ml-1 text-base font-bold text-mute">s</span></div>
+        <div className="text-4xl font-extrabold tabular-nums text-brand" aria-label={t("test.timeLeft")}>{remaining}<span className="ml-1 text-base font-bold text-mute">s</span></div>
         <dl className="flex gap-5 text-right">
           <div><dt className="text-[10px] font-bold uppercase tracking-wider text-mute">WPM</dt><dd className="text-2xl font-extrabold tabular-nums text-navy">{liveWpm}</dd></div>
-          <div><dt className="text-[10px] font-bold uppercase tracking-wider text-mute">{km ? "ភាពត្រឹមត្រូវ" : "Accuracy"}</dt><dd className="text-2xl font-extrabold tabular-nums text-navy">{liveAccuracy}%</dd></div>
+          <div><dt className="text-[10px] font-bold uppercase tracking-wider text-mute">{t("daily.accuracyx")}</dt><dd className="text-2xl font-extrabold tabular-nums text-navy">{liveAccuracy}%</dd></div>
         </dl>
       </div>
 
@@ -183,16 +182,16 @@ export default function TypingRun({ language, text, durationSec, detail, difficu
           onFocus={() => setFocused(true)} onBlur={() => setFocused(false)}
           disabled={finished}
           className="absolute inset-0 h-full w-full cursor-text resize-none opacity-0"
-          aria-label={km ? "វាយអត្ថបទនៅទីនេះ" : "Type the text shown"} lang={language === "khmer" ? "km" : "en"}
+          aria-label={t("test.typeTheTextShown")} lang={language === "khmer" ? "km" : "en"}
           autoCapitalize="off" autoCorrect="off" autoComplete="off" spellCheck={false}
         />
         {!focused && !finished && (
           <button type="button" onClick={() => inputRef.current?.focus()} className="absolute inset-0 grid place-items-center rounded-2xl bg-white/70 text-sm font-bold text-navy backdrop-blur-[2px]">
-            {km ? "ចុចទីនេះ ដើម្បីបន្តវាយ" : "Click here to focus and type"}
+            {t("test.clickHereToFocusAnd")}
           </button>
         )}
       </div>
-      <p className="mt-2 text-xs text-mute">{running ? (km ? "កំពុងរាប់ម៉ោង…" : "Timer running…") : km ? "ម៉ោងចាប់ផ្តើមនៅពេលអ្នកចុចគ្រាប់ទីមួយ។" : "The timer starts with your first keystroke."}</p>
+      <p className="mt-2 text-xs text-mute">{running ? (t("test.timerRunning")) : t("test.theTimerStartsWithYour")}</p>
 
       {keyboard && (
         <div className="mt-4">

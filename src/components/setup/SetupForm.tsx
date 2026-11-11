@@ -8,13 +8,15 @@ import Timer from "@/components/typing/Timer";
 import { lessonCategories } from "@/data/categories";
 import type { LessonCategory, LessonConfig } from "@/types";
 import { useLocale } from "@/components/shared/LocaleProvider";
+import { useCurriculumText } from "@/hooks/useCurriculumText";
 import { RANDOM_LESSON, articleHref, pickArticle, suggestedTime } from "@/lib/lesson-picker";
 import { DURATIONS, MAX_DURATION, minutesToDuration } from "@/lib/article-length";
 
 const timeLimits = DURATIONS;
 
 export default function SetupForm() {
-  const { locale, setLocale, t } = useLocale();
+  const { setLocale, t } = useLocale();
+  const ct = useCurriculumText();
   const router = useRouter();
   const [timeTouched, setTimeTouched] = useState(false);
   const [customMinutes, setCustomMinutes] = useState("");
@@ -48,7 +50,6 @@ export default function SetupForm() {
     const { article, goal } = pickArticle(config.language, config.timeLimit);
     router.push(articleHref(config.language, article, goal, config.timeLimit));
   }
-  const km = locale === "km";
   const sectionLevel = selectedSection.level === "Beginner" ? t("setup.beginner") : t("setup.intermediate");
   const sectionMinutes = Number.parseInt(selectedSection.duration, 10) || 1;
 
@@ -62,8 +63,8 @@ export default function SetupForm() {
         <div className="mb-7">
           <label htmlFor="lesson" className="text-[10px] font-bold tracking-[0.16em] text-[color:var(--muted)]">{t("setup.stepLesson")}</label>
           <select id="lesson" value={config.activeSectionId} onChange={(event) => { const picked = category.sections.find((item) => item.id === event.target.value); setConfig((current) => ({ ...current, activeSectionId: event.target.value, timeLimit: picked && !timeTouched ? suggestedTime(picked) : current.timeLimit })); }} className="mt-3 block w-full rounded-lg border border-[#dee2e8] bg-white px-3 py-3 text-sm text-[#33373d] outline-none focus:border-[#717e94] focus:ring-2 focus:ring-[#717e94]/15">
-            <option value={RANDOM_LESSON}>{km ? "🎲 អត្ថបទចៃដន្យ (ណែនាំ)" : "🎲 Random article (recommended)"}</option>
-            {category.sections.map((section) => <option key={section.id} value={section.id}>{section.title} · {section.level === "Beginner" ? t("setup.beginner") : t("setup.intermediate")}</option>)}
+            <option value={RANDOM_LESSON}>{t("setup.randomArticleRecommended")}</option>
+            {category.sections.map((section) => <option key={section.id} value={section.id}>{ct.passageTitle(section)} · {section.level === "Beginner" ? t("setup.beginner") : t("setup.intermediate")}</option>)}
           </select>
         </div>
         <fieldset>
@@ -72,7 +73,7 @@ export default function SetupForm() {
             {timeLimits.map((seconds) => <button key={seconds} type="button" aria-pressed={config.timeLimit === seconds} onClick={() => { setTimeTouched(true); setCustomMinutes(""); setConfig((current) => ({ ...current, timeLimit: seconds })); }} className={`rounded-lg border px-3 py-3 text-sm transition ${config.timeLimit === seconds ? "border-[color:var(--green)] bg-[color:var(--pale)] font-semibold text-[#3a4b67]" : "border-[color:var(--line)] bg-white text-[#6f747b] hover:border-[color:var(--line)]"}`}>{seconds / 60} {t("setup.min")}<span className="mt-1 block text-[10px] font-normal opacity-75">{seconds} {t("setup.seconds")}</span></button>)}
           </div>
           <div className="mt-3 flex items-center gap-3">
-            <label htmlFor="custom-minutes" className="text-xs text-[color:var(--muted)]">{km ? "ឬបញ្ចូលរយៈពេលខ្លួនឯង" : "Or enter your own"}</label>
+            <label htmlFor="custom-minutes" className="text-xs text-[color:var(--muted)]">{t("setup.orEnterYourOwn")}</label>
             <input id="custom-minutes" type="number" inputMode="numeric" min={1} max={MAX_DURATION / 60} step={1} value={customMinutes} placeholder="e.g. 7"
               onChange={(event) => {
                 const value = event.target.value;
@@ -94,8 +95,8 @@ export default function SetupForm() {
           <Timer seconds={config.timeLimit} label={t("timer.label")} />
         <div className="rounded-xl border border-[color:var(--pale)] bg-[#eff1f5] p-4">
           <span className="text-[9px] font-bold tracking-[0.14em] text-[color:var(--muted)]">{t("setup.upNext")}</span>
-          <h2 className="mt-2 font-serif text-xl text-[#2e3238]">{isRandom ? (km ? "🎲 អត្ថបទចៃដន្យ" : "🎲 Random article") : selectedSection.title}</h2>
-          <p className="mt-2 text-xs leading-5 text-[color:var(--muted)]">{isRandom ? (km ? `អត្ថបទចៃដន្យដែលជ្រើសរើសនៅពេលអ្នកចុចចាប់ផ្តើម មានប្រវែងសមស្របនឹងរយៈពេល និងល្បឿនវាយរបស់អ្នក។` : `A surprise article chosen when you press Start, long enough to fill your session at your own typing speed.`) : <>{selectedSection.text.slice(0, 116)}{selectedSection.text.length > 116 ? "…" : ""}</>}</p>
+          <h2 className="mt-2 font-serif text-xl text-[#2e3238]">{isRandom ? (t("setup.randomArticle")) : ct.passageTitle(selectedSection)}</h2>
+          <p className="mt-2 text-xs leading-5 text-[color:var(--muted)]">{isRandom ? t("setup.randomDesc") : <>{selectedSection.text.slice(0, 116)}{selectedSection.text.length > 116 ? "…" : ""}</>}</p>
           {!isRandom && <div className="mt-3 flex gap-2 text-[10px] text-[#7f848b]"><span>{sectionLevel}</span><span>·</span><span>{sectionMinutes} {t("setup.min")}</span></div>}
         </div>
       </aside>

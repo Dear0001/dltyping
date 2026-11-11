@@ -37,7 +37,7 @@ function Segmented<T extends string | number>({ label, value, options, onChange 
 
 /** /test: a standard timed typing test on random words, with a results screen and personal bests. */
 export default function TypingTest() {
-  const { locale } = useLocale();
+  const { locale, t } = useLocale();
   const km = locale === "km";
   const [language, setLanguage] = useState<Language>("english");
   const [duration, setDuration] = useState<TestDuration>(DEFAULT_TEST_DURATION);
@@ -91,24 +91,24 @@ export default function TypingTest() {
       <div className="mx-auto max-w-5xl px-4 pb-16 pt-8 sm:px-6">
         <header className="mb-6 flex flex-wrap items-end justify-between gap-4">
           <div>
-            <p className="text-xs font-bold uppercase tracking-widest text-brand">{km ? "តេស្តវាយអក្សរ" : "Typing test"}</p>
-            <h1 className="mt-1 text-3xl font-extrabold tracking-tight sm:text-4xl">{km ? "តើអ្នកវាយលឿនប៉ុណ្ណា?" : "How fast do you type?"}</h1>
-            <p className="mt-1 max-w-2xl text-mute">{km ? "ពាក្យចៃដន្យ ម៉ោងកំណត់។ ម៉ោងចាប់ផ្តើមនៅពេលអ្នកវាយ។" : "Random words, fixed time. The clock starts when you do."}</p>
+            <p className="text-xs font-bold uppercase tracking-widest text-brand">{t("test.typingTest")}</p>
+            <h1 className="mt-1 text-3xl font-extrabold tracking-tight sm:text-4xl">{t("test.howFastDoYouType")}</h1>
+            <p className="mt-1 max-w-2xl text-mute">{t("test.randomWordsFixedTimeThe")}</p>
           </div>
           <div className="rounded-xl border border-slate-200 bg-white px-4 py-2 text-right shadow-sm">
-            <p className="text-[10px] font-bold uppercase tracking-wider text-mute">{km ? "កំណត់ត្រាល្អបំផុត" : "Personal best"} · {duration}s</p>
+            <p className="text-[10px] font-bold uppercase tracking-wider text-mute">{t("test.personalBest")} · {duration}s</p>
             <p className="text-xl font-extrabold text-navy">{best ? <>{best.wpm} <span className="text-sm text-mute">WPM · {best.accuracy}%</span></> : <span className="text-sm font-semibold text-mute">—</span>}</p>
           </div>
         </header>
 
         <div className="mb-5 flex flex-wrap gap-x-6 gap-y-3">
-          <Segmented label={km ? "ភាសា" : "Language"} value={language} onChange={(v) => change(() => setLanguage(v))} options={[{ id: "english", text: "English" }, { id: "khmer", text: "ខ្មែរ" }]} />
-          <Segmented label={km ? "ពេល" : "Time"} value={duration} onChange={(v) => change(() => setDuration(v))} options={TEST_DURATIONS.map((d) => ({ id: d, text: `${d}s` }))} />
-          <Segmented label={km ? "ពាក្យ" : "Words"} value={difficulty} onChange={(v) => change(() => setDifficulty(v))} options={DIFFICULTIES.map((d) => ({ id: d.id, text: km ? d.km : d.en }))} />
+          <Segmented label={t("daily.language")} value={language} onChange={(v) => change(() => setLanguage(v))} options={[{ id: "english", text: "English" }, { id: "khmer", text: "ខ្មែរ" }]} />
+          <Segmented label={t("test.time")} value={duration} onChange={(v) => change(() => setDuration(v))} options={TEST_DURATIONS.map((d) => ({ id: d, text: `${d}s` }))} />
+          <Segmented label={t("test.words")} value={difficulty} onChange={(v) => change(() => setDifficulty(v))} options={DIFFICULTIES.map((d) => ({ id: d.id, text: km ? d.km : d.en }))} />
         </div>
 
         {result ? (
-          <Results result={result} km={km} onNext={() => restart()} onRetry={() => restart(true)} />
+          <Results result={result} onNext={() => restart()} onRetry={() => restart(true)} />
         ) : text ? (
           <TypingRun key={`${run}:${seed}:${language}:${duration}:${difficulty}`} language={language} text={text} durationSec={duration} difficulty={difficulty} detail={`${duration}s test`} onFinish={handleFinish} />
         ) : (
@@ -117,7 +117,7 @@ export default function TypingTest() {
 
         {!result && (
           <p className="mt-4 text-xs text-mute">
-            <kbd className="rounded border border-slate-300 bg-white px-1.5 py-0.5 font-sans">Esc</kbd> {km ? "តេស្តថ្មី" : "new test"}
+            <kbd className="rounded border border-slate-300 bg-white px-1.5 py-0.5 font-sans">Esc</kbd> {t("test.newTest")}
           </p>
         )}
       </div>
@@ -125,28 +125,29 @@ export default function TypingTest() {
   );
 }
 
-function Results({ result, km, onNext, onRetry }: { result: { run: RunResult; previous: TestBest | null; isBest: boolean }; km: boolean; onNext: () => void; onRetry: () => void }) {
+function Results({ result, onNext, onRetry }: { result: { run: RunResult; previous: TestBest | null; isBest: boolean }; onNext: () => void; onRetry: () => void }) {
+  const { t } = useLocale();
   const { run, previous, isBest } = result;
   const steady = consistency(run.samples);
   const stats: [string, string | number, string?][] = [
-    [km ? "ភាពត្រឹមត្រូវ" : "Accuracy", `${run.accuracy}%`],
-    [km ? "WPM សរុប" : "Raw WPM", run.rawWpm, km ? "រាប់ទាំងកំហុស" : "counts errors too"],
-    [km ? "ភាពស្ថិតស្ថេរ" : "Consistency", `${steady}%`, km ? "ល្បឿនស្មើ" : "how even your pace was"],
-    [km ? "កំហុស" : "Errors", run.errors],
-    [km ? "តួអក្សរត្រូវ" : "Correct chars", run.correct],
-    [km ? "ពេល" : "Time", `${run.durationSec}s`],
+    [t("daily.accuracyx"), `${run.accuracy}%`],
+    [t("test.rawWpm"), run.rawWpm, t("test.countsErrorsToo")],
+    [t("test.consistency"), `${steady}%`, t("test.howEvenYourPaceWas")],
+    [t("daily.errors"), run.errors],
+    [t("test.correctChars"), run.correct],
+    [t("test.time"), `${run.durationSec}s`],
   ];
   return (
     <section className="rounded-2xl border border-slate-200 bg-white p-5 shadow-sm sm:p-7" aria-labelledby="test-result">
       <div className="flex flex-wrap items-center gap-6">
         <div>
-          <p id="test-result" className="text-[10px] font-bold uppercase tracking-wider text-mute">{km ? "លទ្ធផល" : "Your speed"}</p>
+          <p id="test-result" className="text-[10px] font-bold uppercase tracking-wider text-mute">{t("test.yourSpeed")}</p>
           <p className="text-6xl font-extrabold leading-none text-brand">{run.wpm}<span className="ml-2 text-xl text-mute">WPM</span></p>
         </div>
         {isBest ? (
-          <p className="rounded-xl bg-amber-50 px-3 py-2 text-sm font-extrabold text-amber-800" role="status">🏆 {km ? "កំណត់ត្រាថ្មី!" : "New personal best!"}{previous ? ` (+${run.wpm - previous.wpm})` : ""}</p>
+          <p className="rounded-xl bg-amber-50 px-3 py-2 text-sm font-extrabold text-amber-800" role="status">🏆 {t("test.newPersonalBest")}{previous ? ` (+${run.wpm - previous.wpm})` : ""}</p>
         ) : previous ? (
-          <p className="text-sm text-mute">{km ? "កំណត់ត្រា" : "Best"}: <b className="text-navy">{previous.wpm} WPM</b>{run.accuracy < 80 ? (km ? " · ត្រូវការ 80%+ ដើម្បីកំណត់ត្រា" : " · records need 80%+ accuracy") : ""}</p>
+          <p className="text-sm text-mute">{t("test.best")}: <b className="text-navy">{previous.wpm} WPM</b>{run.accuracy < 80 ? (t("test.recordsNeed80Accuracy")) : ""}</p>
         ) : null}
       </div>
       <dl className="mt-5 grid grid-cols-2 gap-2 sm:grid-cols-3 lg:grid-cols-6">
@@ -157,11 +158,11 @@ function Results({ result, km, onNext, onRetry }: { result: { run: RunResult; pr
           </div>
         ))}
       </dl>
-      <div className="mt-6"><WpmChart samples={run.samples} km={km} /></div>
+      <div className="mt-6"><WpmChart samples={run.samples} /></div>
       <div className="mt-6 flex flex-wrap gap-2">
-        <button type="button" autoFocus onClick={onNext} className="rounded-xl bg-brand px-4 py-2 text-sm font-bold text-white">{km ? "តេស្តបន្ទាប់" : "Next test"} →</button>
-        <button type="button" onClick={onRetry} className="rounded-xl border border-slate-300 bg-white px-4 py-2 text-sm font-bold text-navy">↻ {km ? "សាកម្តងទៀត" : "Retry same words"}</button>
-        <Link href="/dashboard/keyboard-mastery" className="rounded-xl border border-slate-300 bg-white px-4 py-2 text-sm font-bold text-navy">⌨️ {km ? "មើលគ្រាប់ចុចយឺត" : "See your slow keys"}</Link>
+        <button type="button" autoFocus onClick={onNext} className="rounded-xl bg-brand px-4 py-2 text-sm font-bold text-white">{t("test.nextTest")} →</button>
+        <button type="button" onClick={onRetry} className="rounded-xl border border-slate-300 bg-white px-4 py-2 text-sm font-bold text-navy">↻ {t("test.retrySameWords")}</button>
+        <Link href="/dashboard/keyboard-mastery" className="rounded-xl border border-slate-300 bg-white px-4 py-2 text-sm font-bold text-navy">⌨️ {t("test.seeYourSlowKeys")}</Link>
       </div>
     </section>
   );

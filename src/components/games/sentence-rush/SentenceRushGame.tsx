@@ -1,5 +1,6 @@
 "use client";
 
+import { useLocale } from "@/components/shared/LocaleProvider";
 import { useEffect, useReducer, useRef, useState } from "react";
 import VirtualKeyboard from "@/components/keyboard/VirtualKeyboard";
 import GameControls from "@/components/games/shared/GameControls";
@@ -22,12 +23,7 @@ import { calcAccuracy, calcWpm, getCharStates } from "@/lib/typing-engine";
 import type { Language } from "@/types";
 
 type Duration = 60 | 120 | 180;
-const STEPS = [
-  { icon: "📖", title: "Read the sentence", text: "The current sentence is shown in the middle, with the next one queued underneath." },
-  { icon: "⌨️", title: "Type it all", text: "Spaces and punctuation count. Correct characters turn green, mistakes turn red. Press Backspace to fix an error — the sentence advances automatically when it is exactly right." },
-  { icon: "🔥", title: "Keep the combo", text: "A sentence finished with zero mistakes builds a combo and a score multiplier. Any mistake breaks it." },
-  { icon: "⏱️", title: "Beat the timer", text: "Pick 60, 120 or 180 seconds. Press Esc to pause. Your best score is saved on this device." },
-];
+const STEP_ICONS = ["📖", "⌨️", "🔥", "⏱️"];
 const DEMO = { english: "The quick brown fox jumps over the lazy dog.", khmer: "ខ្ញុំ រៀន ភាសា ខ្មែរ" } as const;
 
 type State = {
@@ -89,6 +85,8 @@ function reducer(s: State, a: Action): State {
 }
 
 export default function SentenceRushGame() {
+  const { t } = useLocale();
+  const steps = STEP_ICONS.map((icon, i) => ({ icon, title: t(`sr.s${i + 1}t`), text: t(`sr.s${i + 1}`) }));
   const [settings, updateSettings] = useSettings();
   const recorder = useActivityRecorder();
   const scores = useScores();
@@ -156,15 +154,15 @@ export default function SentenceRushGame() {
         <GameTimer ms={idle ? duration * 1000 : timeLeft} />
         <GameScore score={state.score} />
         <HudStat label="WPM" value={wpm} tone="brand" />
-        <HudStat label="Accuracy" value={`${accuracy}%`} tone={accuracy >= 90 ? "good" : "default"} />
-        <HudStat label="Errors" value={state.errors} tone={state.errors ? "bad" : "default"} />
+        <HudStat label={t("gm.accuracy")} value={`${accuracy}%`} tone={accuracy >= 90 ? "good" : "default"} />
+        <HudStat label={t("gm.errors")} value={state.errors} tone={state.errors ? "bad" : "default"} />
         <ComboBadge combo={state.combo} multiplier={comboMultiplier(state.combo)} />
       </div>
-      <GameProgress label="Time elapsed" value={(state.elapsedMs / (idle ? duration * 1000 : state.durationMs)) * 100} />
+      <GameProgress label={t("gm.timeElapsed")} value={(state.elapsedMs / (idle ? duration * 1000 : state.durationMs)) * 100} />
 
-      <section className="rounded-3xl bg-gradient-to-br from-navy via-indigo-950 to-purple-900 p-6 text-white shadow-lg sm:p-10" aria-label="Typing area">
+      <section className="rounded-3xl bg-gradient-to-br from-navy via-indigo-950 to-purple-900 p-6 text-white shadow-lg sm:p-10" aria-label={t("gm.typingArea")}>
         <div className="mb-4 flex items-center justify-between text-xs font-bold uppercase tracking-widest text-fuchsia-300">
-          <span>Current sentence</span><span>{state.completed} sentences</span>
+          <span>{t("sr.currentSentence")}</span><span>{t("sr.nSentences", { n: state.completed })}</span>
         </div>
         <div key={state.errorKey} className={`min-h-28 text-center ${state.errorKey ? "gm-shake" : ""}`} aria-live="polite" lang={khmer ? "km" : "en"}>
           <span className={khmer ? "font-khmer text-3xl leading-relaxed sm:text-5xl" : "text-3xl font-bold leading-snug sm:text-4xl"}>
@@ -172,10 +170,10 @@ export default function SentenceRushGame() {
           </span>
         </div>
         <p className="mt-3 h-5 text-center text-sm text-fuchsia-200">
-          {idle ? "Press Start to begin" : state.typed.length >= goal.length && state.hadError ? "Press Backspace to fix the mistake" : " "}
+          {idle ? t("gm.pressStart") : state.typed.length >= goal.length && state.hadError ? t("gm.fixMistake") : " "}
         </p>
-        <div className="mt-5 text-center" aria-label="Next sentence">
-          <span className="mr-2 text-xs font-bold uppercase tracking-widest text-slate-400">Next</span>
+        <div className="mt-5 text-center" aria-label={t("sr.nextSentence")}>
+          <span className="mr-2 text-xs font-bold uppercase tracking-widest text-slate-400">{t("gm.next")}</span>
           <span className={`text-base text-slate-300/70 ${khmer ? "font-khmer" : ""}`} lang={khmer ? "km" : "en"}>{nextSentence}</span>
         </div>
       </section>
@@ -183,24 +181,24 @@ export default function SentenceRushGame() {
       <VirtualKeyboard language={activeLanguage} expected={nextCp} disabled={!playing} onChar={handleChar} onBackspace={() => dispatch({ type: "backspace" })} controls={<GameControls status={state.status} onPause={() => dispatch({ type: "pause" })} onResume={() => dispatch({ type: "resume" })} onRestart={start} onFinish={() => dispatch({ type: "finish" })} onMenu={() => dispatch({ type: "menu" })} />} />
     </div>
 
-    {idle && <GameStartDialog title="Sentence Rush" subtitle="Type whole sentences, keep them clean, keep the combo alive." icon="📝" onStart={start}>
+    {idle && <GameStartDialog title={t("sr.title")} subtitle={t("sr.subtitle")} icon="📝" onStart={start}>
       <div className="grid gap-3 sm:grid-cols-2">
         <LanguageSelector value={language} onChange={(v) => updateSettings({ language: v })} />
         <DifficultySelector value={difficulty} onChange={(v) => updateSettings({ difficulty: v })} />
       </div>
-      <Segmented label="Duration" value={duration} onChange={setDuration} options={[{ value: 60, label: "60 sec" }, { value: 120, label: "120 sec" }, { value: 180, label: "180 sec" }]} />
-      <p className="text-xs text-mute">Best on this setup: <strong className="text-navy">{(scores[`sentence-rush:${language}:${difficulty}:${duration}`]?.best ?? 0).toLocaleString("en-US")}</strong></p>
-      <GameInstructions steps={STEPS} firstTime={!seen["sentence-rush"]} />
+      <Segmented label={t("gm.duration")} value={duration} onChange={setDuration} options={[60, 120, 180].map((v) => ({ value: v as Duration, label: t("gm.nSec", { n: v }) }))} />
+      <p className="text-xs text-mute">{t("gm.bestOnSetup")}<strong className="text-navy">{(scores[`sentence-rush:${language}:${difficulty}:${duration}`]?.best ?? 0).toLocaleString("en-US")}</strong></p>
+      <GameInstructions steps={steps} firstTime={!seen["sentence-rush"]} />
     </GameStartDialog>}
     {state.status === "paused" && <GamePauseDialog onResume={() => dispatch({ type: "resume" })} onRestart={start} />}
-    {state.status === "finished" && <GameOverDialog title={state.reason === "time" ? "Time's up!" : "Rush finished"} subtitle={`${state.completed} sentences in ${Math.round(state.elapsedMs / 1000)}s`} icon="🏁" onRetry={start}>
+    {state.status === "finished" && <GameOverDialog title={state.reason === "time" ? t("gm.timesUp") : t("sr.finished")} subtitle={t("sr.sub", { n: state.completed, s: Math.round(state.elapsedMs / 1000) })} icon="🏁" onRetry={start}>
       <GameResults newBest={newBest} best={Math.max(state.bestAtStart, state.score)} rows={[
-        { label: "Score", value: state.score.toLocaleString("en-US"), tone: "brand" },
+        { label: t("gm.score"), value: state.score.toLocaleString("en-US"), tone: "brand" },
         { label: "WPM", value: wpm, tone: "brand" },
-        { label: "Accuracy", value: `${accuracy}%`, tone: accuracy >= 90 ? "good" : "default" },
-        { label: "Sentences", value: state.completed, tone: "good" },
-        { label: "Errors", value: state.errors, tone: state.errors ? "bad" : "default" },
-        { label: "Best combo", value: state.bestCombo },
+        { label: t("gm.accuracy"), value: `${accuracy}%`, tone: accuracy >= 90 ? "good" : "default" },
+        { label: t("gm.sentences"), value: state.completed, tone: "good" },
+        { label: t("gm.errors"), value: state.errors, tone: state.errors ? "bad" : "default" },
+        { label: t("gm.bestCombo"), value: state.bestCombo },
       ]} />
     </GameOverDialog>}
   </GameLayout>;

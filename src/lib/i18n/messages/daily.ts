@@ -1,0 +1,38 @@
+import type { Dict } from "../types";
+
+/** daily: each key carries both languages side by side. English is the reference; Khmer follows docs/khmer-glossary.md. */
+const messages = {
+  "daily.accuracy": { en: "accuracy", km: "ភាពត្រឹមត្រូវ" },
+  "daily.and": { en: " and ", km: " និង " },
+  "daily.enUs": { en: "en-US", km: "km-KH" },
+  "daily.dailyChallenge": { en: "Daily challenge", km: "បញ្ហាប្រចាំថ្ងៃ" },
+  "daily.language": { en: "Language", km: "ភាសា" },
+  "daily.summary": { en: "Summary", km: "សង្ខេប" },
+  "daily.todaySGoal": { en: "Today's goal", km: "គោលដៅថ្ងៃនេះ" },
+  "daily.speedGoalBasedOnYour": { en: " · speed goal based on your average", km: " · គោលដៅតាមល្បឿនមធ្យមរបស់អ្នក" },
+  "daily.dailyStreak": { en: "Daily streak", km: "ថ្ងៃជាប់គ្នា" },
+  "daily.last7Days": { en: "Last 7 days", km: "៧ ថ្ងៃចុងក្រោយ" },
+  "daily.completed": { en: "completed", km: "បានបញ្ចប់" },
+  "daily.notCompleted": { en: "not completed", km: "មិនទាន់" },
+  "daily.todaySBest": { en: "Today's best", km: "លទ្ធផលល្អបំផុតថ្ងៃនេះ" },
+  "daily.completedx": { en: "✓ Completed", km: "✓ បានបញ្ចប់" },
+  "daily.goalNotReachedYet": { en: "Goal not reached yet", km: "មិនទាន់ដល់គោលដៅ" },
+  "daily.noAttemptYet": { en: "No attempt yet", km: "មិនទាន់សាកល្បង" },
+  "daily.challengeCompleteComeBackTomorrow": { en: "🎉 Challenge complete! Come back tomorrow for a new one.", km: "🎉 បានបញ្ចប់បញ្ហាថ្ងៃនេះ! ត្រឡប់មកវិញថ្ងៃស្អែក។" },
+  "daily.notQuiteHaveAnotherGo": { en: "Not quite. Have another go!", km: "ជិតហើយ! សាកម្តងទៀត។" },
+  "daily.accuracyx": { en: "Accuracy", km: "ភាពត្រឹមត្រូវ" },
+  "daily.errors": { en: "Errors", km: "កំហុស" },
+  "daily.tryAgain": { en: "Try again", km: "សាកម្តងទៀត" },
+  "daily.freeTypingTest": { en: "Free typing test", km: "តេស្តសេរី" },
+  "daily.dashboard": { en: "Dashboard", km: "ផ្ទាំងគ្រប់គ្រង" },
+  "daily.wd0": { en: "Sun", km: "អា" },
+  "daily.wd1": { en: "Mon", km: "ច" },
+  "daily.wd2": { en: "Tue", km: "អ" },
+  "daily.wd3": { en: "Wed", km: "ពុ" },
+  "daily.wd4": { en: "Thu", km: "ព្រ" },
+  "daily.wd5": { en: "Fri", km: "សុ" },
+  "daily.wd6": { en: "Sat", km: "ស" },
+  "daily.tryOne": { en: "try", km: "ដង" },
+  "daily.tryMany": { en: "tries", km: "ដង" },
+} satisfies Dict;
+export default messages;

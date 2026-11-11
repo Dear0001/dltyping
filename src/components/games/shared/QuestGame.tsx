@@ -22,11 +22,12 @@ import { DIFFICULTY_RULES, LIVES, applyMistake, comboMultiplier, starsFor, unitS
 import { codepoints } from "@/lib/khmer-unicode";
 import { markSeen, recordLevel, recordScore } from "@/lib/local-progress";
 import { playSound } from "@/lib/sound";
+import { useLocale } from "@/components/shared/LocaleProvider";
 import { calcAccuracy } from "@/lib/typing-engine";
 
 export type QuestConfig = {
-  gameId: string; language: Language; title: string; icon: string; theme: SceneTheme; hero: HeroVariant;
-  levels: MarioLevel[]; steps: { icon: string; title: string; text: string }[]; unitClass?: string; finishText: string;
+  gameId: string; language: Language; /** Prefix of the dictionary keys: <prefix>.s1t / .s1 … and <prefix>.finish. */ keyPrefix: string; icons: string[]; icon: string; theme: SceneTheme; hero: HeroVariant;
+  levels: MarioLevel[]; unitClass?: string;
 };
 
 const SECONDS_PER_KEY: Record<Difficulty, number> = { easy: 3.2, medium: 2.4, hard: 1.8 };
@@ -86,6 +87,10 @@ function makeReducer(levels: MarioLevel[]) { return function reducer(s: State, a
 }; }
 
 export default function QuestGame({ config }: { config: QuestConfig }) {
+  const { t, locale } = useLocale();
+  const steps = config.icons.map((icon, i) => ({ icon, title: t(`${config.keyPrefix}.s${i + 1}t`), text: t(`${config.keyPrefix}.s${i + 1}`) }));
+  const levelName = (lv: { name: string; nameKm: string }) => (locale === "km" ? lv.nameKm : lv.name);
+  const blurb = (b: string) => { const key = `lvl.${b.toLowerCase().replace(/[^a-z]+/g, "-").replace(/^-|-$/g, "")}`; return t(key) === key ? b : t(key); };
   const { gameId, language, levels: marioLevels } = config;
   const reducer = useMemo(() => makeReducer(marioLevels), [marioLevels]);
   const [settings, updateSettings] = useSettings();
@@ -147,7 +152,7 @@ export default function QuestGame({ config }: { config: QuestConfig }) {
   const coins = state.index;
   const bestNow = Math.max(state.bestAtStart, state.score);
   const newBest = state.score > 0 && state.score > state.bestAtStart;
-  const title = won ? "Level complete!" : state.outcome === "timeout" ? "Out of time" : state.outcome === "lives" ? "The explorer tumbled" : "Level ended";
+  const title = won ? t("qg.complete") : state.outcome === "timeout" ? t("qg.outOfTime") : state.outcome === "lives" ? t("qg.tumbled") : t("qg.ended");
 
   return <GameLayout>
     <div className="space-y-4">
@@ -156,42 +161,42 @@ export default function QuestGame({ config }: { config: QuestConfig }) {
         <ComboBadge combo={state.combo} multiplier={comboMultiplier(state.combo)} />
         <Hearts lives={state.lives} max={LIVES} />
         <GameTimer ms={state.status === "idle" ? levelLimit(marioLevels, state.level, difficulty) : state.limitMs - state.elapsedMs} />
-        <HudStat label="Coins" value={`🪙 ${coins}`} />
+        <HudStat label={t("qg.coins")} value={`🪙 ${coins}`} />
       </div>
       <GameScene theme={config.theme} hero={config.hero} units={state.units} index={state.index} typed={state.cp} total={total} jumpKey={state.jumpKey} errorKey={state.errorKey} language={language} />
       <VirtualKeyboard language={language} expected={expected} disabled={!playing} onChar={handleChar} controls={<GameControls status={state.status} onPause={() => dispatch({ type: "pause" })} onResume={() => dispatch({ type: "resume" })} onRestart={() => startLevel(state.level)} onMenu={() => dispatch({ type: "menu" })} />} />
     </div>
 
-    {state.status === "idle" && <GameStartDialog title={config.title} subtitle="Choose a level and difficulty, then start your adventure." icon={config.icon} onStart={() => startLevel(selected)} startLabel={`Start Level ${selected}`}>
+    {state.status === "idle" && <GameStartDialog title={t(`game.${gameId}.title`)} subtitle={t("qg.subtitle")} icon={config.icon} onStart={() => startLevel(selected)} startLabel={t("qg.startLevel", { n: selected })}>
       <DifficultySelector value={difficulty} onChange={(v) => updateSettings({ difficulty: v })} />
       <div>
-        <div className="mb-1.5 text-xs font-bold uppercase tracking-wider text-mute">Level</div>
-        <div role="radiogroup" aria-label="Level" className="grid gap-2 sm:grid-cols-2">
+        <div className="mb-1.5 text-xs font-bold uppercase tracking-wider text-mute">{t("qg.level")}</div>
+        <div role="radiogroup" aria-label={t("qg.level")} className="grid gap-2 sm:grid-cols-2">
           {marioLevels.map((lv) => {
             const done = levelBook[lv.number];
             return <button key={lv.number} type="button" role="radio" aria-checked={selected === lv.number} onClick={() => { setSelected(lv.number); dispatch({ type: "menu" }); }} className={`rounded-xl border-2 p-3 text-left transition focus-visible:outline-2 focus-visible:outline-brand ${selected === lv.number ? "border-brand bg-blue-50" : "border-slate-200 bg-white hover:border-slate-300"}`}>
-              <div className="flex items-center justify-between text-sm font-bold text-navy"><span>{lv.number}. {lv.name}</span><span className="text-amber-400" aria-label={done ? `${done.stars} stars` : "not completed"}>{done ? "★".repeat(done.stars) : <span className="text-slate-300">☆☆☆</span>}</span></div>
-              <div className="text-xs text-mute">{lv.blurb} · <span className={config.unitClass}>{lv.units.slice(0, 3).join(" ")}</span></div>
+              <div className="flex items-center justify-between text-sm font-bold text-navy"><span>{lv.number}. {levelName(lv)}</span><span className="text-amber-400" aria-label={done ? t("qg.stars", { n: done.stars }) : t("qg.notDone")}>{done ? "★".repeat(done.stars) : <span className="text-slate-300">☆☆☆</span>}</span></div>
+              <div className="text-xs text-mute">{blurb(lv.blurb)} · <span className={config.unitClass}>{lv.units.slice(0, 3).join(" ")}</span></div>
             </button>;
           })}
         </div>
       </div>
-      <GameInstructions steps={config.steps} firstTime={!seen[gameId]} />
+      <GameInstructions steps={steps} firstTime={!seen[gameId]} />
     </GameStartDialog>}
     {state.status === "paused" && <GamePauseDialog onResume={() => dispatch({ type: "resume" })} onRestart={() => startLevel(state.level)} />}
     {state.status === "finished" && <GameOverDialog
-      title={title} subtitle={`Level ${state.level} · ${info.name}`} icon={won ? "🏆" : state.outcome === "lives" ? "💔" : "⏳"} onRetry={() => startLevel(state.level)}
-      extra={won && hasNext ? <button data-autofocus type="button" className={`${primaryBtn} flex-1`} onClick={() => startLevel(state.level + 1)}>Next Level →</button> : undefined}
+      title={title} subtitle={t("qg.levelSub", { n: state.level, name: levelName(info) })} icon={won ? "🏆" : state.outcome === "lives" ? "💔" : "⏳"} onRetry={() => startLevel(state.level)}
+      extra={won && hasNext ? <button data-autofocus type="button" className={`${primaryBtn} flex-1`} onClick={() => startLevel(state.level + 1)}>{t("qg.nextLevel")}</button> : undefined}
     >
       <GameResults stars={won ? stars : undefined} newBest={newBest} best={bestNow} rows={[
-        { label: "Score", value: state.score.toLocaleString("en-US"), tone: "brand" },
-        { label: "Accuracy", value: `${accuracy}%`, tone: accuracy >= 90 ? "good" : "default" },
-        { label: "Coins", value: `🪙 ${coins}` },
-        { label: "Mistakes", value: state.mistakes, tone: state.mistakes ? "bad" : "default" },
-        { label: "Best combo", value: state.bestCombo },
-        { label: won ? "Time bonus" : "Progress", value: won ? `+${state.timeBonus}` : `${state.index}/${total}` },
+        { label: t("gm.score"), value: state.score.toLocaleString("en-US"), tone: "brand" },
+        { label: t("gm.accuracy"), value: `${accuracy}%`, tone: accuracy >= 90 ? "good" : "default" },
+        { label: t("qg.coins"), value: `🪙 ${coins}` },
+        { label: t("gm.mistakes"), value: state.mistakes, tone: state.mistakes ? "bad" : "default" },
+        { label: t("gm.bestCombo"), value: state.bestCombo },
+        { label: won ? t("qg.timeBonus") : t("qg.progressRow"), value: won ? `+${state.timeBonus}` : `${state.index}/${total}` },
       ]} />
-      {won && !hasNext && <p className="rounded-xl bg-blue-50 px-4 py-2.5 text-center text-sm font-semibold text-brand">{config.finishText}</p>}
+      {won && !hasNext && <p className="rounded-xl bg-blue-50 px-4 py-2.5 text-center text-sm font-semibold text-brand">{t(`${config.keyPrefix}.finish`)}</p>}
     </GameOverDialog>}
   </GameLayout>;
 }

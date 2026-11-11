@@ -1,10 +1,15 @@
+"use client";
+
+import { useLocale } from "@/components/shared/LocaleProvider";
+
 export type Instruction = { icon: string; title: string; text: string };
 
 /** How-to-play list. Open by default for first-time players, collapsed afterwards. */
 export default function GameInstructions({ steps, firstTime }: { steps: Instruction[]; firstTime: boolean }) {
+  const { t } = useLocale();
   return <details open={firstTime} className="group rounded-2xl border border-blue-100 bg-blue-50/60 p-4">
     <summary className="flex cursor-pointer list-none items-center justify-between text-sm font-bold text-navy focus-visible:outline-2 focus-visible:outline-brand">
-      <span>{firstTime ? "👋 New here? Quick tutorial" : "How to play"}</span>
+      <span>{t(firstTime ? "gm.newHere" : "gm.howToPlay")}</span>
       <span className="text-mute transition group-open:rotate-180" aria-hidden="true">⌄</span>
     </summary>
     <ol className="mt-3 space-y-2.5">

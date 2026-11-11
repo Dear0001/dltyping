@@ -1,12 +1,12 @@
 "use client";
 
 import { createContext, useCallback, useContext, useEffect, useMemo, useSyncExternalStore, type ReactNode } from "react";
-import { translate, type AppLocale } from "@/lib/i18n";
+import { translate, type AppLocale, type Vars } from "@/lib/i18n";
 
 type LocaleContextValue = {
   locale: AppLocale;
   setLocale: (locale: AppLocale) => void;
-  t: (key: string) => string;
+  t: (key: string, vars?: Vars) => string;
 };
 
 const LocaleContext = createContext<LocaleContextValue | null>(null);
@@ -61,12 +61,23 @@ export function LocaleProvider({ children }: { children: ReactNode }) {
 
   const setLocale = useCallback((nextLocale: AppLocale) => saveLocale(nextLocale), []);
 
-  const value = useMemo<LocaleContextValue>(() => ({ locale, setLocale, t: (key) => translate(locale, key) }), [locale, setLocale]);
+  const value = useMemo<LocaleContextValue>(() => ({ locale, setLocale, t: (key, vars) => translate(locale, key, vars) }), [locale, setLocale]);
   return <LocaleContext.Provider value={value}>{children}</LocaleContext.Provider>;
 }
 
+const subscribeNever = () => () => {};
+
+/**
+ * The saved language only exists in the browser, so the server always renders English. A component that
+ * hydrates after the provider has already switched to Khmer (Suspense boundaries hydrate on their own
+ * schedule) would then disagree with its server HTML. So every component reads English for its own
+ * hydration pass (useSyncExternalStore's server snapshot) and re-renders in the real language right after.
+ */
 export function useLocale() {
   const context = useContext(LocaleContext);
-  if (!context) throw new Error("useLocale must be used within LocaleProvider");
-  return context;
+  const hydrated = useSyncExternalStore(subscribeNever, () => true, () => false);
+  const setLocale = context?.setLocale;
+  const english = useMemo<LocaleContextValue | null>(() => (setLocale ? { locale: "en", setLocale, t: (key, vars) => translate("en", key, vars) } : null), [setLocale]);
+  if (!context || !english) throw new Error("useLocale must be used within LocaleProvider");
+  return hydrated ? context : english;
 }

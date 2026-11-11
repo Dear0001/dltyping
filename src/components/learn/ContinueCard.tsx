@@ -1,22 +1,26 @@
 "use client";
 
 import Link from "next/link";
-import { curricula, firstIncompleteLesson, getAllLessons, levelLabels, levelColors } from "@/data/curriculum";
+import { curricula, firstIncompleteLesson, getAllLessons, levelColors } from "@/data/curriculum";
 import Ready from "@/components/skeleton/Ready";
 import { Sk } from "@/components/skeleton/Skeleton";
 import { useUserProgress } from "@/hooks/use-stored-value";
+import { useLocale } from "@/components/shared/LocaleProvider";
+import { useCurriculumText } from "@/hooks/useCurriculumText";
 
 const LANGS = [
-  { id: "english", label: "English", icon: "Aa", iconClass: "bg-blue-50 text-brand" },
-  { id: "khmer", label: "Khmer", icon: "ក", iconClass: "bg-emerald-50 text-emerald-700" },
+  { id: "english", icon: "Aa", iconClass: "bg-blue-50 text-brand" },
+  { id: "khmer", icon: "ក", iconClass: "bg-emerald-50 text-emerald-700" },
 ] as const;
 
 /** "Continue where you left off": the next incomplete lesson for each language. */
 export default function ContinueCard() {
-  return <Ready fallback={<section aria-busy="true" aria-label="Loading your lessons" className="mb-8 grid gap-3 sm:grid-cols-2">{[0, 1].map((i) => <div key={i} className="flex items-center gap-3 rounded-2xl border border-slate-200 bg-white p-4"><Sk className="h-11 w-11 flex-none rounded-2xl" /><div className="flex-1"><Sk className="mb-2 h-3 w-24" /><Sk className="mb-2 h-4 w-3/4" /><Sk className="h-2 w-full" /></div></div>)}</section>}><ContinueCardContent /></Ready>;
+  return <Ready fallback={<section aria-busy="true" aria-label="Loading" className="mb-8 grid gap-3 sm:grid-cols-2">{[0, 1].map((i) => <div key={i} className="flex items-center gap-3 rounded-2xl border border-slate-200 bg-white p-4"><Sk className="h-11 w-11 flex-none rounded-2xl" /><div className="flex-1"><Sk className="mb-2 h-3 w-24" /><Sk className="mb-2 h-4 w-3/4" /><Sk className="h-2 w-full" /></div></div>)}</section>}><ContinueCardContent /></Ready>;
 }
 
 function ContinueCardContent() {
+  const { t } = useLocale();
+  const ct = useCurriculumText();
   const progress = useUserProgress();
   const cards = LANGS.map((lang) => {
     const curriculum = curricula[lang.id];
@@ -30,26 +34,27 @@ function ContinueCardContent() {
   cards.sort((a, b) => Number(b.done > 0) - Number(a.done > 0));
 
   return (
-    <section aria-label="Continue learning" className="mb-8 grid gap-3 sm:grid-cols-2">
+    <section aria-label={t("learn.continueLabel")} className="mb-8 grid gap-3 sm:grid-cols-2">
       {cards.map(({ lang, done, total, next }) => {
-        const verb = done === 0 ? "Start" : "Continue";
+        const verb = t(done === 0 ? "learn.start" : "learn.continue");
+        const label = t(`category.${lang.id}`);
         const body = (
           <>
             <span className={`grid h-11 w-11 flex-none place-items-center rounded-2xl text-xl font-extrabold ${lang.iconClass}`}>{lang.icon}</span>
             <div className="min-w-0 flex-1">
               <p className="text-[11px] font-bold uppercase tracking-wider text-brand">
-                {next ? `${verb} ${lang.label}` : `${lang.label} complete`}
+                {next ? t(done === 0 ? "learn.startLang" : "learn.continueLang", { lang: label }) : t("learn.langComplete", { lang: label })}
               </p>
               {next ? (
                 <>
-                  <p className={`truncate font-extrabold ${lang.id === "khmer" ? "font-khmer" : ""}`}>{next.lesson.titleKm ?? next.lesson.title}</p>
+                  <p className={`truncate font-extrabold ${lang.id === "khmer" ? "font-khmer" : ""}`}>{ct.lessonTitle(next.lesson)}</p>
                   <p className="mt-0.5 flex items-center gap-2 text-[11px] text-mute">
-                    <span className={`rounded-full px-2 py-0.5 font-bold ${levelColors[next.course.level]}`}>{levelLabels[next.course.level]}</span>
-                    <span>{done}/{total} done</span>
+                    <span className={`rounded-full px-2 py-0.5 font-bold ${levelColors[next.course.level]}`}>{ct.level(next.course.level)}</span>
+                    <span>{t("learn.doneCount", { done, total })}</span>
                   </p>
                 </>
               ) : (
-                <p className="font-extrabold">All {total} lessons finished 🎉</p>
+                <p className="font-extrabold">{t("learn.allFinished", { total })}</p>
               )}
             </div>
             {next && <span className="flex-none text-sm font-bold text-brand">{verb} →</span>}

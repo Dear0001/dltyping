@@ -7,6 +7,7 @@ import { normalizeKhmer } from "@/lib/khmer-unicode";
 import { lessons } from "@/data/lessons";
 import type { Language, OSPlatform } from "@/types";
 import { useLocale } from "@/components/shared/LocaleProvider";
+import { useCurriculumText } from "@/hooks/useCurriculumText";
 import { completeLesson, readUserProgress, recordPractice } from "@/lib/local-progress";
 import { curricula, findLesson } from "@/data/curriculum";
 import { GameDialog } from "@/components/games/shared/GameDialog";
@@ -33,7 +34,8 @@ type TypingPracticeProps = {
 };
 
 export default function TypingPractice({ language, platform = "Unknown", initialLessonId, timeLimit: initialTimeLimit = 60, initialDrill = null, initialArticle = null }: TypingPracticeProps) {
-  const { locale, t } = useLocale();
+  const { t } = useLocale();
+  const ct = useCurriculumText();
   const list = lessons[language];
   const [lessonId, setLessonId] = useState(() => list.find((item) => item.id === initialLessonId)?.id ?? list[0].id);
   const [timeLimit, setTimeLimit] = useState(initialTimeLimit);
@@ -280,11 +282,11 @@ export default function TypingPractice({ language, platform = "Unknown", initial
       <section className="practice-shell" id="practice">
         <div className="practice-grid">
           <section className="practice-main">
-            <div className="lesson-bar"><div className="lesson-name"><span className="lesson-icon">✳</span><div><span className="small-label">{t("practice.currentLesson")}</span><strong>{drillText ? (locale === "km" ? "ហាត់គ្រាប់ចុចខ្សោយ" : "Weak-key drill") : article?.title ?? lesson.title}</strong></div></div><select value={lessonId} onChange={(event) => reset(event.target.value)} aria-label={locale === "km" ? "ជ្រើសរើសមេរៀន" : "Choose lesson"}>{list.map((item) => <option key={item.id} value={item.id}>{item.title}</option>)}</select></div>
+            <div className="lesson-bar"><div className="lesson-name"><span className="lesson-icon">✳</span><div><span className="small-label">{t("practice.currentLesson")}</span><strong>{drillText ? (t("practice.weakKeyDrill")) : article?.title ?? ct.passageTitle(lesson)}</strong></div></div><select value={lessonId} onChange={(event) => reset(event.target.value)} aria-label={t("practice.chooseLesson")}>{list.map((item) => <option key={item.id} value={item.id}>{ct.passageTitle(item)}</option>)}</select></div>
             <div className="flex flex-wrap items-center gap-2 border border-t-0 border-[color:var(--line)] bg-white px-4 py-2 text-xs text-[color:var(--muted)]">
-              <span className="mr-1 text-[9px] font-bold tracking-[0.14em]">{locale === "km" ? "រយៈពេល" : "TIME"}</span>
+              <span className="mr-1 text-[9px] font-bold tracking-[0.14em]">{t("practice.timeLabel")}</span>
               {DURATIONS.map((value) => <button key={value} type="button" disabled={running} aria-pressed={timeLimit === value} onClick={() => { setCustomMinutes(""); changeTime(value); }} className={`rounded-md border px-2.5 py-1 transition disabled:opacity-50 ${timeLimit === value ? "border-[color:var(--green)] bg-[color:var(--pale)] font-semibold text-[#3a4b67]" : "border-[color:var(--line)] bg-white hover:bg-[color:var(--pale)]"}`}>{value / 60} {t("setup.min")}</button>)}
-              <input type="number" inputMode="numeric" min={1} max={MAX_DURATION / 60} step={1} disabled={running} value={customMinutes} placeholder={locale === "km" ? "ផ្ទាល់ខ្លួន" : "Custom"} aria-label={locale === "km" ? "រយៈពេលជានាទី" : "Custom minutes"}
+              <input type="number" inputMode="numeric" min={1} max={MAX_DURATION / 60} step={1} disabled={running} value={customMinutes} placeholder={t("practice.custom")} aria-label={t("practice.customMinutes")}
                 onChange={(event) => setCustomMinutes(event.target.value)}
                 onKeyDown={(event) => { if (event.key === "Enter") event.currentTarget.blur(); }}
                 onBlur={() => { const seconds = minutesToDuration(Number(customMinutes)); if (seconds) { setCustomMinutes(String(seconds / 60)); changeTime(seconds); } else setCustomMinutes(""); }}
@@ -300,24 +302,24 @@ export default function TypingPractice({ language, platform = "Unknown", initial
                   return <span key={`${index}-${char}`} className={`char ${state} ${index === normalizedInput.length ? "cursor" : ""}`}>{char}</span>;
                 })}
               </div>
-              <textarea ref={inputRef} value={input} onChange={(event) => handleInput(event.target.value)} onCompositionStart={handleCompositionStart} onCompositionEnd={(event) => handleCompositionEnd(event.currentTarget.value)} onPaste={(event) => event.preventDefault()} className="typing-input" aria-label={locale === "km" ? "វាយអត្ថបទមេរៀន" : "Type the lesson text"} lang={language === "khmer" ? "km" : "en"} autoCapitalize="off" autoCorrect="off" spellCheck={false} />
-              {paused && <p className="mx-auto my-2 w-fit rounded-lg bg-blue-50 px-4 py-2 text-sm font-semibold text-brand" role="status">⏸ Paused — press Resume to continue.</p>}
-              {done && !resultClosed && <GameDialog title="Lesson complete" icon="🎉" onEscape={() => setResultClosed(true)}>
+              <textarea ref={inputRef} value={input} onChange={(event) => handleInput(event.target.value)} onCompositionStart={handleCompositionStart} onCompositionEnd={(event) => handleCompositionEnd(event.currentTarget.value)} onPaste={(event) => event.preventDefault()} className="typing-input" aria-label={t("practice.typeTheLessonText")} lang={language === "khmer" ? "km" : "en"} autoCapitalize="off" autoCorrect="off" spellCheck={false} />
+              {paused && <p className="mx-auto my-2 w-fit rounded-lg bg-blue-50 px-4 py-2 text-sm font-semibold text-brand" role="status">{t("practice.paused")}</p>}
+              {done && !resultClosed && <GameDialog title={t("practice.lessonCompleteTitle")} icon="🎉" onEscape={() => setResultClosed(true)}>
                 <div className="text-center">
-                {autoCompleted && <p className="mt-2 rounded-xl bg-emerald-50 px-3 py-2 text-sm font-extrabold text-emerald-800" role="status">🏆 Lesson Complete!{autoCompleted.xp > 0 ? ` +${autoCompleted.xp} XP` : ""}</p>}
-                <dl className="my-4 grid grid-cols-4 gap-2 text-center">{[["WPM", stats.wpm], ["Accuracy", `${stats.accuracy}%`], ["Errors", stats.errors], ["Time", `${seconds}s`]].map(([label, value]) => <div key={String(label)} className="rounded-xl bg-slate-50 p-2"><dt className="text-[10px] font-bold uppercase text-mute">{label}</dt><dd className="text-xl font-extrabold text-navy">{value}</dd></div>)}</dl>
-                {mistakes.length > 0 && <div className="mb-4 text-left"><p className="mb-2 text-[10px] font-bold uppercase text-mute">Mistakes ({mistakes.length})</p><ul className="flex max-h-28 flex-wrap gap-1.5 overflow-y-auto">{mistakes.map((m) => <li key={m.index} className="rounded-lg bg-red-50 px-2 py-1 text-xs text-red-700">expected <b>{m.expected === " " ? "space" : m.expected}</b>, typed <b>{m.typed === " " ? "space" : m.typed}</b></li>)}</ul></div>}
+                {autoCompleted && <p className="mt-2 rounded-xl bg-emerald-50 px-3 py-2 text-sm font-extrabold text-emerald-800" role="status">{t("practice.lessonCompleteBadge")}{autoCompleted.xp > 0 ? ` +${autoCompleted.xp} XP` : ""}</p>}
+                <dl className="my-4 grid grid-cols-4 gap-2 text-center">{[["WPM", stats.wpm], [t("practice.accuracy"), `${stats.accuracy}%`], [t("practice.errorsLabel"), stats.errors], [t("practice.timeStat"), t("practice.secondsShort", { n: seconds })]].map(([label, value]) => <div key={String(label)} className="rounded-xl bg-slate-50 p-2"><dt className="text-[10px] font-bold uppercase text-mute">{label}</dt><dd className="text-xl font-extrabold text-navy">{value}</dd></div>)}</dl>
+                {mistakes.length > 0 && <div className="mb-4 text-left"><p className="mb-2 text-[10px] font-bold uppercase text-mute">{t("practice.mistakes", { n: mistakes.length })}</p><ul className="flex max-h-28 flex-wrap gap-1.5 overflow-y-auto">{mistakes.map((m) => <li key={m.index} className="rounded-lg bg-red-50 px-2 py-1 text-xs text-red-700">{t("practice.expected")} <b>{m.expected === " " ? t("practice.space") : m.expected}</b>, {t("practice.typed")} <b>{m.typed === " " ? t("practice.space") : m.typed}</b></li>)}</ul></div>}
                 <div className="flex flex-wrap justify-center gap-2">
-                  <button data-autofocus type="button" className="rounded-xl border border-slate-300 bg-white px-4 py-2 text-sm font-bold text-navy" onClick={() => reset()}>↻ Retry</button>
-                  <button type="button" className="rounded-xl bg-brand px-4 py-2 text-sm font-bold text-white" onClick={newArticle}>🎲 Random article</button>
-                  {nextLesson && <button type="button" className="rounded-xl border border-slate-300 bg-white px-4 py-2 text-sm font-bold text-navy" onClick={() => reset(nextLesson.id)}>Next lesson →</button>}
-                  <Link href="/games" className="rounded-xl border border-slate-300 bg-white px-4 py-2 text-sm font-bold text-navy">🎮 Play a game</Link>
-                  <button type="button" className="rounded-xl border border-slate-300 bg-white px-4 py-2 text-sm font-bold text-navy" onClick={() => setResultClosed(true)}>Close</button>
+                  <button data-autofocus type="button" className="rounded-xl border border-slate-300 bg-white px-4 py-2 text-sm font-bold text-navy" onClick={() => reset()}>{t("practice.retry")}</button>
+                  <button type="button" className="rounded-xl bg-brand px-4 py-2 text-sm font-bold text-white" onClick={newArticle}>{t("practice.randomArticle")}</button>
+                  {nextLesson && <button type="button" className="rounded-xl border border-slate-300 bg-white px-4 py-2 text-sm font-bold text-navy" onClick={() => reset(nextLesson.id)}>{t("practice.nextLesson")}</button>}
+                  <Link href="/games" className="rounded-xl border border-slate-300 bg-white px-4 py-2 text-sm font-bold text-navy">{t("practice.playGame")}</Link>
+                  <button type="button" className="rounded-xl border border-slate-300 bg-white px-4 py-2 text-sm font-bold text-navy" onClick={() => setResultClosed(true)}>{t("practice.close")}</button>
                 </div>
-                <WeakKeysReport language={language} km={locale === "km"} onDrill={(text) => reset(lessonId, text)} />
+                <WeakKeysReport language={language} onDrill={(text) => reset(lessonId, text)} />
                 </div>
               </GameDialog>}
-              <div className="typing-footer"><span><kbd>tab</kbd> + <kbd>enter</kbd> {t("practice.restartHint")}</span><div className="typing-actions"><button className={`sound-toggle ${soundEnabled ? "sound-on" : ""}`} onClick={() => setSoundEnabled((enabled) => !enabled)} aria-pressed={soundEnabled} title={soundEnabled ? t("practice.mute") : t("practice.enableSound")}>{soundEnabled ? "◖))" : "◖×"}<span>{t(soundEnabled ? "practice.soundOn" : "practice.soundOff")}</span></button>{!done && <button className="restart-button" onClick={() => { if (paused) { setPaused(false); if (typedLength > 0) setRunning(true); inputRef.current?.focus(); } else { setPaused(true); setRunning(false); } }} disabled={typedLength === 0 && !paused}>{paused ? "▶ Resume" : "⏸ Pause"}</button>}{!done && typedLength > 0 && <button className="restart-button" onClick={() => { setRunning(false); setPaused(false); setForcedDone(true); }}>🏁 Finish</button>}<button className="restart-button" onClick={() => reset()}>↻ <span>{t("practice.restart")}</span></button></div></div>
+              <div className="typing-footer"><span><kbd>tab</kbd> + <kbd>enter</kbd> {t("practice.restartHint")}</span><div className="typing-actions"><button className={`sound-toggle ${soundEnabled ? "sound-on" : ""}`} onClick={() => setSoundEnabled((enabled) => !enabled)} aria-pressed={soundEnabled} title={soundEnabled ? t("practice.mute") : t("practice.enableSound")}>{soundEnabled ? "◖))" : "◖×"}<span>{t(soundEnabled ? "practice.soundOn" : "practice.soundOff")}</span></button>{!done && <button className="restart-button" onClick={() => { if (paused) { setPaused(false); if (typedLength > 0) setRunning(true); inputRef.current?.focus(); } else { setPaused(true); setRunning(false); } }} disabled={typedLength === 0 && !paused}>{t(paused ? "practice.resume" : "practice.pause")}</button>}{!done && typedLength > 0 && <button className="restart-button" onClick={() => { setRunning(false); setPaused(false); setForcedDone(true); }}>{t("practice.finish")}</button>}<button className="restart-button" onClick={() => reset()}>↻ <span>{t("practice.restart")}</span></button></div></div>
             </div>
             {needsKhmerInputSwitch && language === "khmer" && <div className="input-switch-hint" role="alert"><span className="feedback-icon">!</span><span><strong>{t("practice.switchTitle")}</strong><br />{t(platform === "Windows" ? "practice.switchWindows" : platform === "macOS" ? "practice.switchMac" : "practice.switchUnknown")}</span></div>}
             <VirtualKeyboard language={language} heat={done ? heat : undefined} expected={done || paused ? null : nextCharacter || null} disabled={paused || done} osHint={osFromPlatform(platform)} onChar={handleVirtualChar} onBackspace={handleVirtualBackspace} />

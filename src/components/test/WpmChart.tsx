@@ -1,5 +1,6 @@
 "use client";
 
+import { useLocale } from "@/components/shared/LocaleProvider";
 import { useState } from "react";
 import type { RunSample } from "@/lib/typing-test";
 
@@ -9,7 +10,8 @@ const RAW_COLOR = "#94a3b8"; // neutral slate; also dashed, so it never relies o
 const ERROR_COLOR = "#dc2626"; // status: critical
 
 /** Speed over the run: net WPM and raw WPM on one axis (same unit), with a marker where errors happened. */
-export default function WpmChart({ samples, km = false }: { samples: readonly RunSample[]; km?: boolean }) {
+export default function WpmChart({ samples }: { samples: readonly RunSample[] }) {
+  const { t } = useLocale();
   const [hover, setHover] = useState<number | null>(null);
   if (samples.length < 2) return null;
   const maxX = samples.at(-1)!.second;
@@ -34,13 +36,13 @@ export default function WpmChart({ samples, km = false }: { samples: readonly Ru
   return (
     <figure className="m-0">
       <figcaption className="mb-2 flex flex-wrap items-center gap-x-4 gap-y-1 text-xs text-mute">
-        <span className="font-bold text-navy">{km ? "ល្បឿនតាមវិនាទី" : "Speed over time"}</span>
+        <span className="font-bold text-navy">{t("test.speedOverTime")}</span>
         <span className="flex items-center gap-1.5"><svg width="18" height="4" aria-hidden="true"><line x1="0" y1="2" x2="18" y2="2" stroke={WPM_COLOR} strokeWidth="2" /></svg>WPM</span>
-        <span className="flex items-center gap-1.5"><svg width="18" height="4" aria-hidden="true"><line x1="0" y1="2" x2="18" y2="2" stroke={RAW_COLOR} strokeWidth="2" strokeDasharray="4 3" /></svg>{km ? "WPM សរុប (រាប់ទាំងកំហុស)" : "Raw WPM (incl. errors)"}</span>
-        <span className="flex items-center gap-1.5"><svg width="10" height="10" aria-hidden="true"><path d="M2 2L8 8M8 2L2 8" stroke={ERROR_COLOR} strokeWidth="2" /></svg>{km ? "កំហុស" : "Error"}</span>
+        <span className="flex items-center gap-1.5"><svg width="18" height="4" aria-hidden="true"><line x1="0" y1="2" x2="18" y2="2" stroke={RAW_COLOR} strokeWidth="2" strokeDasharray="4 3" /></svg>{t("test.rawWpmInclErrors")}</span>
+        <span className="flex items-center gap-1.5"><svg width="10" height="10" aria-hidden="true"><path d="M2 2L8 8M8 2L2 8" stroke={ERROR_COLOR} strokeWidth="2" /></svg>{t("test.error")}</span>
       </figcaption>
       <div className="relative">
-        <svg viewBox={`0 0 ${W} ${H}`} className="h-auto w-full overflow-visible" role="img" aria-label={`${km ? "ល្បឿន" : "Speed"}: ${last.wpm} WPM, raw ${last.raw} WPM over ${maxX}s`}>
+        <svg viewBox={`0 0 ${W} ${H}`} className="h-auto w-full overflow-visible" role="img" aria-label={`${t("test.speed")}: ${last.wpm} WPM, raw ${last.raw} WPM over ${maxX}s`}>
           {ticks.map((t) => (
             <g key={t}>
               <line x1={PAD.left} x2={W - PAD.right} y1={y(t)} y2={y(t)} stroke="#e2e8f0" strokeWidth="1" />
@@ -70,8 +72,8 @@ export default function WpmChart({ samples, km = false }: { samples: readonly Ru
           <div className="pointer-events-none absolute top-0 rounded-lg border border-slate-200 bg-white px-2.5 py-1.5 text-xs shadow-md" style={{ left: `${(x(h.second) / W) * 100}%`, transform: x(h.second) > W / 2 ? "translateX(calc(-100% - 8px))" : "translateX(8px)" }}>
             <div className="font-bold text-navy">{h.second}s</div>
             <div className="text-navy">WPM <b>{h.wpm}</b></div>
-            <div className="text-mute">{km ? "សរុប" : "Raw"} <b>{h.raw}</b></div>
-            <div className="text-mute">{km ? "កំហុស" : "Errors"} <b>{h.errors}</b></div>
+            <div className="text-mute">{t("test.raw")} <b>{h.raw}</b></div>
+            <div className="text-mute">{t("daily.errors")} <b>{h.errors}</b></div>
           </div>
         )}
       </div>
