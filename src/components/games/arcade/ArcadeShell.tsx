@@ -55,6 +55,12 @@ export type ArcadeShellProps = {
   resultIcon: string;
   resultRows: ResultRow[];
   onStart: () => void;
+  /** Extra class for the canvas stage (a game can ask for a different height). */
+  stageClass?: string;
+  /** True while a run is being prepared (e.g. asking the server for a verified run). */
+  starting?: boolean;
+  /** Extra content under the results (e.g. server verification status). */
+  resultExtra?: React.ReactNode;
   /** Ends the run early and shows its results. */
   onQuit: () => void;
   keyboard: { expected: string | null; onChar: (char: string) => void; onBackspace: () => void };
@@ -102,6 +108,26 @@ export default function ArcadeShell(props: ArcadeShellProps) {
     const id = window.setTimeout(() => againRef.current?.focus(), 1200);
     return () => window.clearTimeout(id);
   }, [phase]);
+
+  // A run in progress is lost when leaving the page, so links and closing the tab ask first.
+  useEffect(() => {
+    if (!inGame) return;
+    const onClick = (event: MouseEvent) => {
+      const link = (event.target as Element | null)?.closest?.("a[href]");
+      if (!link || event.defaultPrevented || link.getAttribute("target") === "_blank") return;
+      if (!window.confirm(t("arc.leaveConfirm"))) {
+        event.preventDefault();
+        event.stopPropagation();
+      }
+    };
+    const onUnload = (event: BeforeUnloadEvent) => event.preventDefault();
+    document.addEventListener("click", onClick, true);
+    window.addEventListener("beforeunload", onUnload);
+    return () => {
+      document.removeEventListener("click", onClick, true);
+      window.removeEventListener("beforeunload", onUnload);
+    };
+  }, [inGame, t]);
 
   // Leave fullscreen when the run is over so the results are visible.
   useEffect(() => {
@@ -163,7 +189,7 @@ export default function ArcadeShell(props: ArcadeShellProps) {
             {props.options}
             <p className="text-xs text-mute">{t("gm.bestOnSetup")}<strong className="text-navy">{(scores[props.variant]?.best ?? 0).toLocaleString("en-US")}</strong></p>
             <div className="flex flex-col gap-2 sm:flex-row">
-              <button type="button" data-autofocus className={`${primaryBtn} flex-1 !py-3.5 !text-base`} onClick={props.onStart}>{t("gm.startGame")} →</button>
+              <button type="button" data-autofocus className={`${primaryBtn} flex-1 !py-3.5 !text-base disabled:opacity-60`} onClick={props.onStart} disabled={props.starting} aria-busy={props.starting}>{props.starting ? t("ss.preparing") : `${t("gm.startGame")} →`}</button>
               <Link href="/games" className={secondaryBtn}>{t("gm.allGames")}</Link>
             </div>
             <p className="text-xs text-mute">{t("arc.focusHint")}</p>
@@ -237,7 +263,7 @@ export default function ArcadeShell(props: ArcadeShellProps) {
             <button type="button" className={iconButton} aria-label={t("gm.pauseBtn")} title={t("gm.pauseBtn")} disabled={phase !== "playing"} onClick={session.pause}>⏸</button>
           </div>
         </div>
-        <div className="arc-stage relative">
+        <div className={`arc-stage relative ${props.stageClass ?? ""}`}>
           {props.canvas}
           {phase === "countdown" && <div className="absolute inset-0 grid place-items-center bg-slate-900/35" aria-live="assertive">
             <span key={session.count} className="gm-pop text-7xl font-extrabold text-white drop-shadow-lg sm:text-9xl">{session.count > 0 ? session.count : t("arc.go")}</span>
@@ -273,6 +299,7 @@ export default function ArcadeShell(props: ArcadeShellProps) {
       {report
         ? <div className="space-y-4">
             <GameResults rows={props.resultRows} newBest={report.newBest} best={report.setupBest} />
+            {props.resultExtra}
             <div className="rounded-2xl bg-slate-50 p-4 text-sm">
               <h2 className="mb-2 text-xs font-bold uppercase tracking-wider text-mute">{t("arc.scoreBreakdown")}</h2>
               <dl className="grid grid-cols-2 gap-x-4 gap-y-1 tabular-nums">

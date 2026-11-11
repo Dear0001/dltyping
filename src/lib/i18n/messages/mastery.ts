@@ -68,6 +68,7 @@ const messages = {
   "act.d.english-quest": { en: "English Quest", km: "ដំណើរអក្សរអង់គ្លេស" },
   "act.d.car-racing": { en: "Typing Car Racing race", km: "ការប្រណាំងឡានវាយអក្សរ" },
   "act.d.zombie-survival": { en: "Zombie Survival run", km: "ការលេងរស់រានពីខ្មោចឆៅ" },
+  "act.d.space-shooter": { en: "Typing Space Shooter mission", km: "បេសកកម្មបាញ់យានអវកាសវាយអក្សរ" },
   "act.d.battle-arena": { en: "Typing Battle Arena battle", km: "ការប្រយុទ្ធក្នុងសង្វៀនវាយអក្សរ" },
   "km.title": { en: "Keyboard mastery", km: "ភាពជំនាញលើក្តារចុច" },
   "km.subtitle": { en: "See which physical keys you type accurately and which need work. Switch between Mac and Windows boards with the keyboard controls.", km: "មើលថាគ្រាប់ចុចណាដែលអ្នកវាយបានត្រឹមត្រូវ និងគ្រាប់ណាត្រូវហាត់បន្ថែម។ ប្តូររវាងក្តារ Mac និង Windows ដោយប្រើប៊ូតុងគ្រប់គ្រងក្តារចុច។" },

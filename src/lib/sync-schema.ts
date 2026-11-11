@@ -19,6 +19,8 @@ export type SyncPayload = {
 };
 /** Level-based games, besides Mario Khmer Quest (which uses `levels`), whose progress syncs. */
 export const EXTRA_LEVEL_GAMES: readonly string[] = ["english-quest"];
+/** Score variants only the server writes (from replayed, verified runs). Browser-sent values for them are ignored. */
+export const SERVER_VERIFIED_PREFIXES: readonly string[] = ["space-shooter:"];
 export type SyncState = Omit<SyncPayload, "deviceId">;
 
 const UUID = /^[0-9a-f]{8}-[0-9a-f]{4}-[1-8][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i;
@@ -36,7 +38,7 @@ export function parsePayload(body: unknown): SyncPayload | null {
 
   if (isRecord(body.scores)) {
     for (const [key, v] of Object.entries(body.scores).slice(0, MAX_ENTRIES)) {
-      if (!VARIANT.test(key) || !isRecord(v)) continue;
+      if (!VARIANT.test(key) || !isRecord(v) || SERVER_VERIFIED_PREFIXES.some((p) => key.startsWith(p))) continue;
       out.scores[key] = { best: int(v.best, 1e9), bestWpm: int(v.bestWpm, 1000), bestAccuracy: int(v.bestAccuracy, 100), plays: int(v.plays, 1e7) };
     }
   }

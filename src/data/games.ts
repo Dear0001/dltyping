@@ -5,7 +5,9 @@ import type { Language } from "@/types";
 export type GameCategory = "racing" | "survival" | "battle" | "adventure" | "skill";
 export const GAME_CATEGORIES: readonly GameCategory[] = ["racing", "survival", "battle", "adventure", "skill"];
 export type GameMode = "single";
-export type GameId = "car-racing" | "zombie-survival" | "battle-arena" | "mario-khmer-quest" | "english-quest" | "sentence-rush" | "letter-jump" | "word-sprint";
+export type GameLevel = "basic" | "intermediate" | "advanced";
+export const GAME_LEVELS: readonly GameLevel[] = ["basic", "intermediate", "advanced"];
+export type GameId = "space-shooter" | "car-racing" | "zombie-survival" | "battle-arena" | "mario-khmer-quest" | "english-quest" | "sentence-rush" | "letter-jump" | "word-sprint";
 
 export type TypingGame = {
   id: GameId;
@@ -17,6 +19,8 @@ export type TypingGame = {
   category: GameCategory;
   /** Play modes that really exist. Multiplayer is added here only once it works. */
   modes: GameMode[];
+  /** Skill level, used to group games in the navbar menu. */
+  level: GameLevel;
   /** Shown with a "New" badge in the Game Center. */
   isNew?: boolean;
   skill: string;
@@ -26,7 +30,22 @@ export type TypingGame = {
 
 export const typingGames: TypingGame[] = [
   {
+    id: "space-shooter",
+    level: "advanced",
+    href: "/games/space-shooter",
+    title: "Typing Space Shooter",
+    description: "Defend the galaxy, one word at a time. Type the word on an enemy ship to lock on and fire, earn power-ups and take down alien motherships.",
+    languages: ["english", "khmer"],
+    difficulties: ["easy", "medium", "hard", "expert"],
+    category: "battle",
+    modes: ["single"],
+    isNew: true,
+    skill: "Speed, accuracy & reaction time",
+    gradient: "from-indigo-700 via-violet-800 to-slate-950",
+  },
+  {
     id: "car-racing",
+    level: "intermediate",
     href: "/games/car-racing",
     title: "Typing Car Racing",
     description: "Every correct key pushes your car forward. Build a combo to charge the nitro, fire it with Enter and beat three computer cars to the finish line.",
@@ -40,6 +59,7 @@ export const typingGames: TypingGame[] = [
   },
   {
     id: "zombie-survival",
+    level: "advanced",
     href: "/games/zombie-survival",
     title: "Zombie Survival",
     description: "Zombies close in from every side, each carrying a word. Type a word to stop its zombie, grab power-ups and survive wave after wave.",
@@ -53,6 +73,7 @@ export const typingGames: TypingGame[] = [
   },
   {
     id: "battle-arena",
+    level: "advanced",
     href: "/games/battle-arena",
     title: "Typing Battle Arena",
     description: "Cast spells by typing their words. Clean, fast typing hits harder, a shield blocks the enemy's strike, and a long streak unlocks your ultimate spell.",
@@ -66,6 +87,7 @@ export const typingGames: TypingGame[] = [
   },
   {
     id: "mario-khmer-quest",
+    level: "basic",
     href: "/games/mario-khmer-quest",
     title: "Mario Khmer Quest",
     description: "Guide an explorer across ancient stone platforms by typing Khmer letters, syllables and words. Five levels, from first consonants to temple-gate words.",
@@ -78,6 +100,7 @@ export const typingGames: TypingGame[] = [
   },
   {
     id: "english-quest",
+    level: "basic",
     href: "/games/english-quest",
     title: "English Quest",
     description: "Lead the explorer over floating platforms by typing English letters, short words and long words. Five levels, from the home row to summit-gate vocabulary.",
@@ -90,6 +113,7 @@ export const typingGames: TypingGame[] = [
   },
   {
     id: "letter-jump",
+    level: "basic",
     href: "/games/letter-jump",
     title: "Letter Jump",
     description: "One letter, one hop. Type the glowing target to leap between floating platforms before the clock or your lives run out.",
@@ -102,6 +126,7 @@ export const typingGames: TypingGame[] = [
   },
   {
     id: "sentence-rush",
+    level: "intermediate",
     href: "/games/sentence-rush",
     title: "Sentence Rush",
     description: "Type whole sentences against the clock. Spaces, punctuation and flow all count — finish clean sentences to build your combo and WPM.",
@@ -114,6 +139,7 @@ export const typingGames: TypingGame[] = [
   },
   {
     id: "word-sprint",
+    level: "intermediate",
     href: "/games/word-sprint",
     title: "Word Sprint",
     description: "Race the timer: type each word to score, keep your combo alive and push your WPM in 30, 60 or 120 seconds.",

@@ -2,6 +2,19 @@ import type { GameId } from "@/data/games";
 
 /** Small original illustrations for the game cards. */
 export default function GameThumb({ id }: { id: GameId }) {
+  if (id === "space-shooter") {
+    return <svg viewBox="0 0 320 160" className="h-full w-full" aria-hidden="true" preserveAspectRatio="xMidYMid slice">
+      {[[20, 20], [70, 60], [120, 14], [200, 40], [250, 90], [300, 24], [40, 120], [160, 70], [290, 140], [100, 100]].map(([x, y], i) => <circle key={i} cx={x} cy={y} r={i % 3 ? 1.2 : 2} fill="#fff" opacity=".8" />)}
+      <circle cx="276" cy="122" r="26" fill="#6366F1" opacity=".7" /><ellipse cx="276" cy="122" rx="44" ry="10" fill="none" stroke="#C4B5FD" strokeWidth="3" opacity=".7" transform="rotate(-20 276 122)" />
+      <g transform="translate(78 44)"><ellipse rx="20" ry="9" fill="#34D399" /><path d="M-9-3a9 8 0 0118 0z" fill="#A7F3D0" /></g>
+      <g transform="translate(222 34)"><path d="M0 18L16-10 0-4-16-10z" fill="#F87171" /></g>
+      <rect x="40" y="10" width="76" height="22" rx="11" fill="#0F172A" opacity=".85" /><text x="78" y="26" textAnchor="middle" fontSize="13" fontWeight="800" fill="#34D399">orb<tspan fill="#E2E8F0">it</tspan></text>
+      <rect x="186" y="62" width="76" height="22" rx="11" fill="#0F172A" opacity=".85" /><text x="224" y="78" textAnchor="middle" fontSize="13" fontWeight="800" fill="#E2E8F0">comet</text>
+      <path d="M160 128L84 50" stroke="#67E8F9" strokeWidth="3" strokeLinecap="round" strokeDasharray="10 8" />
+      <g transform="translate(160 132)"><path d="M0-22L7-5 20 9 7 8 4 13H-4L-7 8-20 9-7-5z" fill="#E2E8F0" stroke="#1E3A8A" strokeWidth="1.5" /><ellipse cy="-6" rx="3.5" ry="7" fill="#38BDF8" /><path d="M-5 13h10l-5 16z" fill="#7DD3FC" /></g>
+      <rect x="0" y="122" width="320" height="2" fill="#38BDF8" opacity=".5" />
+    </svg>;
+  }
   if (id === "car-racing") {
     return <svg viewBox="0 0 320 160" className="h-full w-full" aria-hidden="true" preserveAspectRatio="xMidYMid slice">
       <circle cx="262" cy="34" r="20" fill="#FEF3C7" />

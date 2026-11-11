@@ -43,6 +43,9 @@ export function useArcadeGame<S, H>(config: ArcadeGameConfig<S, H>) {
   const reduced = usePrefersReducedMotion() || !settings.animations;
   const [hud, setHud] = useState<H>(config.initialHud);
   const [report, setReport] = useState<RunReport | null>(null);
+  // An error inside the animation loop is re-thrown during render, so the route's error boundary shows a recovery screen.
+  const [crash, setCrash] = useState<unknown>(null);
+  if (crash) throw crash;
 
   const simRef = useRef<S | null>(null);
   const fxRef = useRef<Fx>(createFx());
@@ -73,19 +76,23 @@ export function useArcadeGame<S, H>(config: ArcadeGameConfig<S, H>) {
   const playing = session.phase === "playing";
   useGameLoop(session.phase === "countdown" || playing, (dtMs, timeMs) => {
     const sim = simRef.current, fx = fxRef.current;
-    if (!sim) return;
-    fx.reduced = reduced;
-    if (playing && !endedRef.current) {
-      cfg.current.step(sim, dtMs);
-      cfg.current.drain(sim, fx, viewRef.current);
+    if (!sim || crash) return;
+    try {
+      fx.reduced = reduced;
+      if (playing && !endedRef.current) {
+        cfg.current.step(sim, dtMs);
+        cfg.current.drain(sim, fx, viewRef.current);
+      }
+      stepFx(fx, dtMs);
+      if (viewRef.current) cfg.current.draw(viewRef.current, sim, fx, timeMs);
+      if (timeMs - hudAt.current >= 100) {
+        hudAt.current = timeMs;
+        setHud(cfg.current.snapshot(sim));
+      }
+      if (playing && cfg.current.isOver(sim)) end();
+    } catch (error) {
+      setCrash(error);
     }
-    stepFx(fx, dtMs);
-    if (viewRef.current) cfg.current.draw(viewRef.current, sim, fx, timeMs);
-    if (timeMs - hudAt.current >= 100) {
-      hudAt.current = timeMs;
-      setHud(cfg.current.snapshot(sim));
-    }
-    if (playing && cfg.current.isOver(sim)) end();
   });
 
   /** Starts a fresh run with the given simulation. */

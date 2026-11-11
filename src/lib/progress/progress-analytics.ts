@@ -26,6 +26,7 @@ export const ACTIVITY_META: Record<ActivityType, ActivityMeta> = {
   "car-racing": { label: "Typing Car Racing", icon: "🏎️", kind: "game" },
   "zombie-survival": { label: "Zombie Survival", icon: "🧟", kind: "game" },
   "battle-arena": { label: "Typing Battle Arena", icon: "🧙", kind: "game" },
+  "space-shooter": { label: "Typing Space Shooter", icon: "🚀", kind: "game" },
 };
 export const isGame = (activity: ActivityType) => ACTIVITY_META[activity].kind === "game";
 export const languageName = (language: Language) => (language === "khmer" ? "Khmer" : "English");
@@ -45,6 +46,7 @@ export function describeSession(s: SessionRecord): string {
     case "car-racing": return "Typing Car Racing race";
     case "zombie-survival": return "Zombie Survival run";
     case "battle-arena": return "Typing Battle Arena battle";
+    case "space-shooter": return "Typing Space Shooter mission";
   }
 }
 

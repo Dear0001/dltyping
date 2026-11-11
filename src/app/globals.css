@@ -106,6 +106,9 @@
 .arc-stage canvas { touch-action: manipulation; }
 /* Phones: a shorter stage leaves room for the typing panel and the on-screen keyboard. */
 @media (max-width: 640px) { .arc-stage { height: clamp(190px, 62vw, 300px); } }
+/* Space Shooter: its playfield is a fixed 1040 by 600 area, so it gets a taller stage on desktop and the same shape on phones. */
+.arc-stage.arc-stage-space { height: clamp(240px, calc(100dvh - var(--topbar-h, 64px) - 290px), 640px); }
+@media (max-width: 640px) { .arc-stage.arc-stage-space { height: auto; aspect-ratio: 1040 / 600; } }
 .arc-frame { scroll-margin-top: calc(var(--topbar-h, 64px) + 8px); }
 .arc-frame:fullscreen { display: flex; flex-direction: column; width: 100vw; height: 100vh; border-radius: 0; }
 .arc-frame:fullscreen .arc-stage { flex: 1; min-height: 0; height: auto; }
@@ -291,6 +294,20 @@ html[data-acct="user"] .nav-guest{display:none}
 .acct,.acct-signin{animation:tb-fade .2s ease-out}
 /* Games dropdown stays shut after a game was picked until the pointer leaves or focus returns (see GamesMenu). */
 .gm-wrap[data-closed] .gm-menu{opacity:0;visibility:hidden;transform:translateY(6px)}
+/* Games menu grouped by skill level: three columns, centred under the trigger. */
+.gm-menu{width:min(820px,calc(100vw - 32px));left:50%;transform:translate(-50%,6px);padding:10px}
+.gm-wrap:hover .gm-menu,.gm-wrap:focus-within .gm-menu{transform:translate(-50%,0)}
+.gm-wrap[data-closed] .gm-menu{transform:translate(-50%,6px)}
+.gm-cols{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:6px}
+.gm-col{display:flex;flex-direction:column;gap:2px;min-width:0;padding:4px;border-radius:10px}
+.gm-col+.gm-col{border-left:1px solid var(--line);border-radius:0;padding-left:10px}
+.gm-level{display:flex;flex-wrap:wrap;align-items:center;gap:6px;padding:6px 8px 8px;font-size:12px;font-weight:700;letter-spacing:.04em;text-transform:uppercase;color:var(--ink)}
+.gm-level small{flex-basis:100%;font-size:11px;font-weight:500;letter-spacing:0;text-transform:none;color:var(--muted)}
+.gm-dot{width:8px;height:8px;border-radius:50%}.gm-dot-basic{background:#22c55e}.gm-dot-intermediate{background:#f59e0b}.gm-dot-advanced{background:#ef4444}
+.topnav .gm-item{padding:8px}
+.gm-text{min-width:0}.gm-text strong{display:flex;align-items:center;gap:6px;min-width:0}.gm-title{min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.gm-new{flex:none;font-style:normal;font-size:9px;font-weight:800;letter-spacing:.05em;text-transform:uppercase;padding:1px 6px;border-radius:999px;background:#fbbf24;color:#0f172a}
+html[lang="km"] .gm-level{text-transform:none;letter-spacing:0}
 .tb-burger,.tb-drawer{display:none}
 @media(max-width:1180px){.topbar{gap:8px;padding:0 16px}.topnav a,.topnav .gm-trigger{padding:0 9px;font-size:13px}.brand{margin-right:2px}}
 @media(max-width:1040px){

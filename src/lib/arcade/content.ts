@@ -30,8 +30,7 @@ const first = (text: string) => codepoints(normalizeKhmer(text))[0] ?? "";
  * already on screen, so each target can be selected by its first keystroke;
  * `avoid` holds texts that should not repeat right away.
  */
-export function pickWord(rng: Rng, language: Language, cls: WordClass, avoidFirst?: ReadonlySet<string>, avoid?: ReadonlySet<string>): string {
-  const pool = arcadeWords[language][cls];
+export function pickWord(rng: Rng, language: Language, cls: WordClass, avoidFirst?: ReadonlySet<string>, avoid?: ReadonlySet<string>, pool: readonly string[] = arcadeWords[language][cls]): string {
   let fallback = pickOne(rng, pool);
   for (let attempt = 0; attempt < 24; attempt++) {
     const word = pickOne(rng, pool);

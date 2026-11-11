@@ -142,7 +142,8 @@ const LABEL_COLORS: Record<CharView["state"], string> = { correct: "#34d399", wr
  * Text is drawn one grapheme cluster at a time, so Khmer syllables are never split.
  * Returns the label box so callers can keep labels on screen.
  */
-export function drawWordLabel(ctx: CanvasRenderingContext2D, views: CharView[], cx: number, cy: number, size: number, font: string, opts: { active?: boolean; bounds?: { w: number; h: number }; accent?: string } = {}) {
+export function drawWordLabel(ctx: CanvasRenderingContext2D, views: CharView[], cx: number, cy: number, size: number, font: string, opts: { active?: boolean; bounds?: { w: number; h: number }; accent?: string; alpha?: number } = {}) {
+  ctx.globalAlpha = opts.alpha ?? 1;
   ctx.font = `700 ${size}px ${font}`;
   ctx.textBaseline = "middle";
   ctx.textAlign = "left";
@@ -166,8 +167,11 @@ export function drawWordLabel(ctx: CanvasRenderingContext2D, views: CharView[], 
   views.forEach((v, i) => {
     ctx.fillStyle = LABEL_COLORS[v.state];
     ctx.fillText(v.text, tx, y + boxH / 2 + 1);
+    // The next letter is also underlined, so progress never depends on colour alone.
+    if (opts.active && (v.state === "current" || v.state === "partial")) ctx.fillRect(tx, y + boxH - size * 0.32, widths[i], Math.max(2, size * 0.1));
     tx += widths[i];
   });
+  ctx.globalAlpha = 1;
   return { x, y, w: boxW, h: boxH };
 }
 

@@ -19,11 +19,12 @@ import library from "./messages/library";
 import learn from "./messages/learn";
 import overview from "./messages/overview";
 import arcade from "./messages/arcade";
+import space from "./messages/space";
 
 export type { AppLocale, Vars };
 
 /** Add a namespace file under ./messages and list it here. Keys are "<namespace>.<name>". */
-export const namespaces: Record<string, Dict> = { common, navigation, authentication, footer, support, dashboard, practice, games, overview, learn, library, daily, test, setup, progress, pets, gm, help, mastery, arcade };
+export const namespaces: Record<string, Dict> = { common, navigation, authentication, footer, support, dashboard, practice, games, overview, learn, library, daily, test, setup, progress, pets, gm, help, mastery, arcade, space };
 
 const table: Dict = {};
 for (const [name, dict] of Object.entries(namespaces)) {

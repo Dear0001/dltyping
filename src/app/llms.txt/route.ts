@@ -9,7 +9,7 @@ export function GET() {
 ## What DL Typing offers
 - Structured typing curriculum: 5 levels and 13 lessons per language, from home-row letters to full passages.
 - English (QWERTY) and Khmer (NiDA keyboard layout, Unicode-aware) lessons.
-- Eight typing games: Typing Car Racing, Zombie Survival, Typing Battle Arena, Letter Jump, Word Sprint, Sentence Rush, English Quest and Mario Khmer Quest.
+- Nine typing games: Typing Space Shooter, Typing Car Racing, Zombie Survival, Typing Battle Arena, Letter Jump, Word Sprint, Sentence Rush, English Quest and Mario Khmer Quest.
 - On-screen keyboard that shows which finger presses each key.
 - Progress tracking: words per minute (WPM), accuracy, streaks and a per-key weak-keys report.
 - Free to use. Progress is saved in the browser; an optional account syncs it between devices.

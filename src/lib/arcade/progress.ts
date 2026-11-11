@@ -6,7 +6,7 @@ import { levelFromArcadeXp, xpForResult } from "@/lib/arcade/scoring";
 import { parseStored, readRaw, writeRaw } from "@/lib/local-progress";
 import type { Language } from "@/types";
 
-export const ARCADE_GAMES = ["car-racing", "zombie-survival", "battle-arena"] as const;
+export const ARCADE_GAMES = ["car-racing", "zombie-survival", "battle-arena", "space-shooter"] as const;
 export type ArcadeGameId = (typeof ARCADE_GAMES)[number];
 
 /** What a game reports when a run ends. */
@@ -132,6 +132,15 @@ export const ACHIEVEMENTS: readonly AchievementDef[] = [
   { id: "arena-crits", icon: "💥", game: "battle-arena", earned: inGame("battle-arena", (_, r) => (r.sum?.crits ?? 0) >= 5) },
   { id: "arena-dragon", icon: "🐉", game: "battle-arena", earned: inGame("battle-arena", (_, r) => r.won && (r.difficulty === "hard" || r.difficulty === "expert")) },
   { id: "arena-archmage", icon: "🧙", game: "battle-arena", earned: inGame("battle-arena", (s) => ["forest", "ice", "volcano"].every((a) => (statsFor(s, "battle-arena").sum[`cleared_${a}`] ?? 0) >= 1)) },
+  { id: "space-first-contact", icon: "👽", game: "space-shooter", earned: inGame("space-shooter", (_, r) => (r.sum?.kills ?? 0) >= 1) },
+  { id: "space-defender", icon: "🛰️", game: "space-shooter", earned: inGame("space-shooter", (s) => (statsFor(s, "space-shooter").sum.kills ?? 0) >= 100) },
+  { id: "space-galaxy", icon: "🌌", game: "space-shooter", earned: inGame("space-shooter", (_, r) => (r.max?.wave ?? 0) >= 10) },
+  { id: "space-boss", icon: "🛸", game: "space-shooter", earned: inGame("space-shooter", (_, r) => (r.sum?.bosses ?? 0) >= 1) },
+  { id: "space-perfect", icon: "💎", game: "space-shooter", earned: inGame("space-shooter", (_, r) => r.won && r.accuracy === 100 && r.correctChars >= 50) },
+  { id: "space-speed", icon: "☄️", game: "space-shooter", earned: inGame("space-shooter", (_, r) => r.wpm >= 50 && r.correctChars >= 60) },
+  { id: "space-combo", icon: "🔗", game: "space-shooter", earned: inGame("space-shooter", (_, r) => (r.max?.combo ?? 0) >= 20) },
+  { id: "space-survivor", icon: "⏳", game: "space-shooter", earned: inGame("space-shooter", (_, r) => (r.max?.survivalMs ?? 0) >= 300000) },
+  { id: "space-elite", icon: "🎖️", game: "space-shooter", earned: inGame("space-shooter", (_, r) => r.won && r.difficulty === "expert") },
 ];
 
 // ---- Unlockable content -----------------------------------------------------

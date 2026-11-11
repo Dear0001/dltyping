@@ -54,7 +54,7 @@ function noise(ctx: AudioContext, duration: number, volume: number, lowpass: num
   src.start();
 }
 
-export type ArcadeSound = "key" | "wrong" | "count" | "go" | "nitro" | "hit" | "kill" | "explode" | "hurt" | "powerup" | "spell" | "ice" | "zap" | "shield" | "block" | "wave" | "boss" | "win" | "lose" | "unlock";
+export type ArcadeSound = "key" | "wrong" | "count" | "go" | "nitro" | "hit" | "kill" | "explode" | "hurt" | "powerup" | "spell" | "ice" | "zap" | "shield" | "block" | "wave" | "boss" | "win" | "lose" | "unlock" | "laser" | "spawn" | "warning";
 
 export function playArcadeSound(kind: ArcadeSound, enabled: boolean) {
   if (!enabled) return;
@@ -82,6 +82,9 @@ export function playArcadeSound(kind: ArcadeSound, enabled: boolean) {
       case "boss": [196, 185, 147].forEach((f, i) => tone(ctx, out, f, 0.35, "sawtooth", 0.06, i * 0.22)); break;
       case "win": [523, 659, 784, 1046].forEach((f, i) => tone(ctx, out, f, 0.18, "triangle", 0.06, i * 0.11)); break;
       case "lose": [392, 330, 262, 196].forEach((f, i) => tone(ctx, out, f, 0.26, "triangle", 0.05, i * 0.16)); break;
+      case "laser": tone(ctx, out, 1300, 0.12, "square", 0.035, 0, 380); break;
+      case "spawn": tone(ctx, out, 260, 0.09, "sine", 0.02, 0, 340); break;
+      case "warning": [880, 660, 880, 660].forEach((f, i) => tone(ctx, out, f, 0.14, "square", 0.04, i * 0.18)); break;
       case "unlock": [659, 880, 1318].forEach((f, i) => tone(ctx, out, f, 0.14, "sine", 0.05, i * 0.08)); break;
     }
   } catch {
@@ -90,13 +93,14 @@ export function playArcadeSound(kind: ArcadeSound, enabled: boolean) {
 }
 
 // ---- Background music -------------------------------------------------------
-export type MusicTheme = "race" | "zombie" | "arena";
+export type MusicTheme = "race" | "zombie" | "arena" | "space";
 type Pattern = { stepMs: number; bass: number[]; lead: number[]; bassType: OscillatorType; leadType: OscillatorType };
 
 // Short original loops, written as note frequencies (0 = rest).
 const PATTERNS: Record<MusicTheme, Pattern> = {
   race: { stepMs: 150, bassType: "sawtooth", leadType: "square", bass: [110, 0, 110, 110, 0, 110, 131, 0, 147, 0, 147, 147, 0, 147, 131, 0], lead: [440, 0, 523, 0, 659, 0, 523, 0, 587, 0, 698, 0, 880, 0, 698, 0] },
   zombie: { stepMs: 260, bassType: "triangle", leadType: "sine", bass: [82, 0, 0, 82, 0, 0, 78, 0, 82, 0, 0, 82, 0, 98, 92, 0], lead: [0, 330, 0, 0, 311, 0, 0, 0, 0, 330, 0, 392, 0, 0, 370, 0] },
+  space: { stepMs: 180, bassType: "triangle", leadType: "sine", bass: [65, 0, 65, 98, 0, 65, 87, 0, 73, 0, 73, 110, 0, 73, 98, 0], lead: [523, 0, 0, 659, 0, 784, 0, 0, 587, 0, 0, 698, 0, 880, 0, 0] },
   arena: { stepMs: 200, bassType: "triangle", leadType: "triangle", bass: [98, 0, 147, 0, 98, 0, 147, 0, 87, 0, 131, 0, 110, 0, 165, 0], lead: [392, 466, 587, 0, 466, 392, 0, 349, 349, 440, 523, 0, 440, 523, 659, 0] },
 };
 
