@@ -13,6 +13,7 @@ import { useCurriculumText } from "@/hooks/useCurriculumText";
 import { useGameText } from "@/hooks/useGameText";
 import { typingGames } from "@/data/games";
 import { bestForGame } from "@/lib/local-progress";
+import GameThumb from "@/components/games/shared/GameThumb";
 
 const ACHIEVEMENTS = [
   { id: "first-step", emoji: "🌱", condition: (xp: number) => xp >= 50 },
@@ -191,13 +192,13 @@ function ProgressContent() {
               {typingGames.map((game) => {
                 const best = bestForGame(scores, game.id);
                 return (
-                  <div key={game.id} className="flex items-center gap-3 overflow-hidden rounded-2xl border border-slate-200 bg-white p-4 shadow-sm">
-                    <div className={`h-12 w-14 flex-none overflow-hidden rounded-xl bg-gradient-to-br ${game.gradient}`} />
+                  <Link key={game.id} href={game.href} className={`flex items-center gap-3 overflow-hidden rounded-2xl border border-line bg-card p-2.5 pr-4 shadow-sm transition hover:-translate-y-0.5 hover:shadow-[var(--shadow-md)] ${best > 0 ? "" : "opacity-75"}`}>
+                    <div className={`relative aspect-video w-24 flex-none overflow-hidden rounded-xl bg-gradient-to-br ${game.gradient}`}><GameThumb id={game.id} /></div>
                     <div className="flex-1 min-w-0">
                       <p className="truncate text-sm font-bold">{gt.title(game)}</p>
-                      <p className="text-lg font-extrabold tabular-nums text-brand">{best > 0 ? best.toLocaleString("en-US") : "—"}</p>
+                      <p className={`text-lg font-extrabold tabular-nums ${best > 0 ? "text-brand" : "text-slate-300"}`}>{best > 0 ? <>🏆 {best.toLocaleString("en-US")}</> : "—"}</p>
                     </div>
-                  </div>
+                  </Link>
                 );
               })}
             </div>

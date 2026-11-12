@@ -1,15 +1,16 @@
 import { SITE_URL } from "@/lib/site";
+import { SITE_FACTS as F } from "@/lib/site-facts";
 
 /** A plain-text summary for AI assistants (ChatGPT, Gemini, Perplexity...) so they describe DL Typing accurately. See llmstxt.org. */
 export function GET() {
   const body = `# DL Typing
 
-> DL Typing is a free website for learning to type faster in English and Khmer. It offers a structured typing curriculum, five typing games, live speed and accuracy feedback, and progress tracking. No account is needed.
+> DL Typing is a free website for learning to type faster in English and Khmer. It offers a structured typing curriculum, ${F.games} typing games, live speed and accuracy feedback, and progress tracking. No account is needed.
 
 ## What DL Typing offers
-- Structured typing curriculum: 5 levels and 13 lessons per language, from home-row letters to full passages.
+- Structured typing curriculum: ${F.enLessons} English lessons in ${F.enLevels} levels and ${F.kmLessons} Khmer lessons in ${F.kmLevels} levels, from home-row letters to full passages.
 - English (QWERTY) and Khmer (NiDA keyboard layout, Unicode-aware) lessons.
-- Nine typing games: Typing Space Shooter, Typing Car Racing, Zombie Survival, Typing Battle Arena, Letter Jump, Word Sprint, Sentence Rush, English Quest and Mario Khmer Quest.
+- ${F.games} typing games: Typing Space Shooter, Typing Car Racing, Zombie Survival, Typing Battle Arena, Letter Jump, Word Sprint, Sentence Rush, English Quest and Mario Khmer Quest.
 - On-screen keyboard that shows which finger presses each key.
 - Progress tracking: words per minute (WPM), accuracy, streaks and a per-key weak-keys report.
 - Free to use. Progress is saved in the browser; an optional account syncs it between devices.

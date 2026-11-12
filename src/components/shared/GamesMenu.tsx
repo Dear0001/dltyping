@@ -3,6 +3,7 @@
 import { useState, type MouseEvent } from "react";
 import Link from "next/link";
 import BiText from "@/components/shared/BiText";
+import Icon from "@/components/ui/Icon";
 import { useLocale } from "@/components/shared/LocaleProvider";
 import { GAME_LEVELS, typingGames } from "@/data/games";
 import { useGameText } from "@/hooks/useGameText";
@@ -25,7 +26,7 @@ export default function GamesMenu({ active = false }: { active?: boolean }) {
     (document.activeElement as HTMLElement | null)?.blur();
   };
   return <div className="gm-wrap" data-closed={closed || undefined} onMouseEnter={reopen} onMouseLeave={reopen} onFocus={reopen}>
-    <Link data-nav="" className={`gm-trigger${active ? " active" : ""}`} href="/games" aria-haspopup="menu"><BiText k="nav.games" /><span className="gm-caret" aria-hidden="true">⌄</span></Link>
+    <Link data-nav="" className={`gm-trigger${active ? " active" : ""}`} href="/games" aria-haspopup="menu"><BiText k="nav.games" /><Icon name="chevron" size={14} className="gm-caret" strokeWidth={2.2} /></Link>
     <div className="gm-menu" role="menu" onClick={onMenuClick}>
       {/* Grouped by skill level so learners can find games that suit them. */}
       <div className="gm-cols">

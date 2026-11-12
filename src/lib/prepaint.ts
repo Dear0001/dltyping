@@ -19,4 +19,4 @@ export const PREPAINT_SCRIPT = THEME_INIT_SCRIPT + LOCALE_ACCOUNT_SCRIPT;
  * rendered by React once the pathname is known (it's URL data, so it streams after the static shell); this only
  * makes the shell's first paint match it. Same rule as isNavActive() in SiteHeader.
  */
-export const NAV_ACTIVE_SCRIPT = `try{var p=location.pathname;document.querySelectorAll(".topbar [data-nav]").forEach(function(a){var h=a.getAttribute("href"),on=h==="/"?p==="/":p.indexOf(h)===0;a.classList.toggle("active",on);if(on&&!a.classList.contains("gm-trigger"))a.setAttribute("aria-current","page")})}catch(e){}`;
+export const NAV_ACTIVE_SCRIPT = `try{var p=location.pathname;document.querySelectorAll(".topbar [data-nav]").forEach(function(a){var h=a.getAttribute("href"),m=(a.getAttribute("data-match")||h).split(" "),on=h==="/"?p==="/":m.some(function(x){return p===x||p.indexOf(x+"/")===0});a.classList.toggle("active",on);if(on&&p===h&&!a.classList.contains("gm-trigger"))a.setAttribute("aria-current","page")})}catch(e){}`;

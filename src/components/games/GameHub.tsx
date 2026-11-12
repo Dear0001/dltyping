@@ -2,82 +2,128 @@
 
 import Link from "next/link";
 import { useState } from "react";
+import GameCard, { LanguageChips } from "@/components/games/GameCard";
 import GameThumb from "@/components/games/shared/GameThumb";
-import { primaryBtn, secondaryBtn } from "@/components/games/shared/GameDialog";
-import { GAME_CATEGORIES, typingGames, type GameCategory } from "@/data/games";
+import { GAME_CATEGORIES, typingGames, type GameCategory, type GameId } from "@/data/games";
 import { useLocale } from "@/components/shared/LocaleProvider";
 import { useGameText } from "@/hooks/useGameText";
 import { useScores } from "@/hooks/use-stored-value";
+import { useTypingProgress } from "@/hooks/useTypingProgress";
 import { ARCADE_DIFFICULTIES, type ArcadeDifficulty } from "@/lib/arcade/difficulty";
 import { bestForGame } from "@/lib/local-progress";
+import { Badge, EmptyState, Icon, PageHeader, Segmented, btn, cardClass, cx } from "@/components/ui/ui";
 import type { Language } from "@/types";
 
 type Filter<T extends string> = T | "all";
 
-function Chips<T extends string>({ label, value, options, onChange }: { label: string; value: Filter<T>; options: { value: Filter<T>; label: string }[]; onChange: (v: Filter<T>) => void }) {
-  return <div role="group" aria-label={label} className="flex flex-wrap items-center gap-1.5">
-    <span className="mr-1 text-xs font-bold uppercase tracking-wider text-mute">{label}</span>
-    {options.map((o) => <button key={o.value} type="button" aria-pressed={value === o.value} onClick={() => onChange(o.value)} className={`rounded-full border px-3 py-1.5 text-xs font-bold transition ${value === o.value ? "border-brand bg-brand text-white" : "border-slate-300 bg-white text-navy hover:border-brand"}`}>{o.label}</button>)}
-  </div>;
-}
+/** The game highlighted at the top of the Game Center. */
+const FEATURED_ID: GameId = "space-shooter";
+const GAME_IDS = new Set<string>(typingGames.map((g) => g.id));
 
 export default function GameHub() {
   const { t } = useLocale();
   const gt = useGameText();
   const scores = useScores();
+  const { store, hydrated } = useTypingProgress();
   const [language, setLanguage] = useState<Filter<Language>>("all");
   const [difficulty, setDifficulty] = useState<Filter<ArcadeDifficulty>>("all");
   const [category, setCategory] = useState<Filter<GameCategory>>("all");
+  const [query, setQuery] = useState("");
 
-  const shown = typingGames.filter((g) => (language === "all" || g.languages.includes(language)) && (difficulty === "all" || g.difficulties.includes(difficulty)) && (category === "all" || g.category === category));
-  const reset = () => { setLanguage("all"); setDifficulty("all"); setCategory("all"); };
+  const q = query.trim().toLowerCase();
+  const shown = typingGames.filter((g) => (language === "all" || g.languages.includes(language)) && (difficulty === "all" || g.difficulties.includes(difficulty)) && (category === "all" || g.category === category)
+    && (!q || `${gt.title(g)} ${g.title} ${gt.skill(g)}`.toLowerCase().includes(q)));
+  const filtered = language !== "all" || difficulty !== "all" || category !== "all" || !!q;
+  const reset = () => { setLanguage("all"); setDifficulty("all"); setCategory("all"); setQuery(""); };
+
+  // Recently played: the latest game sessions on this device, newest first, one per game.
+  const recent: { id: GameId; at: string }[] = [];
+  if (hydrated) for (const s of [...store.sessions].sort((a, b) => b.completedAt.localeCompare(a.completedAt))) {
+    if (GAME_IDS.has(s.activity) && !recent.some((r) => r.id === s.activity)) recent.push({ id: s.activity as GameId, at: s.completedAt });
+    if (recent.length === 4) break;
+  }
+  const featured = typingGames.find((g) => g.id === FEATURED_ID)!;
+  const featuredBest = hydrated ? bestForGame(scores, featured.id) : 0;
+  const categories = GAME_CATEGORIES.filter((c) => typingGames.some((g) => g.category === c));
+  const entry = (id: string) => Object.entries(scores).filter(([k]) => k === id || k.startsWith(`${id}:`)).reduce((n, [, s]) => n + s.plays, 0);
 
   return <div className="min-h-screen bg-surface text-navy">
-    <main className="mx-auto max-w-6xl px-4 pb-16 pt-8 sm:px-6">
-      <div className="mb-6">
-        <p className="text-xs font-bold uppercase tracking-widest text-brand">{t("gamehub.kicker")}</p>
-        <h1 className="mt-1 text-3xl font-extrabold tracking-tight sm:text-4xl">{t("gamehub.title")}</h1>
-        <p className="mt-1 max-w-2xl text-mute">{t("gamehub.subtitle")}</p>
-      </div>
-      <div className="mb-6 space-y-2.5 rounded-2xl border border-slate-200 bg-white p-4 shadow-sm">
-        <Chips label={t("gamehub.language")} value={language} onChange={setLanguage} options={[{ value: "all", label: t("gamehub.all") }, { value: "english", label: t("category.english") }, { value: "khmer", label: t("category.khmer") }]} />
-        <Chips label={t("gamehub.difficulty")} value={difficulty} onChange={setDifficulty} options={[{ value: "all", label: t("gamehub.all") }, ...ARCADE_DIFFICULTIES.map((d) => ({ value: d, label: gt.difficulty(d) }))]} />
-        <Chips label={t("gamehub.category")} value={category} onChange={setCategory} options={[{ value: "all", label: t("gamehub.all") }, ...GAME_CATEGORIES.filter((c) => typingGames.some((g) => g.category === c)).map((c) => ({ value: c, label: gt.category(c) }))]} />
-      </div>
+    <main className="mx-auto max-w-6xl px-4 pb-16 pt-10 sm:px-6">
+      <PageHeader kicker={t("gamehub.kicker")} title={t("gamehub.title")} subtitle={t("gamehub.subtitle")} />
 
-      {shown.length === 0
-        ? <div className="rounded-3xl border border-dashed border-slate-300 bg-white p-10 text-center">
-            <div className="text-4xl" aria-hidden="true">🔍</div>
-            <h2 className="mt-2 text-lg font-bold">{t("gamehub.emptyTitle")}</h2>
-            <p className="mb-4 text-sm text-mute">{t("gamehub.emptyText")}</p>
-            <button type="button" className={primaryBtn} onClick={reset}>{t("gamehub.clear")}</button>
+      {/* Featured */}
+      <section aria-labelledby="featured-heading" className={cx(cardClass, "group relative grid overflow-hidden lg:grid-cols-[1.25fr_1fr]")}>
+        <Link href={featured.href} tabIndex={-1} aria-hidden="true" className={`relative block aspect-video overflow-hidden bg-gradient-to-br ${featured.gradient} lg:aspect-auto lg:min-h-[320px]`}>
+          <div className="absolute inset-0 transition duration-700 group-hover:scale-[1.03]"><GameThumb id={featured.id} /></div>
+        </Link>
+        <div className="flex flex-col justify-center gap-4 p-6 sm:p-8">
+          <div className="flex flex-wrap gap-1.5"><Badge tone="new" icon="star">{t("ui.games.featured")}</Badge><LanguageChips languages={featured.languages} /><Badge>{gt.category(featured.category)}</Badge></div>
+          <div>
+            <h2 id="featured-heading" className="text-2xl font-extrabold tracking-tight sm:text-3xl">{gt.title(featured)}</h2>
+            <p className="mt-2 leading-relaxed text-mute">{gt.description(featured)}</p>
           </div>
-        : <ul className="grid gap-5 md:grid-cols-2 lg:grid-cols-3">
-            {shown.map((game) => {
-              const best = bestForGame(scores, game.id);
-              return <li key={game.id} className="flex flex-col overflow-hidden rounded-3xl border border-slate-200 bg-white shadow-sm transition hover:-translate-y-0.5 hover:shadow-md">
-                <Link href={game.href} className={`relative block h-40 bg-gradient-to-br ${game.gradient}`} tabIndex={-1} aria-hidden="true"><GameThumb id={game.id} />{game.isNew && <span className="absolute right-3 top-3 rounded-full bg-amber-400 px-2.5 py-1 text-[11px] font-extrabold uppercase tracking-wider text-navy shadow">{t("arc.new")}</span>}</Link>
-                <div className="flex flex-1 flex-col p-5">
-                  <div className="mb-2 flex flex-wrap gap-1.5 text-[11px] font-bold">
-                    {game.languages.map((l) => <span key={l} className="rounded-full bg-blue-50 px-2.5 py-1 text-brand">{gt.language(l)}</span>)}
-                    <span className="rounded-full bg-slate-100 px-2.5 py-1 text-slate-600">{gt.category(game.category)}</span>
-                    <span className="rounded-full bg-slate-100 px-2.5 py-1 text-slate-600">{t("arc.singlePlayer")}</span>
-                    <span className="rounded-full bg-slate-100 px-2.5 py-1 text-slate-600">{gt.difficulty(game.difficulties[0])}–{gt.difficulty(game.difficulties[game.difficulties.length - 1])}</span>
-                  </div>
-                  <h2 className="text-xl font-extrabold">{gt.title(game)}</h2>
-                  <p className="mt-1 flex-1 text-sm text-slate-600">{gt.description(game)}</p>
-                  <p className="mt-3 text-xs font-semibold text-mute">{t("gamehub.skill")}<span className="text-navy">{gt.skill(game)}</span></p>
-                  <div className="mt-4 flex items-center justify-between gap-3">
-                    <span className="text-xs font-semibold text-mute">{best > 0 ? <>🏆 {t("gamehub.best")} <strong className="text-navy">{best.toLocaleString("en-US")}</strong></> : t("gamehub.noRecord")}</span>
-                    <Link href={game.href} className={primaryBtn}>{t("gamehub.playNow")}</Link>
-                  </div>
-                </div>
-              </li>;
-            })}
-          </ul>}
-      <div className="mt-10 flex flex-wrap items-center justify-between gap-3 rounded-2xl bg-navy p-5 text-white">
+          <dl className="flex flex-wrap gap-x-6 gap-y-2 text-sm">
+            <div><dt className="text-xs font-semibold text-mute">{t("gamehub.skill").replace(/[:：៖]\s*$/, "")}</dt><dd className="font-bold">{gt.skill(featured)}</dd></div>
+            <div><dt className="text-xs font-semibold text-mute">{t("gamehub.difficulty")}</dt><dd className="font-bold">{gt.difficulty(featured.difficulties[0])}–{gt.difficulty(featured.difficulties[featured.difficulties.length - 1])}</dd></div>
+            <div><dt className="text-xs font-semibold text-mute">{t("gamehub.best")}</dt><dd className="font-bold tabular-nums">{featuredBest > 0 ? featuredBest.toLocaleString("en-US") : "—"}</dd></div>
+          </dl>
+          <div><Link href={featured.href} className={btn("primary", "lg")}>{t("gamehub.playNow")}</Link></div>
+        </div>
+      </section>
+
+      {/* Recently played */}
+      {recent.length > 0 && <section className="mt-10" aria-labelledby="recent-heading">
+        <h2 id="recent-heading" className="mb-3 text-lg font-extrabold tracking-tight">{t("ui.games.recent")}</h2>
+        <ul className="grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
+          {recent.map(({ id }) => {
+            const game = typingGames.find((g) => g.id === id)!;
+            const best = bestForGame(scores, id);
+            return <li key={id}><Link href={game.href} className={cx(cardClass, "flex items-center gap-3 p-2.5 pr-4 transition hover:-translate-y-0.5 hover:shadow-[var(--shadow-md)]")}>
+              <span className={`relative aspect-video w-24 flex-none overflow-hidden rounded-lg bg-gradient-to-br ${game.gradient}`}><GameThumb id={id} /></span>
+              <span className="min-w-0"><span className="block truncate text-sm font-bold">{gt.title(game)}</span><span className="mt-0.5 flex items-center gap-1 text-xs text-mute"><Icon name="trophy" size={12} className="text-amber-500" />{best > 0 ? best.toLocaleString("en-US") : "—"}</span></span>
+            </Link></li>;
+          })}
+        </ul>
+      </section>}
+
+      {/* Filters */}
+      <section className="mt-10" aria-labelledby="all-heading">
+        <div className="mb-4 flex flex-wrap items-end justify-between gap-3">
+          <h2 id="all-heading" className="text-xl font-extrabold tracking-tight sm:text-2xl">{t("ui.games.all")} <span className="text-base font-bold text-mute">{shown.length}/{typingGames.length}</span></h2>
+          <label className="relative w-full sm:w-64">
+            <span className="sr-only">{t("ui.games.search")}</span>
+            <Icon name="search" size={16} className="pointer-events-none absolute left-3 top-1/2 -translate-y-1/2 text-mute" />
+            <input type="search" value={query} onChange={(e) => setQuery(e.target.value)} placeholder={t("ui.games.search")} className="h-10 w-full rounded-xl border border-line bg-card pl-9 pr-3 text-sm outline-none transition focus:border-brand focus:ring-4 focus:ring-brand/10" />
+          </label>
+        </div>
+        <div className="mb-6 flex flex-wrap items-center gap-3">
+          <div role="group" aria-label={t("gamehub.category")} className="-mx-1 flex max-w-full gap-1.5 overflow-x-auto px-1 pb-1">
+            {([["all", t("gamehub.all")], ...categories.map((c) => [c, gt.category(c)])] as [Filter<GameCategory>, string][]).map(([value, label]) => (
+              <button key={value} type="button" aria-pressed={category === value} onClick={() => setCategory(value)}
+                className={cx("h-9 whitespace-nowrap rounded-full px-4 text-[13px] font-bold transition", category === value ? "bg-navy text-white" : "bg-card text-navy ring-1 ring-inset ring-line hover:ring-slate-300")}>{label}</button>
+            ))}
+          </div>
+          <div className="ml-auto flex flex-wrap items-center gap-2">
+            <Segmented size="sm" label={t("gamehub.language")} value={language} onChange={setLanguage} options={[{ value: "all", label: t("gamehub.all") }, { value: "english", label: t("category.english") }, { value: "khmer", label: t("category.khmer") }]} />
+            <label className="sr-only" htmlFor="gh-diff">{t("gamehub.difficulty")}</label>
+            <select id="gh-diff" value={difficulty} onChange={(e) => setDifficulty(e.target.value as Filter<ArcadeDifficulty>)} className="h-9 rounded-xl border border-line bg-card px-3 text-[13px] font-bold text-navy outline-none focus:border-brand">
+              <option value="all">{t("gamehub.difficulty")}: {t("gamehub.all")}</option>
+              {ARCADE_DIFFICULTIES.map((d) => <option key={d} value={d}>{gt.difficulty(d)}</option>)}
+            </select>
+            {filtered && <button type="button" onClick={reset} className="h-9 px-2 text-[13px] font-bold text-brand hover:underline">{t("gamehub.clear")}</button>}
+          </div>
+        </div>
+
+        {shown.length === 0
+          ? <EmptyState icon="games" title={t("gamehub.emptyTitle")} text={t("gamehub.emptyText")} action={<button type="button" className={btn("primary")} onClick={reset}>{t("gamehub.clear")}</button>} />
+          : <ul className="grid gap-5 sm:grid-cols-2 lg:grid-cols-3">
+              {shown.map((game) => <li key={game.id}><GameCard game={game} best={hydrated ? bestForGame(scores, game.id) : 0} plays={hydrated ? entry(game.id) : 0} size="lg" /></li>)}
+            </ul>}
+      </section>
+
+      <div className="mt-12 flex flex-wrap items-center justify-between gap-4 rounded-2xl bg-navy p-6 text-white">
         <p className="text-sm"><strong>{t("gamehub.ctaTitle")}</strong> <span className="text-slate-300">{t("gamehub.ctaText")}</span></p>
-        <div className="flex gap-2"><Link href="/learn/english" className={`${secondaryBtn} !py-2`}>{t("gamehub.practiceEn")}</Link><Link href="/learn/khmer" className={`${secondaryBtn} !py-2`}>{t("gamehub.practiceKh")}</Link></div>
+        <div className="flex gap-2"><Link href="/learn/english" className={btn("inverse", "md")}>{t("gamehub.practiceEn")}</Link><Link href="/learn/khmer" className={btn("outlineLight", "md")}>{t("gamehub.practiceKh")}</Link></div>
       </div>
     </main>
   </div>;

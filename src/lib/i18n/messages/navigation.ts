@@ -9,7 +9,7 @@ const messages = {
   "theme.midnight-blossom": { en: "Midnight Blossom", km: "ផ្កាពាក់កណ្តាលអធ្រាត្រ" },
   "theme.ethereal-flora": { en: "Ethereal Flora", km: "ផ្កាស្រទន់" },
   "theme.velvet-petal": { en: "Velvet Petal", km: "ផ្កាក្រហមទន់" },
-  "nav.overview": { en: "Overview", km: "ទំព័រដើម" },
+  "nav.overview": { en: "Home", km: "ទំព័រដើម" },
   "nav.learn": { en: "Learn", km: "មេរៀន" },
   "nav.practice": { en: "Practice", km: "ហាត់វាយ" },
   "nav.games": { en: "Games", km: "ហ្គេម" },

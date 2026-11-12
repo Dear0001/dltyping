@@ -13,6 +13,7 @@ import { NAV_ACTIVE_SCRIPT, PREPAINT_SCRIPT } from "@/lib/prepaint";
 import GoogleAnalytics from "@/components/shared/GoogleAnalytics";
 import { SITE_URL } from "@/lib/site";
 import "./globals.css";
+import "./design-system.css";
 
 /** The app font. Poppins has no Khmer letters, so Khmer text falls back to the Khmer fonts listed in --font-body (globals.css). */
 const poppins = Poppins({ subsets: ["latin"], weight: ["400", "500", "600", "700", "800"], display: "swap", variable: "--font-poppins" });

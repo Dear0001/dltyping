@@ -40,5 +40,12 @@ One English term = one Khmer term everywhere. Add new terms here before using th
 | Loading | កំពុងផ្ទុក… | |
 | Theme | ពណ៌រចនាប័ទ្ម | |
 | English / Khmer (language) | អង់គ្លេស / ខ្មែរ | |
+| Focus mode | របៀបផ្តោតអារម្មណ៍ | practice screen |
+| Featured | ពិសេស | game catalogue |
+| Recently played | បានលេងថ្មីៗ | |
+| Up next / Current level / Available | បន្ទាប់ / កម្រិតបច្ចុប្បន្ន / អាចរៀនបាន | learning path states |
+| Time left | ពេលនៅសល់ | |
+| Training plan | ផែនការហ្វឹកហាត់ | |
+| Keyboard mastery | ភាពស្ទាត់លើក្តារចុច | |
 
 Style: short, polite, everyday Khmer. Avoid ឯកសារ-style formal register in buttons. Keep Latin for WPM, CPM, XP, QWERTY, NiDA and proper names.

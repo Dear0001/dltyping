@@ -21,6 +21,7 @@ import { useKeyStatBook } from "@/hooks/useKeyStatBook";
 import { flushSession, recordKeystrokes, weakKeys, type KeyStats } from "@/lib/keyboard/key-stats";
 import { findKeyFor } from "@/lib/keyboard/keyboard-mapping";
 import { useActivityRecorder } from "@/hooks/useActivityRecorder";
+import { Icon, ProgressBar, btn } from "@/components/ui/ui";
 
 type TypingPracticeProps = {
   language: Language;
@@ -50,6 +51,8 @@ export default function TypingPractice({ language, platform = "Unknown", initial
   const [drillText, setDrillText] = useState<string | null>(initialDrill);
   const [article, setArticle] = useState<Pick<Article, "title" | "text" | "ids"> | null>(initialArticle);
   const [needsKhmerInputSwitch, setNeedsKhmerInputSwitch] = useState(false);
+  const [focusMode, setFocusMode] = useState(false);
+  const tabArmedRef = useRef(false);
   const inputRef = useRef<HTMLTextAreaElement>(null);
   const audioRef = useRef<AudioContext | null>(null);
   const isComposingRef = useRef(false);
@@ -58,7 +61,6 @@ export default function TypingPractice({ language, platform = "Unknown", initial
   const compositionStartRef = useRef("");
   const lesson = list.find((item) => item.id === lessonId) ?? list[0];
   const lessonLevel = lesson.level === "Beginner" ? t("practice.beginner") : t("practice.intermediate");
-  const lessonMinutes = article ? Math.max(1, Math.round(timeLimit / 60)) : Number.parseInt(lesson.duration, 10) || 1;
   const target = drillText ?? article?.text ?? lesson.text;
   const keyBook = useKeyStatBook();
   const recorder = useActivityRecorder();
@@ -108,6 +110,14 @@ export default function TypingPractice({ language, platform = "Unknown", initial
   useEffect(() => {
     inputRef.current?.focus();
   }, []);
+
+  // Focus mode hides the site header, footer and pet so only the text is left (html[data-focus] in design-system.css).
+  useEffect(() => {
+    const root = document.documentElement;
+    if (focusMode) root.setAttribute("data-focus", "");
+    else root.removeAttribute("data-focus");
+    return () => root.removeAttribute("data-focus");
+  }, [focusMode]);
 
   useEffect(() => {
     if (!done) return;
@@ -277,55 +287,105 @@ export default function TypingPractice({ language, platform = "Unknown", initial
     }
   }
 
+  const nextInList = list[(lessonIndex + 1) % list.length];
+  const remaining = Math.max(0, timeLimit - seconds);
+  const clock = (n: number) => `${Math.floor(n / 60)}:${(n % 60).toString().padStart(2, "0")}`;
+  const togglePause = () => {
+    if (paused) { setPaused(false); if (typedLength > 0) setRunning(true); inputRef.current?.focus(); }
+    else { setPaused(true); setRunning(false); }
+  };
+
   return (
-    <main className="practice-page">
-      <section className="practice-shell" id="practice">
-        <div className="practice-grid">
-          <section className="practice-main">
-            <div className="lesson-bar"><div className="lesson-name"><span className="lesson-icon">✳</span><div><span className="small-label">{t("practice.currentLesson")}</span><strong>{drillText ? (t("practice.weakKeyDrill")) : article?.title ?? ct.passageTitle(lesson)}</strong></div></div><select value={lessonId} onChange={(event) => reset(event.target.value)} aria-label={t("practice.chooseLesson")}>{list.map((item) => <option key={item.id} value={item.id}>{ct.passageTitle(item)}</option>)}</select></div>
-            <div className="flex flex-wrap items-center gap-2 border border-t-0 border-[color:var(--line)] bg-white px-4 py-2 text-xs text-[color:var(--muted)]">
-              <span className="mr-1 text-[9px] font-bold tracking-[0.14em]">{t("practice.timeLabel")}</span>
-              {DURATIONS.map((value) => <button key={value} type="button" disabled={running} aria-pressed={timeLimit === value} onClick={() => { setCustomMinutes(""); changeTime(value); }} className={`rounded-md border px-2.5 py-1 transition disabled:opacity-50 ${timeLimit === value ? "border-[color:var(--green)] bg-[color:var(--pale)] font-semibold text-[#3a4b67]" : "border-[color:var(--line)] bg-white hover:bg-[color:var(--pale)]"}`}>{value / 60} {t("setup.min")}</button>)}
-              <input type="number" inputMode="numeric" min={1} max={MAX_DURATION / 60} step={1} disabled={running} value={customMinutes} placeholder={t("practice.custom")} aria-label={t("practice.customMinutes")}
-                onChange={(event) => setCustomMinutes(event.target.value)}
-                onKeyDown={(event) => { if (event.key === "Enter") event.currentTarget.blur(); }}
-                onBlur={() => { const seconds = minutesToDuration(Number(customMinutes)); if (seconds) { setCustomMinutes(String(seconds / 60)); changeTime(seconds); } else setCustomMinutes(""); }}
-                className="w-20 rounded-md border border-[color:var(--line)] bg-white px-2 py-1 outline-none focus:border-[#717e94] disabled:opacity-50" />
-              <span>{t("setup.min")}</span>
-            </div>
-            <div className="typing-card">
-              <div className="text-meta"><span>{t("practice.typeBelow")}</span><span>{lessonLevel} <i>·</i> {lessonMinutes} {t("setup.min")}</span></div>
-              <div className={`prompt ${language === "khmer" ? "khmer-prompt" : ""}`} onClick={() => inputRef.current?.focus()}>
-                {Array.from(target).map((char, index) => {
-                  const typed = Array.from(normalizedInput)[index];
-                  const state = typed === undefined ? "pending" : typed === char ? "correct" : "wrong";
-                  return <span key={`${index}-${char}`} className={`char ${state} ${index === normalizedInput.length ? "cursor" : ""}`}>{char}</span>;
-                })}
-              </div>
-              <textarea ref={inputRef} value={input} onChange={(event) => handleInput(event.target.value)} onCompositionStart={handleCompositionStart} onCompositionEnd={(event) => handleCompositionEnd(event.currentTarget.value)} onPaste={(event) => event.preventDefault()} className="typing-input" aria-label={t("practice.typeTheLessonText")} lang={language === "khmer" ? "km" : "en"} autoCapitalize="off" autoCorrect="off" spellCheck={false} />
-              {paused && <p className="mx-auto my-2 w-fit rounded-lg bg-blue-50 px-4 py-2 text-sm font-semibold text-brand" role="status">{t("practice.paused")}</p>}
-              {done && !resultClosed && <GameDialog title={t("practice.lessonCompleteTitle")} icon="🎉" onEscape={() => setResultClosed(true)}>
-                <div className="text-center">
-                {autoCompleted && <p className="mt-2 rounded-xl bg-emerald-50 px-3 py-2 text-sm font-extrabold text-emerald-800" role="status">{t("practice.lessonCompleteBadge")}{autoCompleted.xp > 0 ? ` +${autoCompleted.xp} XP` : ""}</p>}
-                <dl className="my-4 grid grid-cols-4 gap-2 text-center">{[["WPM", stats.wpm], [t("practice.accuracy"), `${stats.accuracy}%`], [t("practice.errorsLabel"), stats.errors], [t("practice.timeStat"), t("practice.secondsShort", { n: seconds })]].map(([label, value]) => <div key={String(label)} className="rounded-xl bg-slate-50 p-2"><dt className="text-[10px] font-bold uppercase text-mute">{label}</dt><dd className="text-xl font-extrabold text-navy">{value}</dd></div>)}</dl>
-                {mistakes.length > 0 && <div className="mb-4 text-left"><p className="mb-2 text-[10px] font-bold uppercase text-mute">{t("practice.mistakes", { n: mistakes.length })}</p><ul className="flex max-h-28 flex-wrap gap-1.5 overflow-y-auto">{mistakes.map((m) => <li key={m.index} className="rounded-lg bg-red-50 px-2 py-1 text-xs text-red-700">{t("practice.expected")} <b>{m.expected === " " ? t("practice.space") : m.expected}</b>, {t("practice.typed")} <b>{m.typed === " " ? t("practice.space") : m.typed}</b></li>)}</ul></div>}
-                <div className="flex flex-wrap justify-center gap-2">
-                  <button data-autofocus type="button" className="rounded-xl border border-slate-300 bg-white px-4 py-2 text-sm font-bold text-navy" onClick={() => reset()}>{t("practice.retry")}</button>
-                  <button type="button" className="rounded-xl bg-brand px-4 py-2 text-sm font-bold text-white" onClick={newArticle}>{t("practice.randomArticle")}</button>
-                  {nextLesson && <button type="button" className="rounded-xl border border-slate-300 bg-white px-4 py-2 text-sm font-bold text-navy" onClick={() => reset(nextLesson.id)}>{t("practice.nextLesson")}</button>}
-                  <Link href="/games" className="rounded-xl border border-slate-300 bg-white px-4 py-2 text-sm font-bold text-navy">{t("practice.playGame")}</Link>
-                  <button type="button" className="rounded-xl border border-slate-300 bg-white px-4 py-2 text-sm font-bold text-navy" onClick={() => setResultClosed(true)}>{t("practice.close")}</button>
-                </div>
-                <WeakKeysReport language={language} onDrill={(text) => reset(lessonId, text)} />
-                </div>
-              </GameDialog>}
-              <div className="typing-footer"><span><kbd>tab</kbd> + <kbd>enter</kbd> {t("practice.restartHint")}</span><div className="typing-actions"><button className={`sound-toggle ${soundEnabled ? "sound-on" : ""}`} onClick={() => setSoundEnabled((enabled) => !enabled)} aria-pressed={soundEnabled} title={soundEnabled ? t("practice.mute") : t("practice.enableSound")}>{soundEnabled ? "◖))" : "◖×"}<span>{t(soundEnabled ? "practice.soundOn" : "practice.soundOff")}</span></button>{!done && <button className="restart-button" onClick={() => { if (paused) { setPaused(false); if (typedLength > 0) setRunning(true); inputRef.current?.focus(); } else { setPaused(true); setRunning(false); } }} disabled={typedLength === 0 && !paused}>{t(paused ? "practice.resume" : "practice.pause")}</button>}{!done && typedLength > 0 && <button className="restart-button" onClick={() => { setRunning(false); setPaused(false); setForcedDone(true); }}>{t("practice.finish")}</button>}<button className="restart-button" onClick={() => reset()}>↻ <span>{t("practice.restart")}</span></button></div></div>
-            </div>
-            {needsKhmerInputSwitch && language === "khmer" && <div className="input-switch-hint" role="alert"><span className="feedback-icon">!</span><span><strong>{t("practice.switchTitle")}</strong><br />{t(platform === "Windows" ? "practice.switchWindows" : platform === "macOS" ? "practice.switchMac" : "practice.switchUnknown")}</span></div>}
-            <VirtualKeyboard language={language} heat={done ? heat : undefined} expected={done || paused ? null : nextCharacter || null} disabled={paused || done} osHint={osFromPlatform(platform)} onChar={handleVirtualChar} onBackspace={handleVirtualBackspace} />
-          </section>
-          <aside className="stats-column"><div className="stats-card"><div className="stats-title"><span>{t("practice.sessionStats")}</span><span className="info">i</span></div><div className="wpm-stat"><strong>{stats.wpm}</strong><span>{t("practice.wpm")}</span></div><div className="stat-divider"/><div className="mini-stat"><span>{t("practice.accuracy")}</span><strong>{stats.accuracy}<small>%</small></strong></div><div className="mini-stat"><span>{t("practice.errors")}</span><strong>{stats.errors.toString().padStart(2, "0")}</strong></div><div className="mini-stat"><span>{t("practice.time")}</span><strong>{Math.floor(seconds / 60).toString().padStart(2, "0")}:{(seconds % 60).toString().padStart(2, "0")}</strong></div><div className="progress-label"><span>{t("practice.lessonProgress")}</span><strong>{stats.progress}%</strong></div><div className="progress-track"><span style={{ width: `${stats.progress}%` }}/></div></div><div className="tip-card"><span className="tip-icon">✦</span><div><strong>{t("practice.tipTitle")}</strong><p>{t("practice.tipText")}</p></div></div><div className="next-lesson"><span className="small-label">{t("practice.upNext")}</span><strong>{list[(list.findIndex((item) => item.id === lessonId) + 1) % list.length].title}</strong><button onClick={() => reset(list[(list.findIndex((item) => item.id === lessonId) + 1) % list.length].id)}>{t("practice.preview")} <span>→</span></button></div></aside>
+    <main className="practice-page tp" data-focus={focusMode || undefined}>
+      <section className="tp-shell" id="practice">
+        {/* Session settings: lesson, length and actions in one compact bar */}
+        <div className="tp-toolbar">
+          <label className="tp-lesson">
+            <span className="tp-lesson-icon" aria-hidden="true">{language === "khmer" ? "ក" : "Aa"}</span>
+            <span className="tp-lesson-text">
+              <small>{drillText ? t("practice.weakKeyDrill") : t("practice.currentLesson")} · {lessonLevel}</small>
+              <select value={lessonId} onChange={(event) => reset(event.target.value)} aria-label={t("practice.chooseLesson")}>
+                {article && <option value={lessonId} hidden>{article.title}</option>}
+                {list.map((item) => <option key={item.id} value={item.id}>{ct.passageTitle(item)}</option>)}
+              </select>
+            </span>
+            <Icon name="chevron" size={16} className="tp-caret" />
+          </label>
+          <div className="tp-durations" role="group" aria-label={t("practice.timeLabel")}>
+            <Icon name="clock" size={16} className="tp-dim" />
+            {DURATIONS.map((value) => <button key={value} type="button" disabled={running} aria-pressed={timeLimit === value && !customMinutes} onClick={() => { setCustomMinutes(""); changeTime(value); }}>{value / 60}{t("ui.practice.minShort")}</button>)}
+            <input type="number" inputMode="numeric" min={1} max={MAX_DURATION / 60} step={1} disabled={running} value={customMinutes} placeholder={t("practice.custom")} aria-label={t("practice.customMinutes")}
+              onChange={(event) => setCustomMinutes(event.target.value)}
+              onKeyDown={(event) => { if (event.key === "Enter") event.currentTarget.blur(); }}
+              onBlur={() => { const secs = minutesToDuration(Number(customMinutes)); if (secs) { setCustomMinutes(String(secs / 60)); changeTime(secs); } else setCustomMinutes(""); }} />
+          </div>
+          <div className="tp-actions">
+            <button type="button" className="tp-icon-btn" onClick={() => setSoundEnabled((enabled) => !enabled)} aria-pressed={soundEnabled} title={soundEnabled ? t("practice.mute") : t("practice.enableSound")} aria-label={t(soundEnabled ? "practice.soundOn" : "practice.soundOff")}><Icon name={soundEnabled ? "sound" : "mute"} /></button>
+            <button type="button" className="tp-icon-btn" onClick={() => { setFocusMode((v) => !v); inputRef.current?.focus(); }} aria-pressed={focusMode} title={t("ui.practice.focusHint")} aria-label={t("ui.practice.focus")}><Icon name="focus" /></button>
+            <button type="button" className="tp-icon-btn" onClick={() => reset()} title={t("practice.restart")} aria-label={t("practice.restart")}><Icon name="restart" /></button>
+          </div>
         </div>
+
+        {/* Live stats */}
+        <div className="tp-stats" aria-label={t("practice.sessionStats")}>
+          <div className="tp-stat tp-stat-main"><span>{t("practice.wpm")}</span><strong>{stats.wpm}</strong></div>
+          <div className="tp-stat"><span>{t("practice.accuracy")}</span><strong className={stats.accuracy < 90 && typedLength > 5 ? "is-low" : undefined}>{stats.accuracy}<small>%</small></strong></div>
+          <div className="tp-stat"><span>{t("practice.errors")}</span><strong className={stats.errors ? "is-bad" : undefined}>{stats.errors}</strong></div>
+          <div className="tp-stat"><span>{t("ui.practice.timeLeft")}</span><strong className={running && remaining <= 10 ? "is-bad" : undefined}>{clock(remaining)}</strong></div>
+          <div className="tp-progress"><div className="tp-progress-label"><span>{drillText ? t("practice.weakKeyDrill") : article?.title ?? ct.passageTitle(lesson)}</span><b>{stats.progress}%</b></div><ProgressBar value={stats.progress} size="sm" label={t("practice.lessonProgress")} /></div>
+        </div>
+
+        {/* The text */}
+        <div className={`tp-card${paused ? " is-paused" : ""}`}>
+          <div className="tp-text-wrap">
+            <div className={`tp-prompt ${language === "khmer" ? "khmer-prompt font-khmer" : ""}`} onClick={() => inputRef.current?.focus()} lang={language === "khmer" ? "km" : "en"}>
+              {Array.from(target).map((char, index) => {
+                const typed = Array.from(normalizedInput)[index];
+                const state = typed === undefined ? "pending" : typed === char ? "correct" : "wrong";
+                return <span key={`${index}-${char}`} className={`char ${state} ${index === normalizedInput.length ? "cursor" : ""}${char === " " && state === "wrong" ? " space" : ""}`}>{char}</span>;
+              })}
+            </div>
+            <textarea ref={inputRef} value={input} onChange={(event) => handleInput(event.target.value)} onCompositionStart={handleCompositionStart} onCompositionEnd={(event) => handleCompositionEnd(event.currentTarget.value)} onPaste={(event) => event.preventDefault()}
+              onKeyDown={(event) => {
+                // Tab then Enter restarts, like the hint says. Tab never leaves the text box while it is armed.
+                if (event.key === "Tab") { event.preventDefault(); tabArmedRef.current = true; return; }
+                if (event.key === "Enter" && tabArmedRef.current) { event.preventDefault(); tabArmedRef.current = false; reset(); return; }
+                tabArmedRef.current = false;
+              }}
+              className="tp-input" aria-label={t("practice.typeTheLessonText")} lang={language === "khmer" ? "km" : "en"} autoCapitalize="off" autoCorrect="off" spellCheck={false} />
+            {paused && <button type="button" className="tp-paused" onClick={togglePause}><Icon name="play" size={18} />{t("practice.paused")}</button>}
+          </div>
+          <div className="tp-card-foot">
+            <span className="tp-hint"><kbd>tab</kbd> + <kbd>enter</kbd> {t("practice.restartHint")}</span>
+            <div className="tp-foot-actions">
+              {!done && <button type="button" onClick={togglePause} disabled={typedLength === 0 && !paused}><Icon name={paused ? "play" : "pause"} size={15} />{t(paused ? "practice.resume" : "practice.pause")}</button>}
+              {!done && typedLength > 0 && <button type="button" onClick={() => { setRunning(false); setPaused(false); setForcedDone(true); }}><Icon name="check" size={15} />{t("practice.finish")}</button>}
+              <button type="button" onClick={() => reset(nextInList.id)} title={t("practice.upNext")}>{t("ui.practice.next")}: <b>{ct.passageTitle(nextInList)}</b><Icon name="arrow" size={15} /></button>
+            </div>
+          </div>
+          {done && !resultClosed && <GameDialog title={t("practice.lessonCompleteTitle")} icon="🎉" onEscape={() => setResultClosed(true)}>
+            <div className="text-center">
+            {autoCompleted && <p className="mt-2 rounded-xl bg-emerald-50 px-3 py-2 text-sm font-extrabold text-emerald-800" role="status">{t("practice.lessonCompleteBadge")}{autoCompleted.xp > 0 ? ` +${autoCompleted.xp} XP` : ""}</p>}
+            <dl className="my-4 grid grid-cols-2 gap-2 text-center sm:grid-cols-4">{[["WPM", stats.wpm], [t("practice.accuracy"), `${stats.accuracy}%`], [t("practice.errorsLabel"), stats.errors], [t("practice.timeStat"), t("practice.secondsShort", { n: seconds })]].map(([label, value]) => <div key={String(label)} className="rounded-xl bg-slate-50 p-2.5 ring-1 ring-inset ring-line"><dt className="text-[11px] font-bold text-mute">{label}</dt><dd className="text-2xl font-extrabold tabular-nums text-navy">{value}</dd></div>)}</dl>
+            {mistakes.length > 0 && <div className="mb-4 text-left"><p className="mb-2 text-[11px] font-bold uppercase text-mute">{t("practice.mistakes", { n: mistakes.length })}</p><ul className="flex max-h-28 flex-wrap gap-1.5 overflow-y-auto">{mistakes.map((m) => <li key={m.index} className="rounded-lg bg-red-50 px-2 py-1 text-xs text-red-700">{t("practice.expected")} <b>{m.expected === " " ? t("practice.space") : m.expected}</b>, {t("practice.typed")} <b>{m.typed === " " ? t("practice.space") : m.typed}</b></li>)}</ul></div>}
+            <div className="flex flex-wrap justify-center gap-2">
+              <button data-autofocus type="button" className={btn("secondary", "sm")} onClick={() => reset()}>{t("practice.retry")}</button>
+              <button type="button" className={btn("primary", "sm")} onClick={newArticle}>{t("practice.randomArticle")}</button>
+              {nextLesson && <button type="button" className={btn("secondary", "sm")} onClick={() => reset(nextLesson.id)}>{t("practice.nextLesson")}</button>}
+              <Link href="/games" className={btn("secondary", "sm")}>{t("practice.playGame")}</Link>
+              <button type="button" className={btn("ghost", "sm")} onClick={() => setResultClosed(true)}>{t("practice.close")}</button>
+            </div>
+            <WeakKeysReport language={language} onDrill={(text) => reset(lessonId, text)} />
+            </div>
+          </GameDialog>}
+        </div>
+        {needsKhmerInputSwitch && language === "khmer" && <div className="input-switch-hint" role="alert"><span className="feedback-icon">!</span><span><strong>{t("practice.switchTitle")}</strong><br />{t(platform === "Windows" ? "practice.switchWindows" : platform === "macOS" ? "practice.switchMac" : "practice.switchUnknown")}</span></div>}
+        {focusMode
+          ? <p className="tp-focus-note"><Icon name="focus" size={15} />{t("ui.practice.focusOn")} <button type="button" onClick={() => setFocusMode(false)}>{t("ui.practice.focusExit")}</button></p>
+          : <>
+            <VirtualKeyboard language={language} heat={done ? heat : undefined} expected={done || paused ? null : nextCharacter || null} disabled={paused || done} osHint={osFromPlatform(platform)} onChar={handleVirtualChar} onBackspace={handleVirtualBackspace} />
+            <p className="tp-tip"><Icon name="sparkle" size={15} /><b>{t("practice.tipTitle")}:</b> {t("practice.tipText")}</p>
+          </>}
       </section>
     </main>
   );
