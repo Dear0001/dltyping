@@ -17,7 +17,7 @@ const messages = {
   "pets.toGo": { en: " ({n} to go)", km: " (នៅសល់ {n})" },
   "pets.progressToward": { en: "Progress toward {name}", km: "វឌ្ឍនភាពឆ្ពោះទៅ {name}" },
   "pets.haveAll": { en: "You have every pet. Amazing!", km: "អ្នកមានសត្វចិញ្ចឹមគ្រប់ប្រភេទហើយ។ អស្ចារ្យណាស់!" },
-  "pets.howStreak": { en: "Opening the site gives +1. Finished lessons, tests and games with {n}+ correct characters add more, up to 70 streak points a day. One missed day is forgiven.", km: "ការបើកគេហទំព័រផ្តល់ +1។ មេរៀន តេស្ត និងហ្គេមដែលបានបញ្ចប់ ដោយមានតួអក្សរត្រឹមត្រូវ {n}+ បន្ថែមទៀត រហូតដល់ 70 ពិន្ទុក្នុងមួយថ្ងៃ។ ការខកខានមួយថ្ងៃត្រូវបានអភ័យទោស។" },
+  "pets.howStreak": { en: "A day counts once you finish a lesson, test or game with {n}+ correct characters, and more tasks add more, up to 70 streak points a day. Opening the site alone does not count. One missed day is forgiven.", km: "ថ្ងៃមួយត្រូវបានរាប់ នៅពេលអ្នកបញ្ចប់មេរៀន តេស្ត ឬហ្គេម ដោយមានតួអក្សរត្រឹមត្រូវ {n}+ ហើយការងារបន្ថែមផ្តល់ពិន្ទុបន្ថែម រហូតដល់ 70 ពិន្ទុក្នុងមួយថ្ងៃ។ ការបើកគេហទំព័រតែប៉ុណ្ណោះ មិនត្រូវបានរាប់ទេ។ ការខកខានមួយថ្ងៃត្រូវបានអភ័យទោស។" },
   "pets.activePets": { en: "Active pets: ", km: "សត្វចិញ្ចឹមកំពុងប្រើ៖ " },
   "pets.activeHelp": { en: ". Add up to {max} unlocked pets and they all keep you company at once.", km: "។ អ្នកអាចបន្ថែមសត្វចិញ្ចឹមដែលដោះសោរហូតដល់ {max} ហើយពួកវាទាំងអស់នឹងនៅជាមួយអ្នកព្រមគ្នា។" },
   "pets.allPets": { en: "All pets", km: "សត្វចិញ្ចឹមទាំងអស់" },

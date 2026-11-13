@@ -103,8 +103,8 @@ export default function SiteFooter() {
       <div className="site-footer-bar">
         <span>© {year} DL Typing. {t("footer.rights")}</span>
         <span className="sf-legal">
-          <span className="sf-soon">{t("footer.privacy")}<em>{soon}</em></span>
-          <span className="sf-soon">{t("footer.terms")}<em>{soon}</em></span>
+          <Link href="/privacy">{t("footer.privacy")}</Link>
+          <Link href="/terms">{t("footer.terms")}</Link>
           <button type="button" onClick={() => window.scrollTo({ top: 0, behavior: "smooth" })}>{t("footer.top")} ↑</button>
         </span>
       </div>

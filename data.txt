@@ -1,52 +1,5 @@
-{
-  "data": {
-    "tag": "100000106403~MCTMAIN1694143160206",
-    "title": "Received Payment from KHQR",
-    "body": "USD 2.11 was credited to your account number 300001300249 with ref: FT24217GYHSN",
+String creditAmount = fundTransferRespJson.getJSONObject("fundtransfer").has("creditAmount") ? fundTransferRespJson.getJSONObject("fundtransfer").get("creditAmount").toString() : "";
+String creditcurrency = fundTransferRespJson.getJSONObject("fundtransfer").has("creditcurrency") ? fundTransferRespJson.getJSONObject("fundtransfer").get("creditcurrency").toString() : "";
 
-
-    "bankTransactionReferenceId": "TMS177512276969851976",
-    "senderAccountNo": "300xxxxx0249",
-    "txnCurrency": "USD",
-    "bankTransactionDate": "2026-04-02 16:39:27",
-    "senderBank": "FTB",
-    "bankTransactionStatus": "SUCCESS",
-    "transactionId": "10000010641775122767587",
-    "txnAmount": "2.11",
-    "hash": "FT24217GYHSN",
-    "customerName": "LI RITHY"
-  },
-  "notification": {
-    "title": "Received Payment from KHQR",
-    "body": "USD 2.11 was credited to your account number 300001300249 with ref: FT24217GYHSN"
-  },
-  "androidConfig": {
-    "priority": "high",
-    "notification": {
-      "tag": "100000106403~MCTMAIN1694143160206"
-    }
-  },
-  "token": "c0qRcQ9OSQKVY7WQ4V03aR:APA91bEW2uvy80q0vbxbMymGgE3887Poe3RSqQAodQrbti9379Kz2UeLa3GEcQ2ui8aVIAaW6A0n5jEwoqAtrF8vPWx1xZsr2Y-h5zVeFJwZ9HcR8f-zz2g"
-}
-
-
-================  sleed Mode ==============
-
-{
-  "data": {
-    "tag": "100000106403~MCTMAIN1694143160206",
-    "title": "Received Payment from KHQR",
-    "body": "USD 2.11 was credited to your account number 300001300249 with ref: FT24217GYHSN",
-    "bankTransactionReferenceId": "TMS177512276969851976",
-    "senderAccountNo": "300xxxxx0249",
-    "txnCurrency": "USD",
-    "bankTransactionDate": "2026-04-02 16:39:27",
-    "senderBank": "FTB",
-    "bankTransactionStatus": "SUCCESS",
-    "transactionId": "10000010641775122767587",
-    "txnAmount": "2.11",
-    "hash": "FT24217GYHSN",
-    "customerName": "LI RITHY"
-  },
-  "token": "c0qRcQ9OSQKVY7WQ4V03aR:APA91bEW2uvy80q0vbxbMymGgE3887Poe3RSqQAodQrbti9379Kz2UeLa3GEcQ2ui8aVIAaW6A0n5jEwoqAtrF8vPWx1xZsr2Y-h5zVeFJwZ9HcR8f-zz2g"
-}
+String creditAmount = fundTransferRespJson.getJSONObject("fundtransfer").has("creditAmount") ? fundTransferRespJson.getJSONObject("fundtransfer").get("creditAmount").toString() : "";
+String creditcurrency = fundTransferRespJson.getJSONObject("fundtransfer").has("creditcurrency") ? fundTransferRespJson.getJSONObject("fundtransfer").get("creditcurrency").toString() : "";

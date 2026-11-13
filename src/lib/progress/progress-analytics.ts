@@ -144,22 +144,10 @@ function welcomeDays(): string[] {
 
 export const practiceDays = (sessions: SessionRecord[]): Set<string> => new Set([...sessions.filter(isQualifyingSession).map((s) => dayKey(timeOf(s))), ...welcomeDays()]);
 
-// ---- Daily visits -------------------------------------------------------------
+// ---- Legacy daily visits ------------------------------------------------------
+// Until 2026-11-13 simply opening the site earned +1 streak point a day. Streaks now need real practice, so no new
+// visits are recorded, but days already stored still count: nobody loses a streak or a pet they earned under the old rule.
 const VISITS_KEY = "dlt.visits";
-const MAX_VISITS = 400;
-
-/** Remembers that the learner opened the site today: the automatic +1 streak point of the day. Safe to call repeatedly. */
-export function recordVisit(now = Date.now()) {
-  try {
-    const raw = JSON.parse(window.localStorage.getItem(VISITS_KEY) ?? "[]");
-    const days: string[] = Array.isArray(raw) ? raw.filter((d) => typeof d === "string") : [];
-    const today = dayKey(now);
-    if (days.includes(today)) return;
-    window.localStorage.setItem(VISITS_KEY, JSON.stringify([...days, today].slice(-MAX_VISITS)));
-  } catch {
-    // Storage unavailable: the automatic daily point simply isn't recorded.
-  }
-}
 
 function visitDays(): string[] {
   if (typeof window === "undefined") return [];
@@ -179,7 +167,7 @@ export const STAR_POINTS = 2;
 
 /**
  * Streak points each day is worth, from 1 up to MAX_DAY_POINTS (70).
- * Opening the site is +1. Then every task adds more: +1 per finished practice session, +3 per completed lesson,
+ * A day only counts once a practice session is finished (10+ correct characters). Every task adds more: +1 per finished practice session, +3 per completed lesson,
  * +2 per star of a cleared game level, and + the highest streak level (1-20) a session reached that day.
  */
 export function dayPoints(sessions: SessionRecord[]): Map<string, number> {

@@ -74,7 +74,7 @@ const messages = {
   "dash.locked": { en: "Locked", km: "ជាប់សោ" },
   "dash.lockedHint": { en: "Sign in to unlock streaks", km: "ចូលគណនីដើម្បីដោះសោថ្ងៃជាប់ៗគ្នា" },
   "dash.lockedTip": { en: "Streaks and the pets they unlock are for signed-in accounts. Use Sign in at the top of the page; your practice on this device counts once you do.", km: "ថ្ងៃជាប់ៗគ្នា និងសត្វចិញ្ចឹមដែលវាដោះសោ គឺសម្រាប់គណនីដែលបានចូលប៉ុណ្ណោះ។ សូមចុច «ចូលគណនី» នៅខាងលើទំព័រ ហើយការហាត់ក្នុងឧបករណ៍នេះនឹងត្រូវបានរាប់ពេលអ្នកចូល។" },
-  "dash.streakTip": { en: "Consecutive days with a finished session of 20+ correct characters. Today or yesterday keeps it current. Each day adds 1 automatically; completing lessons and games adds more.", km: "ថ្ងៃជាប់គ្នាដែលមានការហាត់ចប់ ដោយមានតួអក្សរត្រឹមត្រូវ 20+។ ថ្ងៃនេះ ឬម្សិលមិញ រក្សាវាឱ្យនៅបន្ត។ រាល់ថ្ងៃបន្ថែម 1 ដោយស្វ័យប្រវត្តិ ហើយការបញ្ចប់មេរៀន និងហ្គេមបន្ថែមទៀត។" },
+  "dash.streakTip": { en: "Consecutive days with a finished session of 10+ correct characters. Today or yesterday keeps it current. Opening the site alone does not count; completing lessons and games adds more.", km: "ថ្ងៃជាប់គ្នាដែលមានការហាត់ចប់ ដោយមានតួអក្សរត្រឹមត្រូវ 10+។ ថ្ងៃនេះ ឬម្សិលមិញ រក្សាវាឱ្យនៅបន្ត។ ការបើកគេហទំព័រតែប៉ុណ្ណោះ មិនត្រូវបានរាប់ទេ ហើយការបញ្ចប់មេរៀន និងហ្គេមបន្ថែមពិន្ទុទៀត។" },
   "dash.noSessions": { en: "No sessions in {range}. Pick a longer range, or ", km: "គ្មានការហាត់ក្នុង {range} ទេ។ សូមជ្រើសរើសចន្លោះពេលវែងជាងនេះ ឬ " },
   "dash.practiceNow": { en: "practice now", km: "ហាត់ឥឡូវនេះ" },
   "dash.speedTitle": { en: "Speed over time", km: "ល្បឿនតាមពេលវេលា" },
