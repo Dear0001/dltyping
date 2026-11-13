@@ -2,7 +2,7 @@ import type { Dict } from "../types";
 
 /** overview: each key carries both languages side by side. English is the reference; Khmer follows docs/khmer-glossary.md. */
 const messages = {
-  "overview.badge": { en: "English · ខ្មែរ · Free · No sign-up", km: "អង់គ្លេស · ខ្មែរ · ឥតគិតថ្លៃ · មិនបាច់ចុះឈ្មោះ" },
+  "overview.badge": { en: "English & Khmer · Free · No sign-up", km: "អង់គ្លេស · ខ្មែរ · ឥតគិតថ្លៃ · មិនបាច់ចុះឈ្មោះ" },
   "overview.heroPre": { en: "Learn to type faster in", km: "រៀនវាយអក្សរឱ្យលឿនជាភាសា" },
   "overview.heroAnd": { en: "and", km: "និង" },
   "overview.heroPost": { en: ".", km: "។" },
@@ -15,7 +15,7 @@ const messages = {
   "overview.enDesc": { en: "From home-row basics to professional passages — each lesson has objectives, instructions, and a recommended typing game.", km: "ចាប់ពីមូលដ្ឋានជួរកណ្តាល រហូតដល់អត្ថបទកម្រិតអ្នកជំនាញ។ មេរៀននីមួយៗមានគោលបំណង ការណែនាំ និងហ្គេមវាយអក្សរដែលយើងណែនាំ។" },
   "overview.enStart": { en: "Start English Curriculum", km: "ចាប់ផ្តើមមេរៀនអង់គ្លេស" },
   "overview.enNow": { en: "Practice English now →", km: "ហាត់វាយអង់គ្លេសឥឡូវនេះ →" },
-  "overview.khName": { en: "ខ្មែរ Khmer", km: "ខ្មែរ Khmer" },
+  "overview.khName": { en: "Khmer", km: "ខ្មែរ Khmer" },
   "overview.khMeta": { en: "NiDA keyboard · {levels} levels · {n} lessons", km: "ក្តារចុច NiDA · {levels} កម្រិត · {n} មេរៀន" },
   "overview.khDesc": { en: "Consonants, subscript clusters, cultural passages, and vocabulary — with game-based reinforcement at every level.", km: "ព្យញ្ជនៈ ជើងអក្សរ អត្ថបទវប្បធម៌ និងវាក្យសព្ទ ព្រមទាំងហ្គេមជួយពង្រឹងនៅគ្រប់កម្រិត។" },
   "overview.khStart": { en: "Start Khmer Curriculum", km: "ចាប់ផ្តើមមេរៀនខ្មែរ" },

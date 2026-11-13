@@ -22,11 +22,13 @@ import arcade from "./messages/arcade";
 import space from "./messages/space";
 import ui from "./messages/ui";
 import legal from "./messages/legal";
+import results from "./messages/results";
+import achievements from "./messages/achievements";
 
 export type { AppLocale, Vars };
 
 /** Add a namespace file under ./messages and list it here. Keys are "<namespace>.<name>". */
-export const namespaces: Record<string, Dict> = { common, navigation, authentication, footer, support, dashboard, practice, games, overview, learn, library, daily, test, setup, progress, pets, gm, help, mastery, arcade, space, ui, legal };
+export const namespaces: Record<string, Dict> = { common, navigation, authentication, footer, support, dashboard, practice, games, overview, learn, library, daily, test, setup, progress, pets, gm, help, mastery, arcade, space, ui, legal, results, achievements };
 
 const table: Dict = {};
 for (const [name, dict] of Object.entries(namespaces)) {

@@ -8,7 +8,7 @@ const messages = {
   "category.english": { en: "English", km: "អង់គ្លេស" },
   "category.khmer": { en: "Khmer", km: "ខ្មែរ" },
   "category.englishLabel": { en: "English · QWERTY", km: "អង់គ្លេស · QWERTY" },
-  "category.khmerLabel": { en: "ភាសាខ្មែរ · NiDA", km: "ភាសាខ្មែរ · NiDA" },
+  "category.khmerLabel": { en: "Khmer · NiDA layout", km: "ភាសាខ្មែរ · NiDA" },
   "category.openAccess": { en: "starter lessons · open access", km: "មេរៀនដំបូង · អាចចូលហាត់បានដោយសេរី" },
   "keyboard.mac": { en: "MacBook keyboard", km: "ក្តារចុច MacBook" },
   "keyboard.windows": { en: "Windows keyboard", km: "ក្តារចុច Windows" },

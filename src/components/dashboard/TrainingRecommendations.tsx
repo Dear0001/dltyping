@@ -9,7 +9,7 @@ const PRIORITY = {
 } as const;
 
 const ICON: Record<Recommendation["category"], string> = {
-  "weak-keys": "🎯", "home-row": "🏠", combinations: "🔗", words: "📝", speed: "⚡", accuracy: "🧘", consistency: "〰️",
+  "weak-keys": "🎯", "home-row": "🏠", combinations: "🔗", words: "📝", speed: "⚡", accuracy: "🧘", consistency: "〰️", advance: "🚀",
 };
 
 export default function TrainingRecommendations({ items }: { items: Recommendation[] }) {

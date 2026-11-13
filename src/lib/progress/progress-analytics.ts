@@ -116,21 +116,15 @@ const nextDay = (ms: number, step: number) => {
   return new Date(d.getFullYear(), d.getMonth(), d.getDate() + step).getTime();
 };
 
-/** Distinct local days with a qualifying session. */
-/** Every new learner starts with this many streak days, so the first pet is already within reach. */
+/**
+ * Legacy welcome streak. Until 2026-11-13 every new browser started with 3 free streak days. A streak must now be
+ * earned by practice, so no new welcome start is ever written; browsers that already have one keep those days
+ * (like the legacy visits below), so nobody loses a streak or pet they already have.
+ */
 export const WELCOME_STREAK_DAYS = 3;
 const WELCOME_KEY = "dlt.welcome";
 
-/** Remembers the first day this browser opened the site. Safe to call repeatedly; only the first call writes. */
-export function ensureWelcomeStart(now = Date.now()) {
-  try {
-    if (!window.localStorage.getItem(WELCOME_KEY)) window.localStorage.setItem(WELCOME_KEY, String(now));
-  } catch {
-    // Storage unavailable: the welcome streak simply isn't granted.
-  }
-}
-
-/** The welcome streak days: the first-visit day and the days just before it, so a new learner begins at 3. */
+/** The legacy welcome streak days, only for browsers that recorded a welcome start before the rule changed. */
 function welcomeDays(): string[] {
   if (typeof window === "undefined") return [];
   try {
@@ -142,6 +136,7 @@ function welcomeDays(): string[] {
   }
 }
 
+/** Distinct local days with a qualifying session (plus any legacy welcome days). */
 export const practiceDays = (sessions: SessionRecord[]): Set<string> => new Set([...sessions.filter(isQualifyingSession).map((s) => dayKey(timeOf(s))), ...welcomeDays()]);
 
 // ---- Legacy daily visits ------------------------------------------------------

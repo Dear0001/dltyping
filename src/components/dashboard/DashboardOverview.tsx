@@ -8,6 +8,7 @@ import { BarChart, ChartCard, ComparisonBars, LineChart, type ChartPoint } from 
 import { SkChart, SkStatRow, SkTable } from "@/components/skeleton/Skeleton";
 import StatCard from "@/components/dashboard/StatCard";
 import StreakLevels from "@/components/dashboard/StreakLevels";
+import PracticeCalendar from "@/components/dashboard/PracticeCalendar";
 import { useUserProgress } from "@/hooks/use-stored-value";
 import { useLocale } from "@/components/shared/LocaleProvider";
 import { useAccount } from "@/lib/account";
@@ -16,7 +17,7 @@ import { buildDashboard, formatDuration, RANGES, type RangeId } from "@/lib/prog
 import { clearProgress } from "@/lib/progress/progress-storage";
 
 export default function DashboardOverview() {
-  const { t } = useLocale();
+  const { t, locale } = useLocale();
   const { store, hydrated, isEmpty } = useTypingProgress();
   const userProgress = useUserProgress();
   const signedIn = useAccount().status === "user";
@@ -25,6 +26,8 @@ export default function DashboardOverview() {
   const data = useMemo(() => buildDashboard(store, range, now), [store, range, now]);
   const lessonsDone = Object.keys(userProgress.completedLessons).length;
   const hasData = data.overview.sessions > 0;
+  const charsCorrect = data.sessions.reduce((n, s) => n + s.correct, 0);
+  const charsTyped = charsCorrect + data.sessions.reduce((n, s) => n + s.incorrect, 0);
   const rangeLabel = t(`dash.range${range}`).toLowerCase();
   const sessionsNote = (n: number) => (n ? t(n === 1 ? "dash.sessionCountOne" : "dash.sessionCountMany", { n }) : undefined);
   const none = (v: number | string) => (hasData ? v : null);
@@ -56,18 +59,21 @@ export default function DashboardOverview() {
         <EmptyState />
       ) : (
         <div className="space-y-6">
-          <section aria-label={t("dash.statsLabel")} className="grid grid-cols-2 gap-3 lg:grid-cols-4">
+          <section aria-label={t("dash.statsLabel")} className="grid grid-cols-2 gap-3 lg:grid-cols-3">
             <StatCard icon="📈" label={t("dash.sessions")} value={none(data.overview.sessions)} hint={hasData ? t("dash.inRange", { range: rangeLabel }) : t("dash.noneInRange", { range: rangeLabel })} tooltip={t("dash.sessionsTip")} />
             <StatCard icon="⚡" label={t("dash.avgWpm")} value={none(data.overview.avgWpm)} unit="WPM" accent="sky" hint={t("dash.avgWpmHint")} tooltip={t("dash.avgWpmTip")} />
             <StatCard icon="🏆" label={t("dash.bestWpm")} value={none(data.overview.bestWpm)} unit="WPM" accent="navy" hint={t("dash.bestWpmHint")} />
             <StatCard icon="🎯" label={t("dash.avgAcc")} value={none(data.overview.avgAccuracy)} unit="%" hint={t("dash.avgAccHint")} tooltip={t("dash.avgAccTip")} />
             <StatCard icon="⏱️" label={t("dash.practiceTime")} value={none(formatDuration(data.overview.practiceSeconds))} accent="sky" hint={t("dash.inRange", { range: rangeLabel })} />
             <StatCard icon="📘" label={t("dash.lessonsDone")} value={lessonsDone} hint={t("dash.lessonsDoneHint")} accent="navy" tooltip={t("dash.lessonsDoneTip")} />
+            <StatCard icon="⌨️" label={t("dash.chars")} value={none(charsTyped.toLocaleString(locale === "km" ? "km-KH" : "en-US"))} hint={t("dash.charsHint", { correct: charsCorrect.toLocaleString(locale === "km" ? "km-KH" : "en-US"), range: rangeLabel })} />
             <StatCard icon="🎮" label={t("dash.gamesDone")} value={none(data.overview.gamesCompleted)} hint={t("dash.runsIn", { range: rangeLabel })} />
             {signedIn
-              ? <StatCard icon="🔥" label={t("dash.streak")} value={data.streak} unit={t(data.streak === 1 ? "dash.day" : "dash.days")} accent="sky" hint={t(data.streak ? "dash.streakKeep" : "dash.streakStart")} tooltip="Consecutive days with a finished session of 20+ correct characters. Today or yesterday keeps it current. Each day adds 1 automatically; completing a lesson adds 1 more, and clearing a game level adds its stars (1 to 3). Streaks unlock pets." />
+              ? <StatCard icon="🔥" label={t("dash.streak")} value={data.streak} unit={t(data.streak === 1 ? "dash.day" : "dash.days")} accent="sky" hint={t(data.streak ? "dash.streakKeep" : "dash.streakStart")} tooltip={t("dash.streakTip")} />
               : <StatCard icon="🔒" label={t("dash.streak")} value={t("dash.locked")} accent="sky" hint={t("dash.lockedHint")} tooltip={t("dash.lockedTip")} />}
           </section>
+
+          <PracticeCalendar sessions={store.sessions} now={now} />
 
           {signedIn && <StreakLevels sessions={store.sessions} />}
 

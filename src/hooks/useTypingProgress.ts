@@ -3,6 +3,7 @@
 import { useSyncExternalStore } from "react";
 import { useStoredValue } from "@/hooks/use-stored-value";
 import { EMPTY_STORE, PROGRESS_KEY, validateStore } from "@/lib/progress/progress-storage";
+import { currentStreak } from "@/lib/progress/progress-analytics";
 
 const noopSubscribe = () => () => undefined;
 
@@ -26,4 +27,14 @@ export function useTypingProgress() {
   const store = useStoredValue(PROGRESS_KEY, EMPTY_STORE, validateStore);
   const hydrated = useHydrated();
   return { store, hydrated, isEmpty: store.sessions.length === 0 };
+}
+
+/**
+ * The learner's current streak, from saved practice sessions: the same number the dashboard shows.
+ * 0 until hydrated. (The old `userProgress.streak` only counted lesson completions, by UTC day.)
+ */
+export function useStreak() {
+  const { store, hydrated } = useTypingProgress();
+  const now = useNow();
+  return hydrated && now ? currentStreak(store.sessions, now) : 0;
 }

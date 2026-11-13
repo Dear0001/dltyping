@@ -7,7 +7,11 @@ import { curricula, levelColors, courseProgress, getAllLessons, firstIncompleteL
 import { useLocale } from "@/components/shared/LocaleProvider";
 import { useCurriculumText } from "@/hooks/useCurriculumText";
 import { useUserProgress } from "@/hooks/use-stored-value";
-import { useHydrated } from "@/hooks/useTypingProgress";
+import { useHydrated, useStreak, useTypingProgress } from "@/hooks/useTypingProgress";
+import { useTrainingRecommendations } from "@/hooks/useTrainingRecommendations";
+import { THRESHOLDS } from "@/lib/progress/training-recommendations";
+import { averageWpm } from "@/lib/article-length";
+import { lessons as passages } from "@/data/lessons";
 import { useAccount } from "@/lib/account";
 import { levelFromXp, xpForLevel } from "@/lib/local-progress";
 import { Sk } from "@/components/skeleton/Skeleton";
@@ -20,6 +24,58 @@ const LANG_CONFIG = {
 } as const;
 
 type LessonState = "completed" | "current" | "available" | "locked";
+
+/** Minutes to type a lesson's passage once at the learner's own average speed (a default speed until there is history). */
+function useLessonMinutes(lang: Language) {
+  const { store } = useTypingProgress();
+  const wpm = averageWpm(store, lang);
+  return (lessonId: string) => {
+    const text = passages[lang].find((p) => p.id === lessonId)?.text ?? "";
+    return Math.max(1, Math.round(Array.from(text).length / 5 / Math.max(wpm, 1)));
+  };
+}
+
+/** Up to two suggestions for this language from the real recommendation engine; honest when there is not enough data yet. */
+function LearnRecommendations({ lang }: { lang: Language }) {
+  const { t } = useLocale();
+  const { hydrated, recommendations } = useTrainingRecommendations();
+  const { store } = useTypingProgress();
+  if (!hydrated) return null;
+  const mine = recommendations.filter((r) => r.language === lang).slice(0, 2);
+  const sessions = store.sessions.filter((s) => s.language === lang).length;
+  const name = t(`category.${lang}`);
+  return (
+    <section className={cx(cardClass, "mt-5 p-5")} aria-labelledby="rec-heading">
+      <div className="flex flex-wrap items-end justify-between gap-2">
+        <div>
+          <h2 id="rec-heading" className="flex items-center gap-2 text-base font-extrabold text-navy"><Icon name="target" size={18} className="text-brand" />{t("ui.learn.recTitle")}</h2>
+          <p className="text-xs text-mute">{t("ui.learn.recSub", { lang: name })}</p>
+        </div>
+        <Link href="/dashboard/training" className="text-xs font-bold text-brand hover:underline">{t("ui.learn.recAll")} →</Link>
+      </div>
+      {mine.length ? (
+        <ul className="mt-3 grid gap-3 md:grid-cols-2">
+          {mine.map((r) => (
+            <li key={r.id} className="flex flex-col gap-2 rounded-xl border border-line bg-slate-50/60 p-3.5">
+              <div className="flex items-start justify-between gap-2">
+                <p className="font-bold leading-snug text-navy">{r.title}</p>
+                <Badge tone={r.priority === "high" ? "danger" : r.priority === "medium" ? "warning" : "brand"}>{t("ui.learn.minutes", { n: r.minutes })}</Badge>
+              </div>
+              <p className="text-xs leading-relaxed text-mute">{r.reason}</p>
+              <div className="mt-auto flex flex-wrap gap-2 pt-1">
+                {r.actions.map((a, i) => <Link key={a.href} href={a.href} className={btn(i === 0 ? "primary" : "secondary", "sm")}>{a.label}</Link>)}
+              </div>
+            </li>
+          ))}
+        </ul>
+      ) : (
+        <p className="mt-3 rounded-xl bg-slate-50 px-3.5 py-3 text-sm text-mute">
+          {sessions < THRESHOLDS.minSessions ? t("ui.learn.recEmpty", { n: THRESHOLDS.minSessions - sessions, lang: name }) : t("ui.learn.recNone")}
+        </p>
+      )}
+    </section>
+  );
+}
 
 /** XP level, progress to the next level and streak, in one compact card. */
 function LevelCard({ xp, streak }: { xp: number; streak: number }) {
@@ -53,7 +109,7 @@ function LevelCard({ xp, streak }: { xp: number; streak: number }) {
 }
 
 /** The big "Continue learning" card for the selected language. */
-function ContinueHero({ lang }: { lang: Language }) {
+function ContinueHero({ lang, minutes }: { lang: Language; minutes: (id: string) => number }) {
   const { t } = useLocale();
   const ct = useCurriculumText();
   const progress = useUserProgress();
@@ -80,6 +136,7 @@ function ContinueHero({ lang }: { lang: Language }) {
               <span className={`rounded-full px-2.5 py-0.5 text-[11px] font-bold ${levelColors[next.course.level]}`}>{ct.level(next.course.level)}</span>
               <Badge tone="warning" icon="star">+{next.lesson.xpReward} XP</Badge>
               <Badge icon="target">{next.lesson.completionCriteria.minAccuracy}%{next.lesson.completionCriteria.minWpm ? ` · ${next.lesson.completionCriteria.minWpm} WPM` : ""}</Badge>
+              <Badge icon="clock">{t("ui.learn.minutes", { n: minutes(next.lesson.id) })}</Badge>
               <span className="text-xs text-mute">{ct.moduleTitle(next.module)}</span>
             </div>
           </> : <h2 className="mt-1 text-2xl font-extrabold text-navy">{t("learn.allFinished", { total: all.length })}</h2>}
@@ -100,7 +157,7 @@ const STATE_STYLE: Record<LessonState, string> = {
   locked: "border-dashed border-slate-300 bg-slate-50/60 text-mute hover:border-slate-400",
 };
 
-function LessonCard({ lesson, lang, state, index, lockedHint }: { lesson: CurriculumLesson; lang: Language; state: LessonState; index: number; lockedHint: string }) {
+function LessonCard({ lesson, lang, state, index, lockedHint, minutes }: { lesson: CurriculumLesson; lang: Language; state: LessonState; index: number; lockedHint: string; minutes: number }) {
   const { t } = useLocale();
   const ct = useCurriculumText();
   const marker = {
@@ -124,6 +181,8 @@ function LessonCard({ lesson, lang, state, index, lockedHint }: { lesson: Curric
           <span className={cx(state === "current" ? "text-brand" : state === "completed" ? "text-emerald-700" : "text-mute")}>{stateLabel}</span>
           <span className="text-slate-300">•</span>
           <span className="text-mute" title={t("learn.minTitle")}>{lesson.completionCriteria.minAccuracy}%{lesson.completionCriteria.minWpm ? ` · ${lesson.completionCriteria.minWpm} WPM` : ""}</span>
+          <span className="text-slate-300">•</span>
+          <span className="flex items-center gap-1 text-mute" title={t("ui.learn.minutesTitle")}><Icon name="clock" size={11} />{t("ui.learn.minutes", { n: minutes })}</span>
         </p>
       </div>
     </Link>
@@ -136,6 +195,8 @@ export default function CurriculumHub() {
   const hydrated = useHydrated();
   const [activeLang, setActiveLang] = useState<Language>("english");
   const progress = useUserProgress();
+  const streak = useStreak();
+  const minutes = useLessonMinutes(activeLang);
 
   // The home page links to /learn?lang=khmer; read it once on the client (search params are request data).
   useEffect(() => {
@@ -162,9 +223,11 @@ export default function CurriculumHub() {
 
         {/* Continue learning + level */}
         <div className="grid gap-5 lg:grid-cols-[minmax(0,2fr)_minmax(0,1fr)]">
-          {hydrated ? <ContinueHero lang={activeLang} /> : <div className={cx(cardClass, "flex items-center gap-6 p-7")}><Sk className="h-[92px] w-[92px] rounded-full" /><div className="flex-1"><Sk className="mb-3 h-3 w-32" /><Sk className="mb-3 h-7 w-2/3" /><Sk className="h-4 w-1/2" /></div></div>}
-          {hydrated ? <LevelCard xp={progress.xp} streak={progress.streak} /> : <div className={cx(cardClass, "p-5")}><Sk className="mb-4 h-12 w-40" /><Sk className="h-3 w-full" /></div>}
+          {hydrated ? <ContinueHero lang={activeLang} minutes={minutes} /> : <div className={cx(cardClass, "flex items-center gap-6 p-7")}><Sk className="h-[92px] w-[92px] rounded-full" /><div className="flex-1"><Sk className="mb-3 h-3 w-32" /><Sk className="mb-3 h-7 w-2/3" /><Sk className="h-4 w-1/2" /></div></div>}
+          {hydrated ? <LevelCard xp={progress.xp} streak={streak} /> : <div className={cx(cardClass, "p-5")}><Sk className="mb-4 h-12 w-40" /><Sk className="h-3 w-full" /></div>}
         </div>
+
+        <LearnRecommendations lang={activeLang} />
 
         <div id="streak" className="mt-5 scroll-mt-24"><StreakGuide /></div>
 
@@ -225,7 +288,7 @@ export default function CurriculumHub() {
                             {mod.lessons.map((lesson) => {
                               n += 1;
                               const state: LessonState = progress.completedLessons[`${activeLang}:${lesson.id}`] ? "completed" : hydrated && next?.lesson.id === lesson.id ? "current" : isLocked ? "locked" : "available";
-                              return <li key={lesson.id}><LessonCard lesson={lesson} lang={activeLang} state={state} index={n} lockedHint={t("ui.learn.lockedHint", { level: prevTitle })} /></li>;
+                              return <li key={lesson.id}><LessonCard lesson={lesson} lang={activeLang} state={state} index={n} lockedHint={t("ui.learn.lockedHint", { level: prevTitle })} minutes={minutes(lesson.id)} /></li>;
                             })}
                           </ul>
                         </div>

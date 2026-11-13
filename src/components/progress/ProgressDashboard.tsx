@@ -7,25 +7,18 @@ import { secondaryBtn } from "@/components/games/shared/GameDialog";
 import { curricula, getAllLessons, levelColors, courseProgress } from "@/data/curriculum";
 import { useUserProgress, useScores, usePracticeBest } from "@/hooks/use-stored-value";
 import { useAccount } from "@/lib/account";
-import { levelFromXp, xpForLevel } from "@/lib/local-progress";
 import { useLocale } from "@/components/shared/LocaleProvider";
 import { useCurriculumText } from "@/hooks/useCurriculumText";
 import { useGameText } from "@/hooks/useGameText";
 import { typingGames } from "@/data/games";
-import { bestForGame } from "@/lib/local-progress";
+import { bestForGame, levelFromXp, xpForLevel } from "@/lib/local-progress";
 import GameThumb from "@/components/games/shared/GameThumb";
-
-const ACHIEVEMENTS = [
-  { id: "first-step", emoji: "🌱", condition: (xp: number) => xp >= 50 },
-  { id: "rising-star", emoji: "⭐", condition: (xp: number) => xp >= 200 },
-  { id: "fluent", emoji: "🚀", condition: (xp: number) => levelFromXp(xp) >= 3 },
-  { id: "dedicated", emoji: "📚", condition: (xp: number) => xp >= 500 },
-  { id: "expert", emoji: "🏆", condition: (xp: number) => levelFromXp(xp) >= 5 },
-  { id: "on-a-roll", emoji: "🔥", condition: (_xp: number, streak: number) => streak >= 3 },
-  { id: "unstoppable", emoji: "⚡", condition: (_xp: number, streak: number) => streak >= 7 },
-  { id: "khmer-explorer", emoji: "🇰🇭", condition: (_xp: number, _s: number, completed: Record<string, boolean>) => Object.keys(completed).some((k) => k.startsWith("khmer:")) },
-  { id: "bilingual", emoji: "🌐", condition: (_xp: number, _s: number, completed: Record<string, boolean>) => Object.keys(completed).some((k) => k.startsWith("english:")) && Object.keys(completed).some((k) => k.startsWith("khmer:")) },
-];
+import { useStreak, useTypingProgress } from "@/hooks/useTypingProgress";
+import { useArcadeStore } from "@/hooks/use-arcade";
+import { ACHIEVEMENTS as ARCADE_BADGES } from "@/lib/arcade/progress";
+import { ACHIEVEMENT_CATEGORIES, achievementStatuses, type AchievementStatus } from "@/lib/achievements";
+import { QUALIFYING_MIN_CORRECT } from "@/lib/progress/progress-analytics";
+import { Icon, ProgressBar, cx } from "@/components/ui/ui";
 
 function ProgressRing({ pct, size = 60, strokeWidth = 6 }: { pct: number; size?: number; strokeWidth?: number }) {
   const r = (size - strokeWidth) / 2;
@@ -49,7 +42,18 @@ function ProgressContent() {
   const gt = useGameText();
   const progress = useUserProgress();
   const signedIn = useAccount().status === "user";
-  const streak = signedIn ? progress.streak : 0; // streaks (and the achievements for them) need an account
+  const liveStreak = useStreak();
+  const streak = signedIn ? liveStreak : 0; // streaks need an account (same rule as the dashboard)
+  const { store } = useTypingProgress();
+  const arcade = useArcadeStore();
+  const achievements = achievementStatuses({
+    sessions: store.sessions,
+    xp: progress.xp,
+    completedLessons: progress.completedLessons,
+    lessonTotals: { english: getAllLessons(curricula.english).length, khmer: getAllLessons(curricula.khmer).length },
+    arcadeBadges: { earned: Object.keys(arcade.achievements).length, total: ARCADE_BADGES.length },
+  });
+  const unlockedCount = achievements.filter((a) => a.unlocked).length;
   const scores = useScores();
   const practiceBest = usePracticeBest();
   const level = levelFromXp(progress.xp);
@@ -167,21 +171,34 @@ function ProgressContent() {
           })}
         </div>
 
-        {/* Achievements */}
-        <section className="mb-6">
-          <h2 className="mb-4 text-xl font-extrabold">{t("prog.achievements")}</h2>
-          <div className="grid grid-cols-2 gap-3 sm:grid-cols-3">
-            {ACHIEVEMENTS.map((ach) => {
-              const unlocked = ach.condition(progress.xp, streak, progress.completedLessons);
+        {/* Achievements, by category, with progress toward each */}
+        <section className="mb-6" aria-labelledby="ach-heading">
+          <div className="mb-4 flex flex-wrap items-end justify-between gap-2">
+            <h2 id="ach-heading" className="text-xl font-extrabold">{t("prog.achievements")}</h2>
+            <span className="text-sm font-semibold text-mute">{t("achv.summary", { n: unlockedCount, total: achievements.length })}</span>
+          </div>
+          <div className="space-y-5">
+            {ACHIEVEMENT_CATEGORIES.map((cat) => {
+              const items = achievements.filter((a) => a.category === cat);
               return (
-                <div key={ach.id} className={`rounded-2xl border p-4 transition ${unlocked ? "border-amber-200 bg-amber-50 shadow-sm" : "border-slate-200 bg-white opacity-50"}`}>
-                  <p className={`text-3xl ${unlocked ? "" : "grayscale filter"}`} aria-hidden="true">{ach.emoji}</p>
-                  <p className={`mt-2 text-sm font-bold ${unlocked ? "text-amber-800" : "text-mute"}`}>{t(`ach.${ach.id}.title`)}</p>
-                  <p className="mt-0.5 text-xs text-mute">{t(`ach.${ach.id}.desc`)}</p>
+                <div key={cat}>
+                  <h3 className="mb-2 flex items-center gap-2 text-sm font-bold text-navy">{t(`achv.cat.${cat}`)}<span className="text-xs font-semibold text-mute">{items.filter((a) => a.unlocked).length}/{items.length}</span></h3>
+                  <ul className="grid grid-cols-1 gap-3 sm:grid-cols-2 lg:grid-cols-4">
+                    {items.map((a) => <li key={a.id}><AchievementCard a={a} /></li>)}
+                  </ul>
                 </div>
               );
             })}
           </div>
+          <p className="mt-3 text-xs text-mute">{t("achv.note")}</p>
+        </section>
+
+        {/* How XP and streaks work */}
+        <section className="mb-6 rounded-2xl border border-line bg-card p-5 shadow-sm" aria-labelledby="xp-heading">
+          <h2 id="xp-heading" className="flex items-center gap-2 text-base font-extrabold"><Icon name="star" size={18} className="text-amber-500" />{t("xpinfo.title")}</h2>
+          <ul className="mt-3 space-y-2 text-sm leading-relaxed text-slate-600">
+            {[t("xpinfo.lesson"), t("xpinfo.repeat"), t("xpinfo.games"), t("xpinfo.streak", { n: QUALIFYING_MIN_CORRECT })].map((line) => <li key={line} className="flex gap-2"><Icon name="check" size={16} className="mt-0.5 flex-none text-emerald-500" />{line}</li>)}
+          </ul>
         </section>
 
         {/* Game scores */}
@@ -216,6 +233,27 @@ function ProgressContent() {
         </div>
 
       </main>
+    </div>
+  );
+}
+
+function AchievementCard({ a }: { a: AchievementStatus }) {
+  const { t } = useLocale();
+  const key = a.legacy ? `ach.${a.id}` : `achv.${a.id}`;
+  return (
+    <div className={cx("ach-card flex h-full flex-col rounded-2xl border p-4 transition", a.unlocked ? "is-unlocked border-amber-200 bg-amber-50/80 shadow-sm" : "border-slate-200 bg-white")}>
+      <div className="flex items-start justify-between gap-2">
+        <span className={cx("grid h-11 w-11 place-items-center rounded-xl text-2xl", a.unlocked ? "bg-white shadow-sm" : "bg-slate-100 grayscale", a.icon === "ក" && "font-khmer text-xl font-bold text-emerald-700")} aria-hidden="true">{a.icon}</span>
+        {a.unlocked ? <span className="inline-flex items-center gap-1 rounded-full bg-amber-400 px-2 py-0.5 text-[10px] font-extrabold text-navy"><Icon name="check" size={11} strokeWidth={2.6} />{t("achv.unlocked")}</span> : <Icon name="lock" size={15} className="text-slate-300" />}
+      </div>
+      <p className={cx("mt-2 text-sm font-bold", a.unlocked ? "text-amber-900" : "text-navy")}>{t(a.legacy ? `${key}.title` : `${key}.t`)}</p>
+      <p className="mt-0.5 flex-1 text-xs text-mute">{t(a.legacy ? `${key}.desc` : `${key}.d`)}</p>
+      {!a.unlocked && (
+        <div className="mt-3">
+          <ProgressBar value={a.pct} size="sm" tone="amber" label={t("achv.progressOf", { n: a.current, total: a.target })} />
+          <p className="mt-1 text-[11px] font-semibold tabular-nums text-mute">{t("achv.progressOf", { n: a.current, total: a.target })}{a.unit ? ` ${a.unit}` : ""}</p>
+        </div>
+      )}
     </div>
   );
 }

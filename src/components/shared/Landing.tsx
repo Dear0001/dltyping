@@ -5,7 +5,7 @@ import GameCard from "@/components/games/GameCard";
 import HeroDemo from "@/components/home/HeroDemo";
 import ContinueCard from "@/components/learn/ContinueCard";
 import { Sk } from "@/components/skeleton/Skeleton";
-import { useHydrated } from "@/hooks/useTypingProgress";
+import { useHydrated, useStreak } from "@/hooks/useTypingProgress";
 import { typingGames } from "@/data/games";
 import { curricula, getAllLessons } from "@/data/curriculum";
 import { usePracticeBest, useScores, useUserProgress } from "@/hooks/use-stored-value";
@@ -40,7 +40,7 @@ function PathCard({ path }: { path: (typeof PATHS)[number] }) {
         <span className={cx("pointer-events-none absolute -right-3 -top-6 select-none text-[8.5rem] font-black leading-none text-white/15", path.lang === "khmer" && "font-khmer")} aria-hidden="true">{path.glyph}</span>
         <div className="relative">
           <p className="text-xs font-bold uppercase tracking-[0.14em] text-white/80">{t(path.lang === "khmer" ? "ui.home.kmLayout" : "ui.home.enLayout")}</p>
-          <h3 className={cx("text-2xl font-extrabold tracking-tight", path.lang === "khmer" && "font-khmer")}>{path.lang === "khmer" ? "ខ្មែរ · Khmer" : t("category.english")}</h3>
+          <h3 className="text-2xl font-extrabold tracking-tight">{t(`category.${path.lang}`)}</h3>
         </div>
         {hydrated && best ? <Badge tone="dark" icon="bolt" className="relative">{t("overview.best", { wpm: best })}</Badge> : null}
       </div>
@@ -69,6 +69,7 @@ function WelcomeBack() {
   const { t } = useLocale();
   const progress = useUserProgress();
   const hydrated = useHydrated();
+  const streak = useStreak();
   if (!hydrated || (progress.xp <= 0 && !Object.keys(progress.completedLessons).length)) return null;
   const level = levelFromXp(progress.xp);
   return (
@@ -77,7 +78,7 @@ function WelcomeBack() {
         <h2 id="welcome-heading" className="text-xl font-extrabold tracking-tight text-navy">{t("ui.home.welcome")}</h2>
         <div className="flex flex-wrap gap-2">
           <Badge tone="brand" icon="star">{t("ui.home.level", { n: level })} · {progress.xp} XP</Badge>
-          {progress.streak > 0 && <Badge tone="warning" icon="flame">{t("learn.streakDays", { n: progress.streak })}</Badge>}
+          {streak > 0 && <Badge tone="warning" icon="flame">{t("learn.streakDays", { n: streak })}</Badge>}
         </div>
       </div>
       <ContinueCard />
@@ -86,7 +87,9 @@ function WelcomeBack() {
 }
 
 export default function Landing({ children }: { children?: React.ReactNode }) {
-  const { t } = useLocale();
+  const { t, locale } = useLocale();
+  // Khmer does not put spaces between words, only between phrases.
+  const sp = locale === "km" ? "" : " ";
   const practice = usePracticeBest();
   const scores = useScores();
   const hydrated = useHydrated();
@@ -101,7 +104,7 @@ export default function Landing({ children }: { children?: React.ReactNode }) {
           <div>
             <Badge tone="brand" icon="sparkle" className="!px-3 !py-1 !text-xs">{t("ui.home.badge")}</Badge>
             <h1 className="mt-5 text-[2.6rem] font-extrabold leading-[1.05] tracking-tight text-navy sm:text-6xl">
-              {t("overview.heroPre")} <span className="text-brand">{t("category.english")}</span> {t("overview.heroAnd")} <span className="font-khmer bg-gradient-to-r from-emerald-600 to-teal-500 bg-clip-text text-transparent" lang="km">ខ្មែរ</span>{t("overview.heroPost")}
+              {t("overview.heroPre")}{sp}<span className="text-brand">{t("category.english")}</span> {t("overview.heroAnd")}{sp}<span className="hero-khmer bg-gradient-to-r from-emerald-600 to-teal-500 bg-clip-text text-transparent">{t("category.khmer")}</span>{t("overview.heroPost")}
             </h1>
             <p className="mt-5 max-w-xl text-lg leading-relaxed text-mute">{t("overview.heroText")}</p>
             <div className="mt-8 flex flex-wrap gap-3">

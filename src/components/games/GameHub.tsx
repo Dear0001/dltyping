@@ -11,6 +11,7 @@ import { useScores } from "@/hooks/use-stored-value";
 import { useTypingProgress } from "@/hooks/useTypingProgress";
 import { ARCADE_DIFFICULTIES, type ArcadeDifficulty } from "@/lib/arcade/difficulty";
 import { bestForGame } from "@/lib/local-progress";
+import { recommendGames } from "@/lib/game-recommendations";
 import { Badge, EmptyState, Icon, PageHeader, Segmented, btn, cardClass, cx } from "@/components/ui/ui";
 import type { Language } from "@/types";
 
@@ -42,6 +43,7 @@ export default function GameHub() {
     if (GAME_IDS.has(s.activity) && !recent.some((r) => r.id === s.activity)) recent.push({ id: s.activity as GameId, at: s.completedAt });
     if (recent.length === 4) break;
   }
+  const rec = hydrated ? recommendGames(store.sessions, typingGames) : null;
   const featured = typingGames.find((g) => g.id === FEATURED_ID)!;
   const featuredBest = hydrated ? bestForGame(scores, featured.id) : 0;
   const categories = GAME_CATEGORIES.filter((c) => typingGames.some((g) => g.category === c));
@@ -83,6 +85,17 @@ export default function GameHub() {
               <span className="min-w-0"><span className="block truncate text-sm font-bold">{gt.title(game)}</span><span className="mt-0.5 flex items-center gap-1 text-xs text-mute"><Icon name="trophy" size={12} className="text-amber-500" />{best > 0 ? best.toLocaleString("en-US") : "—"}</span></span>
             </Link></li>;
           })}
+        </ul>
+      </section>}
+
+      {/* Recommended: from the learner's own speed and play history */}
+      {rec && rec.games.length > 0 && <section className="mt-10" aria-labelledby="rec-heading">
+        <div className="mb-3">
+          <h2 id="rec-heading" className="flex items-center gap-2 text-lg font-extrabold tracking-tight"><Icon name="sparkle" size={18} className="text-brand" />{t("ui.games.recTitle")}</h2>
+          <p className="text-sm text-mute">{rec.reason.kind === "starter" ? t("ui.games.recStarter") : t("ui.games.recSpeed", { wpm: rec.reason.wpm, lang: t(`category.${rec.reason.language}`) })}</p>
+        </div>
+        <ul className="grid gap-5 sm:grid-cols-2 lg:grid-cols-3">
+          {rec.games.map((game) => <li key={game.id}><GameCard game={game} best={bestForGame(scores, game.id)} plays={entry(game.id)} /></li>)}
         </ul>
       </section>}
 

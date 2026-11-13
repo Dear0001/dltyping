@@ -2,26 +2,28 @@
 
 import Link from "next/link";
 import { useEffect, useMemo, useRef, useState } from "react";
-import { getTypingStats } from "@/lib/typing-engine";
-import { normalizeKhmer } from "@/lib/khmer-unicode";
+import { getCharStates, normalizeText } from "@/lib/typing-engine";
+import { codepoints } from "@/lib/khmer-unicode";
 import { lessons } from "@/data/lessons";
 import type { Language, OSPlatform } from "@/types";
 import { useLocale } from "@/components/shared/LocaleProvider";
 import { useCurriculumText } from "@/hooks/useCurriculumText";
-import { completeLesson, readUserProgress, recordPractice } from "@/lib/local-progress";
+import { completeLesson, readPracticeBest, readUserProgress, recordPractice, writeRaw } from "@/lib/local-progress";
 import { curricula, findLesson } from "@/data/curriculum";
-import { GameDialog } from "@/components/games/shared/GameDialog";
 import { pickArticle } from "@/lib/lesson-picker";
 import { DURATIONS, MAX_DURATION, articleFromIds, averageWpm, isPlainLesson, minutesToDuration, targetWords, typingWords, type Article } from "@/lib/article-length";
 import { readStore } from "@/lib/progress/progress-storage";
 import VirtualKeyboard from "@/components/keyboard/VirtualKeyboard";
 import { osFromPlatform } from "@/lib/keyboard/keyboard-detection";
-import WeakKeysReport from "@/components/typing/WeakKeysReport";
+import PracticeResults, { type PracticeResult } from "@/components/typing/PracticeResults";
 import { useKeyStatBook } from "@/hooks/useKeyStatBook";
 import { flushSession, recordKeystrokes, weakKeys, type KeyStats } from "@/lib/keyboard/key-stats";
 import { findKeyFor } from "@/lib/keyboard/keyboard-mapping";
 import { useActivityRecorder } from "@/hooks/useActivityRecorder";
-import { Icon, ProgressBar, btn } from "@/components/ui/ui";
+import { useAutoPause, useTicker } from "@/hooks/use-ticker";
+import { useStoredValue } from "@/hooks/use-stored-value";
+import { practiceHistory, practiceOutcome } from "@/lib/practice-results";
+import { Icon, ProgressBar, cx } from "@/components/ui/ui";
 
 type TypingPracticeProps = {
   language: Language;
@@ -34,6 +36,13 @@ type TypingPracticeProps = {
   initialArticle?: Pick<Article, "title" | "text" | "ids"> | null;
 };
 
+/** Whether the on-screen keyboard is shown under the text (a per-device preference). */
+const KEYBOARD_KEY = "dlt.practice.keyboard";
+const validateBool = (v: unknown) => (typeof v === "boolean" ? v : null);
+
+const countMatches = (typed: readonly string[], goal: readonly string[]) => typed.reduce((n, cp, i) => (cp === goal[i] ? n + 1 : n), 0);
+const wpmFor = (correct: number, ms: number) => Math.round(correct / 5 / (Math.max(ms, 1000) / 60000));
+
 export default function TypingPractice({ language, platform = "Unknown", initialLessonId, timeLimit: initialTimeLimit = 60, initialDrill = null, initialArticle = null }: TypingPracticeProps) {
   const { t } = useLocale();
   const ct = useCurriculumText();
@@ -42,7 +51,7 @@ export default function TypingPractice({ language, platform = "Unknown", initial
   const [timeLimit, setTimeLimit] = useState(initialTimeLimit);
   const [customMinutes, setCustomMinutes] = useState("");
   const [input, setInput] = useState("");
-  const [seconds, setSeconds] = useState(0);
+  const [elapsedMs, setElapsedMs] = useState(0);
   const [running, setRunning] = useState(false);
   const [soundEnabled, setSoundEnabled] = useState(true);
   const [paused, setPaused] = useState(false);
@@ -52,36 +61,51 @@ export default function TypingPractice({ language, platform = "Unknown", initial
   const [article, setArticle] = useState<Pick<Article, "title" | "text" | "ids"> | null>(initialArticle);
   const [needsKhmerInputSwitch, setNeedsKhmerInputSwitch] = useState(false);
   const [focusMode, setFocusMode] = useState(false);
+  const [focused, setFocused] = useState(false);
+  /** Every keystroke judged against the text, including ones later fixed with backspace. */
+  const [keys, setKeys] = useState({ total: 0, wrong: 0 });
+  const [result, setResult] = useState<PracticeResult | null>(null);
+  const showKeyboard = useStoredValue(KEYBOARD_KEY, true, validateBool);
   const tabArmedRef = useRef(false);
   const inputRef = useRef<HTMLTextAreaElement>(null);
+  const promptRef = useRef<HTMLDivElement>(null);
+  const cursorRef = useRef<HTMLSpanElement>(null);
   const audioRef = useRef<AudioContext | null>(null);
   const isComposingRef = useRef(false);
   const sessionStatsRef = useRef<KeyStats>({});
   const lastKeyAtRef = useRef<number | null>(null);
   const compositionStartRef = useRef("");
+  const elapsedRef = useRef(0);
   const lesson = list.find((item) => item.id === lessonId) ?? list[0];
   const lessonLevel = lesson.level === "Beginner" ? t("practice.beginner") : t("practice.intermediate");
   const target = drillText ?? article?.text ?? lesson.text;
   const keyBook = useKeyStatBook();
   const recorder = useActivityRecorder();
-  const [autoCompleted, setAutoCompleted] = useState<{ xp: number } | null>(null);
-  const normalizedInput = language === "khmer" ? normalizeKhmer(input) : input;
-  const normalizedTarget = language === "khmer" ? normalizeKhmer(target) : target;
-  const stats = useMemo(() => getTypingStats(normalizedTarget, normalizedInput, seconds), [normalizedTarget, normalizedInput, seconds]);
-  const typedLength = Array.from(normalizedInput).length;
-  const done = forcedDone || (!running && !paused && typedLength > 0 && (seconds >= timeLimit || typedLength >= Array.from(normalizedTarget).length));
+
+  // Text is compared as normalized code points; it is drawn per grapheme cluster, so a Khmer syllable stays one shaped unit.
+  const goal = useMemo(() => codepoints(normalizeText(target, language)), [target, language]);
+  const typed = useMemo(() => codepoints(normalizeText(input, language)), [input, language]);
+  const views = useMemo(() => getCharStates(target, typed, language), [target, typed, language]);
+  const correctNow = useMemo(() => countMatches(typed, goal), [typed, goal]);
+  const typedLength = typed.length;
+  const wpm = wpmFor(correctNow, elapsedMs);
+  const accuracy = keys.total ? Math.round(((keys.total - keys.wrong) / keys.total) * 100) : 100;
+  const progress = goal.length ? Math.min(100, Math.round((typedLength / goal.length) * 100)) : 0;
+  const timeUp = elapsedMs >= timeLimit * 1000;
+  const finishedPassage = goal.length > 0 && typedLength >= goal.length;
+  const done = forcedDone || (!paused && typedLength > 0 && (timeUp || finishedPassage));
+  const live = running && !paused;
+
   const heat: Record<string, number> = {};
   if (done) for (const k of weakKeys(keyBook[language])) {
     const code = findKeyFor(language, k.char)?.code;
     if (code) heat[code] = Math.max(heat[code] ?? 0, Math.min(1, 0.35 + k.score / 80));
   }
-  const mistakes = done ? Array.from(normalizedInput).flatMap((typed, index) => {
-    const expected = Array.from(normalizedTarget)[index];
-    return expected !== undefined && typed !== expected ? [{ index, expected, typed }] : [];
-  }) : [];
   const lessonIndex = list.findIndex((item) => item.id === lessonId);
   const nextLesson = list[lessonIndex + 1];
-  const nextCharacter = Array.from(normalizedTarget)[Array.from(normalizedInput).length] ?? "";
+  const nextCharacter = goal[typedLength] ?? "";
+  const cursorIndex = views.findIndex((v) => v.state === "current" || v.state === "partial");
+
   useEffect(() => () => {
     const context = audioRef.current;
     audioRef.current = null;
@@ -94,22 +118,26 @@ export default function TypingPractice({ language, platform = "Unknown", initial
     }
   }, []);
 
-  useEffect(() => {
-    if (!running) return;
-    const timer = window.setTimeout(() => {
-      if (seconds + 1 >= timeLimit) {
-        setSeconds(timeLimit);
-        setRunning(false);
-        return;
-      }
-      setSeconds(seconds + 1);
-    }, 1000);
-    return () => window.clearTimeout(timer);
-  }, [running, seconds, timeLimit]);
+  // The clock runs from the first keystroke and stops on pause, so WPM uses real typing time.
+  useTicker(live && !done, (delta) => {
+    elapsedRef.current = Math.min(timeLimit * 1000, elapsedRef.current + delta);
+    setElapsedMs(elapsedRef.current);
+    if (elapsedRef.current >= timeLimit * 1000) setRunning(false);
+  });
+  // Leaving the tab pauses the session instead of letting the clock run.
+  useAutoPause(live && !done, () => { setPaused(true); setRunning(false); });
 
   useEffect(() => {
     inputRef.current?.focus();
   }, []);
+
+  // Keep the current line in view: the text box scrolls as the cursor moves down.
+  useEffect(() => {
+    const box = promptRef.current, cursor = cursorRef.current;
+    if (!box || !cursor) return;
+    const top = cursor.offsetTop - box.offsetTop;
+    if (top < box.scrollTop || top > box.scrollTop + box.clientHeight - cursor.offsetHeight * 2) box.scrollTop = Math.max(0, top - cursor.offsetHeight);
+  }, [typedLength]);
 
   // Focus mode hides the site header, footer and pet so only the text is left (html[data-focus] in design-system.css).
   useEffect(() => {
@@ -119,35 +147,56 @@ export default function TypingPractice({ language, platform = "Unknown", initial
     return () => root.removeAttribute("data-focus");
   }, [focusMode]);
 
+  // Save exactly once per finished session: rewards, history and the results snapshot.
   useEffect(() => {
     if (!done) return;
     flushSession(language, sessionStatsRef.current);
     sessionStatsRef.current = {};
+    const durationMs = Math.max(elapsedRef.current, 1000);
+    const finalWpm = wpmFor(correctNow, durationMs);
+    const store = readStore();
+    const previousBest = readPracticeBest(language);
+    const history = practiceHistory(store.sessions, language, drillText ? undefined : previousBest, Date.now());
     // Drills use made-up text, so they would skew the lesson WPM records.
-    if (!drillText) recordPractice(language, stats.wpm, stats.accuracy);
-    // Dashboard record: running out the clock is a typing test, finishing the passage is a completed lesson.
-    recorder.wordsFromText(language, normalizedTarget, normalizedInput);
+    if (!drillText) recordPractice(language, finalWpm, accuracy);
+    recorder.wordsFromText(language, goal.join(""), typed.join(""));
     // A curriculum lesson completes by itself once the whole passage is typed within its limits.
-    const finishedPassage = typedLength >= Array.from(normalizedTarget).length;
-    const rule = drillText || article || !finishedPassage ? undefined : findLesson(curricula[language], lessonId)?.completionCriteria;
-    const lessonMet = !!rule && stats.accuracy >= rule.minAccuracy && stats.wpm >= (rule.minWpm ?? 0);
+    const curriculumLesson = drillText || article ? undefined : findLesson(curricula[language], lessonId);
+    const rule = curriculumLesson?.completionCriteria;
+    const lessonMet = !!rule && finishedPassage && accuracy >= rule.minAccuracy && finalWpm >= (rule.minWpm ?? 0);
+    const xpReward = curriculumLesson?.xpReward ?? 50;
+    const wasDone = !!readUserProgress().completedLessons[`${language}:${lessonId}`];
     recorder.finish({
       lessonDone: lessonMet,
-      activity: drillText ? "drill" : seconds >= timeLimit && typedLength < Array.from(normalizedTarget).length ? "typing-test" : "lesson",
+      // Dashboard record: running out the clock is a typing test, finishing the passage is a lesson.
+      activity: drillText ? "drill" : timeUp && !finishedPassage ? "typing-test" : "lesson",
       language,
-      durationSec: seconds,
-      correct: stats.correct,
-      incorrect: stats.errors,
+      durationSec: durationMs / 1000,
+      correct: correctNow,
+      incorrect: keys.wrong,
+      wpm: finalWpm,
+      accuracy,
       difficulty: lesson.level === "Beginner" ? "easy" : "medium",
       detail: drillText ? "Weak-key drill" : article?.title ?? lesson.title,
     });
-    if (lessonMet) {
-      const wasDone = !!readUserProgress().completedLessons[`${language}:${lessonId}`];
-      const xp = findLesson(curricula[language], lessonId)?.xpReward ?? 50;
-      completeLesson(language, lessonId, xp);
-      // eslint-disable-next-line react-hooks/set-state-in-effect
-      setAutoCompleted({ xp: wasDone ? 0 : xp });
-    }
+    // completeLesson never awards a lesson's XP twice.
+    if (lessonMet) completeLesson(language, lessonId, xpReward);
+    const outcome = practiceOutcome({ wpm: finalWpm, accuracy, correct: correctNow, lessonDone: lessonMet && !wasDone, comparable: !drillText }, history);
+    setResult({
+      language,
+      title: drillText ? t("practice.weakKeyDrill") : article?.title ?? ct.passageTitle(lesson),
+      wpm: finalWpm,
+      accuracy,
+      correct: correctNow,
+      wrongKeys: keys.wrong,
+      keystrokes: keys.total,
+      uncorrected: typedLength - correctNow,
+      durationSec: Math.round(durationMs / 1000),
+      xp: !rule ? { kind: "none", amount: 0 } : lessonMet ? (wasDone ? { kind: "repeat", amount: 0 } : { kind: "lesson", amount: xpReward }) : { kind: "missed", amount: xpReward, minAccuracy: rule.minAccuracy, minWpm: rule.minWpm },
+      outcome,
+      best: history.best,
+      mistakes: typed.flatMap((cp, index) => (goal[index] !== undefined && cp !== goal[index] ? [{ index, expected: goal[index], typed: cp }] : [])),
+    });
     // Save once per finished session.
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [done]);
@@ -166,12 +215,12 @@ export default function TypingPractice({ language, platform = "Unknown", initial
     let next: Pick<Article, "title" | "text" | "ids"> | null | undefined;
     let nextId = lessonId;
     if (!drillText) {
-      const goal = targetWords(averageWpm(readStore(), language), nextSeconds);
-      const sameLesson = typingWords(lesson.text) >= goal * 0.8 ? articleFromIds(language, lessonId, goal) : null;
+      const goalWords = targetWords(averageWpm(readStore(), language), nextSeconds);
+      const sameLesson = typingWords(lesson.text) >= goalWords * 0.8 ? articleFromIds(language, lessonId, goalWords) : null;
       const built = sameLesson ?? pickArticle(language, nextSeconds).article;
       next = isPlainLesson(built) ? null : built;
       nextId = built.ids[0];
-      try { window.history.replaceState(null, "", `/learn/${language}?lesson=${encodeURIComponent(built.ids.join(","))}&goal=${goal}&time=${nextSeconds}`); } catch {}
+      try { window.history.replaceState(null, "", `/learn/${language}?lesson=${encodeURIComponent(built.ids.join(","))}&goal=${goalWords}&time=${nextSeconds}`); } catch {}
     }
     reset(nextId, drillText, next);
   }
@@ -188,15 +237,17 @@ export default function TypingPractice({ language, platform = "Unknown", initial
     flushSession(language, sessionStatsRef.current);
     sessionStatsRef.current = {};
     lastKeyAtRef.current = null;
+    elapsedRef.current = 0;
     setDrillText(drill !== undefined ? drill : nextId === lessonId ? drillText : null);
     setArticle(nextArticle !== undefined ? nextArticle : nextId === lessonId ? article : null);
     setLessonId(nextId);
     setPaused(false);
     setForcedDone(false);
-    setAutoCompleted(null);
+    setResult(null);
     setResultClosed(false);
     setInput("");
-    setSeconds(0);
+    setElapsedMs(0);
+    setKeys({ total: 0, wrong: 0 });
     setRunning(false);
     setNeedsKhmerInputSwitch(false);
     inputRef.current?.focus();
@@ -210,35 +261,34 @@ export default function TypingPractice({ language, platform = "Unknown", initial
       return;
     }
 
-    const maxCharacters = Array.from(normalizedTarget).length;
-    const nextInput = Array.from(value).slice(0, maxCharacters).join("");
-    if (!running && nextInput.length) setRunning(true);
-    const cleanNext = language === "khmer" ? normalizeKhmer(nextInput) : nextInput;
-    const cleanPrevious = language === "khmer" ? normalizeKhmer(previousValue) : previousValue;
-    const nextChars = Array.from(cleanNext);
-    const previousLength = Array.from(cleanPrevious).length;
+    const nextInput = Array.from(value).slice(0, goal.length).join("");
+    const nextChars = codepoints(normalizeText(nextInput, language));
+    const previousLength = codepoints(normalizeText(previousValue, language)).length;
+    if (!running && nextChars.length) setRunning(true);
 
     if (nextChars.length > previousLength) {
-      const additions = nextChars.slice(previousLength);
-      recordKeystrokes(sessionStatsRef.current, lastKeyAtRef, additions.flatMap((typed, offset): [string, boolean][] => {
-        const expectedChar = Array.from(normalizedTarget)[previousLength + offset];
-        return expectedChar ? [[expectedChar, typed === expectedChar]] : [];
-      }));
-      additions.forEach((typed, offset) => {
-        const expectedChar = Array.from(normalizedTarget)[previousLength + offset];
-        if (expectedChar) recorder.keystroke(language, expectedChar, typed === expectedChar);
+      const judged: [string, boolean][] = [];
+      nextChars.slice(previousLength).forEach((cp, offset) => {
+        const expected = goal[previousLength + offset];
+        if (!expected) return;
+        const ok = cp === expected;
+        judged.push([expected, ok]);
+        recorder.keystroke(language, expected, ok);
       });
-      playKeySound(!additions.some((typed, offset) => typed !== Array.from(normalizedTarget)[previousLength + offset]));
+      recordKeystrokes(sessionStatsRef.current, lastKeyAtRef, judged);
+      const wrong = judged.filter(([, ok]) => !ok).length;
+      if (judged.length) setKeys((k) => ({ total: k.total + judged.length, wrong: k.wrong + wrong }));
+      playKeySound(wrong === 0);
 
       if (language === "khmer") {
-        const latestCharacter = additions.at(-1) ?? "";
+        const latestCharacter = nextChars.at(-1) ?? "";
         if (/[a-z]/i.test(latestCharacter)) setNeedsKhmerInputSwitch(true);
-        else if (/[\u1780-\u17ff]/u.test(latestCharacter)) setNeedsKhmerInputSwitch(false);
+        else if (/[ក-៿]/u.test(latestCharacter)) setNeedsKhmerInputSwitch(false);
       }
     }
 
     setInput(nextInput);
-    if (nextChars.length >= maxCharacters) setRunning(false);
+    if (nextChars.length >= goal.length) setRunning(false);
   }
 
   function handleCompositionStart() {
@@ -288,20 +338,25 @@ export default function TypingPractice({ language, platform = "Unknown", initial
   }
 
   const nextInList = list[(lessonIndex + 1) % list.length];
-  const remaining = Math.max(0, timeLimit - seconds);
+  const remaining = Math.max(0, Math.ceil(timeLimit - elapsedMs / 1000));
   const clock = (n: number) => `${Math.floor(n / 60)}:${(n % 60).toString().padStart(2, "0")}`;
   const togglePause = () => {
     if (paused) { setPaused(false); if (typedLength > 0) setRunning(true); inputRef.current?.focus(); }
     else { setPaused(true); setRunning(false); }
   };
+  const toggleKeyboard = () => writeRaw(KEYBOARD_KEY, JSON.stringify(!showKeyboard));
+  const durationLabel = customMinutes ? `${customMinutes}${t("ui.practice.minShort")}` : `${timeLimit / 60}${t("ui.practice.minShort")}`;
 
   return (
     <main className="practice-page tp" data-focus={focusMode || undefined}>
       <section className="tp-shell" id="practice">
-        {/* Session settings: lesson, length and actions in one compact bar */}
-        <div className="tp-toolbar">
+        {/* Session settings: lesson, length and actions in one compact bar. While typing it shrinks to a summary. */}
+        <div className={cx("tp-toolbar", live && "is-live")}>
+          <nav className="tp-lang" aria-label={t("results.language")}>
+            <Link href="/learn/english" aria-current={language === "english" ? "page" : undefined}>EN</Link>
+            <Link href="/learn/khmer" aria-current={language === "khmer" ? "page" : undefined} className="font-khmer">ខ្មែរ</Link>
+          </nav>
           <label className="tp-lesson">
-            <span className="tp-lesson-icon" aria-hidden="true">{language === "khmer" ? "ក" : "Aa"}</span>
             <span className="tp-lesson-text">
               <small>{drillText ? t("practice.weakKeyDrill") : t("practice.currentLesson")} · {lessonLevel}</small>
               <select value={lessonId} onChange={(event) => reset(event.target.value)} aria-label={t("practice.chooseLesson")}>
@@ -318,9 +373,12 @@ export default function TypingPractice({ language, platform = "Unknown", initial
               onChange={(event) => setCustomMinutes(event.target.value)}
               onKeyDown={(event) => { if (event.key === "Enter") event.currentTarget.blur(); }}
               onBlur={() => { const secs = minutesToDuration(Number(customMinutes)); if (secs) { setCustomMinutes(String(secs / 60)); changeTime(secs); } else setCustomMinutes(""); }} />
+            <button type="button" className="tp-shuffle" disabled={running} onClick={newArticle} title={t("practice.randomArticle")} aria-label={t("practice.randomArticle")}><Icon name="sparkle" size={15} /><span>{t("results.newText")}</span></button>
           </div>
+          <span className="tp-live-chip" aria-hidden={!live}><Icon name="clock" size={14} />{durationLabel}</span>
           <div className="tp-actions">
             <button type="button" className="tp-icon-btn" onClick={() => setSoundEnabled((enabled) => !enabled)} aria-pressed={soundEnabled} title={soundEnabled ? t("practice.mute") : t("practice.enableSound")} aria-label={t(soundEnabled ? "practice.soundOn" : "practice.soundOff")}><Icon name={soundEnabled ? "sound" : "mute"} /></button>
+            <button type="button" className="tp-icon-btn" onClick={() => { toggleKeyboard(); inputRef.current?.focus(); }} aria-pressed={showKeyboard} title={t(showKeyboard ? "results.hideKeyboard" : "results.showKeyboard")} aria-label={t("results.keyboardToggle")}><Icon name="keyboard" /></button>
             <button type="button" className="tp-icon-btn" onClick={() => { setFocusMode((v) => !v); inputRef.current?.focus(); }} aria-pressed={focusMode} title={t("ui.practice.focusHint")} aria-label={t("ui.practice.focus")}><Icon name="focus" /></button>
             <button type="button" className="tp-icon-btn" onClick={() => reset()} title={t("practice.restart")} aria-label={t("practice.restart")}><Icon name="restart" /></button>
           </div>
@@ -328,64 +386,65 @@ export default function TypingPractice({ language, platform = "Unknown", initial
 
         {/* Live stats */}
         <div className="tp-stats" aria-label={t("practice.sessionStats")}>
-          <div className="tp-stat tp-stat-main"><span>{t("practice.wpm")}</span><strong>{stats.wpm}</strong></div>
-          <div className="tp-stat"><span>{t("practice.accuracy")}</span><strong className={stats.accuracy < 90 && typedLength > 5 ? "is-low" : undefined}>{stats.accuracy}<small>%</small></strong></div>
-          <div className="tp-stat"><span>{t("practice.errors")}</span><strong className={stats.errors ? "is-bad" : undefined}>{stats.errors}</strong></div>
+          <div className="tp-stat tp-stat-main"><span>{t("practice.wpm")}</span><strong>{wpm}</strong></div>
+          <div className="tp-stat"><span>{t("practice.accuracy")}</span><strong className={accuracy < 90 && keys.total > 5 ? "is-low" : undefined}>{accuracy}<small>%</small></strong></div>
+          <div className="tp-stat"><span>{t("practice.errors")}</span><strong className={keys.wrong ? "is-bad" : undefined}>{keys.wrong}</strong></div>
           <div className="tp-stat"><span>{t("ui.practice.timeLeft")}</span><strong className={running && remaining <= 10 ? "is-bad" : undefined}>{clock(remaining)}</strong></div>
-          <div className="tp-progress"><div className="tp-progress-label"><span>{drillText ? t("practice.weakKeyDrill") : article?.title ?? ct.passageTitle(lesson)}</span><b>{stats.progress}%</b></div><ProgressBar value={stats.progress} size="sm" label={t("practice.lessonProgress")} /></div>
+          <div className="tp-progress"><div className="tp-progress-label"><span>{drillText ? t("practice.weakKeyDrill") : article?.title ?? ct.passageTitle(lesson)}</span><b>{progress}%</b></div><ProgressBar value={progress} size="sm" label={t("practice.lessonProgress")} /></div>
         </div>
 
         {/* The text */}
-        <div className={`tp-card${paused ? " is-paused" : ""}`}>
+        <div className={cx("tp-card", paused && "is-paused")}>
           <div className="tp-text-wrap">
-            <div className={`tp-prompt ${language === "khmer" ? "khmer-prompt font-khmer" : ""}`} onClick={() => inputRef.current?.focus()} lang={language === "khmer" ? "km" : "en"}>
-              {Array.from(target).map((char, index) => {
-                const typed = Array.from(normalizedInput)[index];
-                const state = typed === undefined ? "pending" : typed === char ? "correct" : "wrong";
-                return <span key={`${index}-${char}`} className={`char ${state} ${index === normalizedInput.length ? "cursor" : ""}${char === " " && state === "wrong" ? " space" : ""}`}>{char}</span>;
+            <div ref={promptRef} className={cx("tp-prompt", language === "khmer" && "khmer-prompt font-khmer")} onClick={() => inputRef.current?.focus()} lang={language === "khmer" ? "km" : "en"}>
+              {views.map((v, index) => {
+                const isCursor = index === cursorIndex;
+                return <span key={index} ref={isCursor ? cursorRef : undefined} className={cx("char", v.state === "current" ? "pending" : v.state, isCursor && "cursor", v.text === " " && v.state === "wrong" && "space")}>{v.text}</span>;
               })}
             </div>
-            <textarea ref={inputRef} value={input} onChange={(event) => handleInput(event.target.value)} onCompositionStart={handleCompositionStart} onCompositionEnd={(event) => handleCompositionEnd(event.currentTarget.value)} onPaste={(event) => event.preventDefault()}
+            <textarea ref={inputRef} value={input} onChange={(event) => handleInput(event.target.value)} onCompositionStart={handleCompositionStart} onCompositionEnd={(event) => handleCompositionEnd(event.currentTarget.value)} onPaste={(event) => event.preventDefault()} onDrop={(event) => event.preventDefault()}
+              onFocus={() => setFocused(true)} onBlur={() => setFocused(false)}
               onKeyDown={(event) => {
                 // Tab then Enter restarts, like the hint says. Tab never leaves the text box while it is armed.
                 if (event.key === "Tab") { event.preventDefault(); tabArmedRef.current = true; return; }
                 if (event.key === "Enter" && tabArmedRef.current) { event.preventDefault(); tabArmedRef.current = false; reset(); return; }
+                if (event.key === "Escape" && !done && (typedLength > 0 || paused)) { event.preventDefault(); togglePause(); return; }
                 tabArmedRef.current = false;
               }}
-              className="tp-input" aria-label={t("practice.typeTheLessonText")} lang={language === "khmer" ? "km" : "en"} autoCapitalize="off" autoCorrect="off" spellCheck={false} />
+              className="tp-input" aria-label={t("practice.typeTheLessonText")} lang={language === "khmer" ? "km" : "en"} autoCapitalize="off" autoCorrect="off" autoComplete="off" spellCheck={false} />
             {paused && <button type="button" className="tp-paused" onClick={togglePause}><Icon name="play" size={18} />{t("practice.paused")}</button>}
+            {!paused && !focused && !done && <button type="button" className="tp-unfocused" onClick={() => inputRef.current?.focus()}><Icon name="keyboard" size={18} />{t(typedLength ? "results.clickToContinue" : "results.clickToStart")}</button>}
           </div>
           <div className="tp-card-foot">
-            <span className="tp-hint"><kbd>tab</kbd> + <kbd>enter</kbd> {t("practice.restartHint")}</span>
+            <span className="tp-hint"><kbd>tab</kbd> + <kbd>enter</kbd> {t("practice.restartHint")} · <kbd>esc</kbd> {t("practice.pause")}</span>
             <div className="tp-foot-actions">
               {!done && <button type="button" onClick={togglePause} disabled={typedLength === 0 && !paused}><Icon name={paused ? "play" : "pause"} size={15} />{t(paused ? "practice.resume" : "practice.pause")}</button>}
               {!done && typedLength > 0 && <button type="button" onClick={() => { setRunning(false); setPaused(false); setForcedDone(true); }}><Icon name="check" size={15} />{t("practice.finish")}</button>}
+              {done && resultClosed && <button type="button" onClick={() => setResultClosed(false)}><Icon name="trophy" size={15} />{t("results.showResults")}</button>}
               <button type="button" onClick={() => reset(nextInList.id)} title={t("practice.upNext")}>{t("ui.practice.next")}: <b>{ct.passageTitle(nextInList)}</b><Icon name="arrow" size={15} /></button>
             </div>
           </div>
-          {done && !resultClosed && <GameDialog title={t("practice.lessonCompleteTitle")} icon="🎉" onEscape={() => setResultClosed(true)}>
-            <div className="text-center">
-            {autoCompleted && <p className="mt-2 rounded-xl bg-emerald-50 px-3 py-2 text-sm font-extrabold text-emerald-800" role="status">{t("practice.lessonCompleteBadge")}{autoCompleted.xp > 0 ? ` +${autoCompleted.xp} XP` : ""}</p>}
-            <dl className="my-4 grid grid-cols-2 gap-2 text-center sm:grid-cols-4">{[["WPM", stats.wpm], [t("practice.accuracy"), `${stats.accuracy}%`], [t("practice.errorsLabel"), stats.errors], [t("practice.timeStat"), t("practice.secondsShort", { n: seconds })]].map(([label, value]) => <div key={String(label)} className="rounded-xl bg-slate-50 p-2.5 ring-1 ring-inset ring-line"><dt className="text-[11px] font-bold text-mute">{label}</dt><dd className="text-2xl font-extrabold tabular-nums text-navy">{value}</dd></div>)}</dl>
-            {mistakes.length > 0 && <div className="mb-4 text-left"><p className="mb-2 text-[11px] font-bold uppercase text-mute">{t("practice.mistakes", { n: mistakes.length })}</p><ul className="flex max-h-28 flex-wrap gap-1.5 overflow-y-auto">{mistakes.map((m) => <li key={m.index} className="rounded-lg bg-red-50 px-2 py-1 text-xs text-red-700">{t("practice.expected")} <b>{m.expected === " " ? t("practice.space") : m.expected}</b>, {t("practice.typed")} <b>{m.typed === " " ? t("practice.space") : m.typed}</b></li>)}</ul></div>}
-            <div className="flex flex-wrap justify-center gap-2">
-              <button data-autofocus type="button" className={btn("secondary", "sm")} onClick={() => reset()}>{t("practice.retry")}</button>
-              <button type="button" className={btn("primary", "sm")} onClick={newArticle}>{t("practice.randomArticle")}</button>
-              {nextLesson && <button type="button" className={btn("secondary", "sm")} onClick={() => reset(nextLesson.id)}>{t("practice.nextLesson")}</button>}
-              <Link href="/games" className={btn("secondary", "sm")}>{t("practice.playGame")}</Link>
-              <button type="button" className={btn("ghost", "sm")} onClick={() => setResultClosed(true)}>{t("practice.close")}</button>
-            </div>
-            <WeakKeysReport language={language} onDrill={(text) => reset(lessonId, text)} />
-            </div>
-          </GameDialog>}
+          {done && result && !resultClosed && (
+            <PracticeResults
+              result={result}
+              hasNextLesson={!!nextLesson}
+              onRetry={() => reset()}
+              onNextLesson={() => reset(nextLesson.id)}
+              onNewText={newArticle}
+              onDrill={(text) => reset(lessonId, text)}
+              onClose={() => { setResultClosed(true); }}
+            />
+          )}
         </div>
         {needsKhmerInputSwitch && language === "khmer" && <div className="input-switch-hint" role="alert"><span className="feedback-icon">!</span><span><strong>{t("practice.switchTitle")}</strong><br />{t(platform === "Windows" ? "practice.switchWindows" : platform === "macOS" ? "practice.switchMac" : "practice.switchUnknown")}</span></div>}
         {focusMode
           ? <p className="tp-focus-note"><Icon name="focus" size={15} />{t("ui.practice.focusOn")} <button type="button" onClick={() => setFocusMode(false)}>{t("ui.practice.focusExit")}</button></p>
-          : <>
-            <VirtualKeyboard language={language} heat={done ? heat : undefined} expected={done || paused ? null : nextCharacter || null} disabled={paused || done} osHint={osFromPlatform(platform)} onChar={handleVirtualChar} onBackspace={handleVirtualBackspace} />
-            <p className="tp-tip"><Icon name="sparkle" size={15} /><b>{t("practice.tipTitle")}:</b> {t("practice.tipText")}</p>
-          </>}
+          : showKeyboard
+            ? <>
+              <VirtualKeyboard language={language} heat={done ? heat : undefined} expected={done || paused ? null : nextCharacter || null} disabled={paused || done} osHint={osFromPlatform(platform)} onChar={handleVirtualChar} onBackspace={handleVirtualBackspace} />
+              <p className="tp-tip"><Icon name="sparkle" size={15} /><b>{t("practice.tipTitle")}:</b> {t("practice.tipText")}</p>
+            </>
+            : <p className="tp-focus-note"><Icon name="keyboard" size={15} />{t("results.keyboardHidden")} <button type="button" onClick={toggleKeyboard}>{t("results.showKeyboard")}</button></p>}
       </section>
     </main>
   );

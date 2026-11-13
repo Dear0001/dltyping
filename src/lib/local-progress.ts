@@ -146,6 +146,10 @@ export function validatePractice(value: unknown): Record<string, PracticeBest> |
   return out;
 }
 
+export function readPracticeBest(language: Language): PracticeBest | undefined {
+  return parseStored(readRaw(PRACTICE_KEY), {} as Record<string, PracticeBest>, validatePractice)[language];
+}
+
 export function recordPractice(language: Language, wpm: number, accuracy: number) {
   const book = parseStored(readRaw(PRACTICE_KEY), {} as Record<string, PracticeBest>, validatePractice);
   const previous = book[language] ?? { bestWpm: 0, bestAccuracy: 0 };

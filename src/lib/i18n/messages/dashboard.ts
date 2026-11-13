@@ -134,5 +134,15 @@ const messages = {
   "rec.medium": { en: "Recommended", km: "ណែនាំ" },
   "rec.low": { en: "Nice to have", km: "ល្អបើមាន" },
   "rec.why": { en: "Why: ", km: "ហេតុផល៖ " },
+  "dash.chars": { en: "Characters typed", km: "តួអក្សរដែលបានវាយ" },
+  "dash.charsHint": { en: "{correct} correct · {range}", km: "ត្រឹមត្រូវ {correct} · {range}" },
+  "dash.calTitle": { en: "Practice calendar", km: "ប្រតិទិនហាត់វាយ" },
+  "dash.calSub": { en: "Days with a finished session (10+ correct characters) over the last 12 weeks", km: "ថ្ងៃដែលមានការហាត់ចប់ (វាយត្រូវ 10 តួអក្សរឡើងទៅ) ក្នុងរយៈពេល 12 សប្តាហ៍ចុងក្រោយ" },
+  "dash.calDays": { en: "{n} practice days", km: "ហាត់ {n} ថ្ងៃ" },
+  "dash.calBest": { en: "Longest run: {n} days in a row", km: "ជាប់គ្នាយូរបំផុត៖ {n} ថ្ងៃ" },
+  "dash.calCell": { en: "{date}: {n} min, {s} sessions", km: "{date}៖ {n} នាទី ហាត់ {s} ដង" },
+  "dash.calEmpty": { en: "{date}: no practice", km: "{date}៖ មិនបានហាត់" },
+  "dash.calLess": { en: "Less", km: "តិច" },
+  "dash.calMore": { en: "More", km: "ច្រើន" },
 } satisfies Dict;
 export default messages;

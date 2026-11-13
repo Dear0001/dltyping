@@ -5,7 +5,7 @@ import type { Language } from "@/types";
 import type { ProgressStore, SessionRecord } from "@/types/progress";
 
 export type RecommendationAction = { label: string; href: string; kind: "practice" | "game" };
-export type RecommendationCategory = "weak-keys" | "home-row" | "combinations" | "words" | "speed" | "accuracy" | "consistency";
+export type RecommendationCategory = "weak-keys" | "home-row" | "combinations" | "words" | "speed" | "accuracy" | "consistency" | "advance";
 
 export type Recommendation = {
   id: string;
@@ -35,6 +35,9 @@ export const THRESHOLDS = {
   accuracyBelow: 90,
   /** average WPM under which we suggest speed work (only when accuracy is fine) */
   slowWpm: { english: 25, khmer: 15 } as Record<Language, number>,
+  /** accuracy and average WPM at which harder challenges are suggested */
+  advanceAccuracy: 95,
+  fastWpm: { english: 40, khmer: 25 } as Record<Language, number>,
   /** coefficient of variation of WPM, or std-dev of accuracy in points */
   wpmVariation: 0.35,
   accuracySpread: 10,
@@ -176,6 +179,20 @@ function languageRecommendations(store: ProgressStore, language: Language, t: Tr
         actions: [
           { label: t("rec.actWordSprintBeg"), href: "/games/word-sprint", kind: "game" },
           { label: start, href: practiceHref({ time: "300" }), kind: "practice" },
+        ],
+      });
+    } else if (avgAcc >= THRESHOLDS.advanceAccuracy && avgWpm >= THRESHOLDS.fastWpm[language]) {
+      out.push({
+        id: `advance:${language}`,
+        priority: "low",
+        category: "advance",
+        language,
+        title: t("rec.advTitle", { lang: name }),
+        reason: t("rec.advReason", { wpm: avgWpm, acc: avgAcc, n: recent.length }),
+        minutes: 5,
+        actions: [
+          { label: t("rec.actTest"), href: "/test", kind: "practice" },
+          { label: t("rec.actHardGame"), href: "/games/space-shooter", kind: "game" },
         ],
       });
     }

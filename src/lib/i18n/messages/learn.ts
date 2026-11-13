@@ -15,7 +15,7 @@ const messages = {
   "typist.6": { en: "Master Typist", km: "អ្នកវាយអក្សរកំពូល" },
   "typist.default": { en: "Typist", km: "អ្នកវាយអក្សរ" },
   "learn.langEnMeta": { en: "English · QWERTY", km: "អង់គ្លេស · QWERTY" },
-  "learn.langKhMeta": { en: "ភាសាខ្មែរ · NiDA", km: "ភាសាខ្មែរ · NiDA" },
+  "learn.langKhMeta": { en: "Khmer · NiDA layout", km: "ភាសាខ្មែរ · NiDA" },
   "learn.toNext": { en: " · {n} to next level", km: " · នៅសល់ {n} ដល់កម្រិតបន្ទាប់" },
   "learn.maxLevel": { en: " · Max level", km: " · កម្រិតខ្ពស់បំផុត" },
   "learn.signInStreak": { en: "🔒 Sign in to unlock streaks", km: "🔒 ចូលគណនីដើម្បីដោះសោថ្ងៃជាប់ៗគ្នា" },

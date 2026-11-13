@@ -163,6 +163,75 @@ html[data-focus] .tp-toolbar:hover,html[data-focus] .tp-toolbar:focus-within{opa
 }
 @media(prefers-reduced-motion:reduce){.tp-prompt .char.cursor::before{animation:none}}
 
+/* Practice v2 (2026-11-13): language switch, compact live toolbar, syllable-in-progress, focus prompt. */
+.tp-lang{display:flex;gap:2px;padding:4px;border-radius:12px;background:color-mix(in srgb,var(--ink) 4.5%,transparent)}
+.tp-lang a{display:grid;place-items:center;min-width:44px;height:32px;padding:0 10px;border-radius:9px;font-size:13px;font-weight:700;color:var(--muted);transition:background-color .15s,color .15s}
+.tp-lang a:hover{color:var(--ink)}
+.tp-lang a[aria-current="page"]{background:var(--surface);color:var(--green);box-shadow:var(--shadow-sm)}
+.tp-lang a:focus-visible,.tp-shuffle:focus-visible,.tp-icon-btn:focus-visible,.tp-durations button:focus-visible{outline:2px solid var(--green);outline-offset:1px}
+.tp-lesson{padding-left:10px}
+.tp-durations .tp-shuffle{display:inline-flex;align-items:center;gap:5px;margin-left:4px;padding:0 10px;color:var(--ink)}
+.tp-live-chip{display:none;align-items:center;gap:6px;height:32px;padding:0 12px;border-radius:999px;background:color-mix(in srgb,var(--green) 10%,transparent);color:var(--green);font-size:13px;font-weight:700}
+.tp-toolbar{transition:padding .2s}
+.tp-toolbar.is-live .tp-durations{display:none}
+.tp-toolbar.is-live .tp-live-chip{display:inline-flex}
+.tp-toolbar.is-live .tp-lang{opacity:.55}
+.tp-prompt .char.partial{color:var(--green);text-decoration:underline 2px color-mix(in srgb,var(--green) 55%,transparent);text-underline-offset:7px}
+.tp-prompt{scroll-behavior:smooth}
+.tp-unfocused{position:absolute;inset:0;z-index:2;display:flex;align-items:center;justify-content:center;gap:8px;width:100%;border:0;border-radius:20px 20px 0 0;background:color-mix(in srgb,var(--surface) 72%,transparent);backdrop-filter:blur(2px);color:var(--ink);font-size:15px;font-weight:700;cursor:text;opacity:0;animation:tp-fade-in .2s .35s forwards}
+@keyframes tp-fade-in{to{opacity:1}}
+@media(max-width:760px){
+  .tp-lang{order:0}
+  .tp-lesson{flex:1 1 0}
+  .tp-shuffle span{display:none}
+  .tp-toolbar.is-live .tp-lesson{display:none}
+}
+
+/* ---------- Practice results ---------- */
+.pr{display:flex;flex-direction:column;gap:16px;text-align:left}
+.pr-highlights{display:flex;flex-wrap:wrap;justify-content:center;gap:6px;margin:-6px 0 0;padding:0;list-style:none}
+.pr-badge{font-size:12px;padding:4px 10px;animation:pr-pop .45s cubic-bezier(.2,.9,.3,1.3) both}
+.pr-highlights li:nth-child(2) .pr-badge{animation-delay:.08s}.pr-highlights li:nth-child(3) .pr-badge{animation-delay:.16s}.pr-highlights li:nth-child(4) .pr-badge{animation-delay:.24s}
+@keyframes pr-pop{from{opacity:0;transform:scale(.7) translateY(4px)}to{opacity:1;transform:none}}
+.pr-hero{display:flex;align-items:center;justify-content:space-between;gap:16px;padding:18px 22px;border-radius:16px;background:color-mix(in srgb,var(--green) 6%,var(--surface));border:1px solid color-mix(in srgb,var(--green) 16%,var(--line))}
+.pr-speed{display:flex;flex-direction:column;gap:2px;min-width:0}
+.pr-label{font-size:12px;font-weight:700;color:var(--muted)}
+.pr-speed strong{font-size:56px;line-height:1;font-weight:800;letter-spacing:-.03em;color:var(--green);font-variant-numeric:tabular-nums}
+.pr-speed strong small{margin-left:6px;font-size:16px;font-weight:700;color:var(--muted);letter-spacing:0}
+.pr-compare{font-size:13px;font-weight:600;color:var(--muted)}
+.pr-compare.is-up{color:#16a34a}.pr-compare.is-down{color:#b45309}
+.pr-accuracy{display:flex;flex-direction:column;align-items:center;gap:4px}
+.pr-ring-value{font-size:24px;font-weight:800;color:var(--ink);font-variant-numeric:tabular-nums}
+.pr-ring-value small{font-size:13px;color:var(--muted)}
+.pr-grid{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:8px;margin:0}
+.pr-stat{padding:10px 12px;border-radius:12px;background:color-mix(in srgb,var(--ink) 3%,var(--surface));border:1px solid var(--line)}
+.pr-stat dt{font-size:11.5px;font-weight:700;color:var(--muted)}
+.pr-stat dd{margin:2px 0 0;font-size:20px;font-weight:800;color:var(--ink);font-variant-numeric:tabular-nums}
+.pr-stat small{display:block;font-size:11px;color:var(--muted)}
+.pr-stat.is-good dd{color:#16a34a}.pr-stat.is-bad dd{color:#dc2626}
+.pr-feedback{display:flex;align-items:flex-start;gap:8px;margin:0;padding:12px 14px;border-radius:12px;background:color-mix(in srgb,var(--accent) 10%,var(--surface));font-size:14px;font-weight:600;color:var(--ink);line-height:1.5}
+.pr-feedback svg{flex:none;margin-top:2px;color:var(--accent)}
+.pr-feedback.is-slow-down,.pr-feedback.is-too-short{background:#fffbeb}.pr-feedback.is-slow-down svg,.pr-feedback.is-too-short svg{color:#d97706}
+.pr-feedback.is-excellent{background:#f0fdf4}.pr-feedback.is-excellent svg{color:#16a34a}
+.pr-xp{margin:-6px 0 0;font-size:12.5px;color:var(--muted);line-height:1.55}
+.pr-mistakes summary{cursor:pointer;font-size:13px;font-weight:700;color:var(--ink)}
+.pr-mistakes ul{display:flex;flex-wrap:wrap;gap:6px;max-height:112px;overflow-y:auto;margin:8px 0 0;padding:0;list-style:none}
+.pr-mistakes li{padding:3px 8px;border-radius:8px;background:#fef2f2;color:#b91c1c;font-size:12px}
+.pr-actions{display:flex;flex-wrap:wrap;justify-content:center;gap:8px}
+.pr-keys{margin:-6px 0 0;text-align:center;font-size:11.5px;color:var(--muted)}
+.pr-keys kbd{padding:1px 6px;border:1px solid var(--line);border-bottom-width:2px;border-radius:6px;font:600 11px var(--font-body);color:var(--ink)}
+.pr .mx-auto.mt-4{margin-top:0}
+html[lang="km"] .pr :is(.pr-label,.pr-stat dt,.pr-compare,.pr-xp){line-height:1.7}
+/* Khmer is never letter-spaced: tracking splits stacked consonants and vowels apart. */
+html[lang="km"] .streak-burst-label{letter-spacing:0;font-size:1rem;text-transform:none}
+@media(max-width:560px){
+  .pr-hero{padding:14px 16px}
+  .pr-speed strong{font-size:44px}
+  .pr-grid{grid-template-columns:repeat(2,minmax(0,1fr))}
+  .pr-actions>*{flex:1 1 calc(50% - 8px)}
+}
+@media(prefers-reduced-motion:reduce){.pr-badge,.tp-unfocused{animation:none;opacity:1}}
+
 /* ---------- Khmer typography in redesigned components ---------- */
 html[lang="km"] :is(.leading-relaxed,.leading-snug){line-height:1.85}
 html[lang="km"] .tracking-tight{letter-spacing:0}
