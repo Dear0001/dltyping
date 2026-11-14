@@ -187,7 +187,7 @@ export default function SentenceRushGame() {
         <DifficultySelector value={difficulty} onChange={(v) => updateSettings({ difficulty: v })} />
       </div>
       <Segmented label={t("gm.duration")} value={duration} onChange={setDuration} options={[60, 120, 180].map((v) => ({ value: v as Duration, label: t("gm.nSec", { n: v }) }))} />
-      <p className="text-xs text-mute">{t("gm.bestOnSetup")}<strong className="text-navy">{(scores[`sentence-rush:${language}:${difficulty}:${duration}`]?.best ?? 0).toLocaleString("en-US")}</strong></p>
+      <p className="text-xs text-mute">{((scores[`sentence-rush:${language}:${difficulty}:${duration}`]?.best ?? 0) > 0) ? <>{t("gm.bestOnSetup")}<strong className="text-navy">{(scores[`sentence-rush:${language}:${difficulty}:${duration}`]?.best ?? 0).toLocaleString("en-US")}</strong></> : t("arc.setupBestNone")}</p>
       <GameInstructions steps={steps} firstTime={!seen["sentence-rush"]} />
     </GameStartDialog>}
     {state.status === "paused" && <GamePauseDialog onResume={() => dispatch({ type: "resume" })} onRestart={start} />}

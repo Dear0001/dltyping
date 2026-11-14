@@ -182,7 +182,7 @@ export default function LetterJumpGame({ focusKeys = [], focusLanguage }: { focu
         <DifficultySelector value={difficulty} onChange={(v) => updateSettings({ difficulty: v })} />
       </div>
       <Segmented label={t("gm.mode")} value={mode} onChange={setMode} options={[{ value: "timed", label: t("lj.timed") }, { value: "endless", label: t("lj.endless") }]} />
-      <p className="text-xs text-mute">{t("gm.bestOnSetup")}<strong className="text-navy">{(scores[`letter-jump:${language}:${difficulty}:${mode}${focus ? ":focus" : ""}`]?.best ?? 0).toLocaleString("en-US")}</strong></p>
+      <p className="text-xs text-mute">{((scores[`letter-jump:${language}:${difficulty}:${mode}${focus ? ":focus" : ""}`]?.best ?? 0) > 0) ? <>{t("gm.bestOnSetup")}<strong className="text-navy">{(scores[`letter-jump:${language}:${difficulty}:${mode}${focus ? ":focus" : ""}`]?.best ?? 0).toLocaleString("en-US")}</strong></> : t("arc.setupBestNone")}</p>
       <GameInstructions steps={steps} firstTime={!seen["letter-jump"]} />
     </GameStartDialog>}
     {state.status === "paused" && <GamePauseDialog onResume={() => dispatch({ type: "resume" })} onRestart={start} />}

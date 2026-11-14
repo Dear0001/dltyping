@@ -61,7 +61,8 @@ export default function TypingGuidance({ language, locale, labels, state, expect
             target={shown?.finger ?? null}
             targetBadge={shown ? (khmer ? legendGlyph(shown.expected) : shown.keyName) : null}
             khmer={khmer}
-            shift={shown?.shift?.finger ?? null}
+            shift={shown?.shift?.finger ?? shown?.altGr?.finger ?? null}
+            shiftBadge={shown?.altGr ? "Alt" : undefined}
             wrong={feedback?.kind === "wrong" ? feedback.wrongFinger : null}
             names={names}
             ariaLabel={labels.handsAria}

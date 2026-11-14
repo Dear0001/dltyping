@@ -12,6 +12,8 @@ type Props = {
   khmer: boolean;
   /** Finger holding Shift, when the character needs it. */
   shift: FingerId | null;
+  /** Badge on the finger holding the modifier: ⇧ for Shift, "Alt" for AltGr. */
+  shiftBadge?: string;
   /** Finger that just pressed a wrong key. */
   wrong: FingerId | null;
   names: { hand: Record<Hand, string>; finger: Record<FingerName, string> };
@@ -41,7 +43,7 @@ function place(hand: Hand, s: Shape) {
 const PALM_X = 0, PALM_Y = 136, PALM_W = 160, PALM_H = 86;
 
 /** Both hands, all ten fingers. The target finger lights up in its colour; the home-row key sits on each idle fingertip. */
-export default function HandGuide({ target, targetBadge, khmer, shift, wrong, names, ariaLabel }: Props) {
+export default function HandGuide({ target, targetBadge, khmer, shift, shiftBadge = "⇧", wrong, names, ariaLabel }: Props) {
   const stateOf = (id: FingerId): FingerState => (id === wrong ? "wrong" : id === target ? "target" : id === shift ? "shift" : "idle");
   return (
     <svg className="vg-hands" viewBox={`0 0 ${HAND_VIEW.width} ${HAND_VIEW.height}`} role="img" aria-label={ariaLabel} preserveAspectRatio="xMidYMid meet">
@@ -55,7 +57,7 @@ export default function HandGuide({ target, targetBadge, khmer, shift, wrong, na
               const state = stateOf(id);
               let badge: Badge | undefined;
               if (state === "target" && targetBadge) badge = { x: p.bx, y: p.by, text: targetBadge, khmer };
-              else if (state === "shift") badge = { x: p.bx, y: p.by, text: "⇧" };
+              else if (state === "shift") badge = { x: p.bx, y: p.by, text: shiftBadge };
               else if (state === "wrong") badge = { x: p.bx, y: p.by, text: "✕" };
               else if (!target && HOME_ROW[id]) badge = { x: p.bx, y: p.by, text: HOME_ROW[id] === "Space" ? "␣" : keyName(HOME_ROW[id] as string) };
               return <FingerIndicator key={id} id={id} label={`${names.hand[hand]} ${names.finger[name]}`} x={p.x} y={p.y} w={p.w} h={p.h} rotate={p.rotate} state={state} badge={badge} />;

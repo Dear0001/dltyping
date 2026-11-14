@@ -14,12 +14,14 @@ type Handlers = { onChar: (char: string) => void; onBackspace?: () => void; onEs
  *   (Latin layout, or an IME reporting "Process") the physical key is mapped
  *   through the NiDA layout so the games are playable without a Khmer IME.
  */
-export function resolveKey(event: Pick<KeyboardEvent, "key" | "code" | "shiftKey">, language: Language): string | null {
+export function resolveKey(event: Pick<KeyboardEvent, "key" | "code" | "shiftKey"> & { altKey?: boolean }, language: Language): string | null {
   const { key, code, shiftKey } = event;
-  if (key === " " || code === "Space") return " ";
+  // Space on the Windows NiDA layout types U+200B: still a space press.
+  if (key === " " || key === "\u200B" || code === "Space") return " ";
   if (language === "khmer") {
-    if (key.length > 0 && Array.from(key).length === 1 && isKhmerChar(key)) return key;
-    return charForCode("khmer", code, shiftKey);
+    // A real Khmer keyboard: keep its text, including two-code-point keys like ាំ.
+    if (key.length > 0 && Array.from(key).every(isKhmerChar)) return key;
+    return charForCode("khmer", code, shiftKey, !!event.altKey);
   }
   return Array.from(key).length === 1 ? key : null;
 }
@@ -39,7 +41,9 @@ export function useKeyInput(enabled: boolean, language: Language, handlers: Hand
   useEffect(() => {
     if (!enabled) return;
     function onKeyDown(event: KeyboardEvent) {
-      if (isEditable(event.target) || event.ctrlKey || event.metaKey || event.altKey) return;
+      // Khmer AltGr / Option characters (ឱ, ឯ, ៈ...) arrive with altKey set; other modifier chords are shortcuts.
+      const altGr = language === "khmer" && event.altKey && !event.metaKey;
+      if (isEditable(event.target) || event.metaKey || (event.ctrlKey && !altGr) || (event.altKey && !altGr)) return;
       if (event.key === "Escape") {
         ref.current.onEscape?.();
         return;

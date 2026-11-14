@@ -2,8 +2,8 @@
 
 import Link from "next/link";
 import { useEffect, useMemo, useRef, useState } from "react";
-import { getCharStates, normalizeText } from "@/lib/typing-engine";
-import { codepoints } from "@/lib/khmer-unicode";
+import { getCharStates, normalizeText, scoreTyping } from "@/lib/typing-engine";
+import { codepoints, normalizeTypedInput } from "@/lib/khmer-unicode";
 import { lessons } from "@/data/lessons";
 import type { Language, OSPlatform } from "@/types";
 import { useLocale } from "@/components/shared/LocaleProvider";
@@ -18,7 +18,7 @@ import { osFromPlatform } from "@/lib/keyboard/keyboard-detection";
 import PracticeResults, { type PracticeResult } from "@/components/typing/PracticeResults";
 import { useKeyStatBook } from "@/hooks/useKeyStatBook";
 import { flushSession, recordKeystrokes, weakKeys, type KeyStats } from "@/lib/keyboard/key-stats";
-import { findKeyFor } from "@/lib/keyboard/keyboard-mapping";
+import { emulatedNidaInput, findKeyFor, keystrokesOf } from "@/lib/keyboard/keyboard-mapping";
 import { describeGuidance, guidanceFor } from "@/lib/keyboard/typing-guidance";
 import { colorOfFinger } from "@/lib/keyboard/finger-mapping";
 import { useActivityRecorder } from "@/hooks/useActivityRecorder";
@@ -42,7 +42,6 @@ type TypingPracticeProps = {
 const KEYBOARD_KEY = "dlt.practice.keyboard";
 const validateBool = (v: unknown) => (typeof v === "boolean" ? v : null);
 
-const countMatches = (typed: readonly string[], goal: readonly string[]) => typed.reduce((n, cp, i) => (cp === goal[i] ? n + 1 : n), 0);
 const wpmFor = (correct: number, ms: number) => Math.round(correct / 5 / (Math.max(ms, 1000) / 60000));
 
 export default function TypingPractice({ language, platform = "Unknown", initialLessonId, timeLimit: initialTimeLimit = 60, initialDrill = null, initialArticle = null }: TypingPracticeProps) {
@@ -61,7 +60,8 @@ export default function TypingPractice({ language, platform = "Unknown", initial
   const [resultClosed, setResultClosed] = useState(false);
   const [drillText, setDrillText] = useState<string | null>(initialDrill);
   const [article, setArticle] = useState<Pick<Article, "title" | "text" | "ids"> | null>(initialArticle);
-  const [needsKhmerInputSwitch, setNeedsKhmerInputSwitch] = useState(false);
+  /** True while the OS keyboard types Latin letters and DL Typing turns key positions into NiDA Khmer. */
+  const [emulatingNida, setEmulatingNida] = useState(false);
   const [focusMode, setFocusMode] = useState(false);
   const [focused, setFocused] = useState(false);
   /** Every keystroke judged against the text, including ones later fixed with backspace. */
@@ -88,11 +88,13 @@ export default function TypingPractice({ language, platform = "Unknown", initial
   const goal = useMemo(() => codepoints(normalizeText(target, language)), [target, language]);
   const typed = useMemo(() => codepoints(normalizeText(input, language)), [input, language]);
   const views = useMemo(() => getCharStates(target, typed, language), [target, typed, language]);
-  const correctNow = useMemo(() => countMatches(typed, goal), [typed, goal]);
+  // Cluster-aware: a Khmer syllable earns WPM credit only once it is complete and correct.
+  const score = useMemo(() => scoreTyping(target, typed, language), [target, typed, language]);
+  const correctNow = score.correct;
   const typedLength = typed.length;
   const wpm = wpmFor(correctNow, elapsedMs);
   const accuracy = keys.total ? Math.round(((keys.total - keys.wrong) / keys.total) * 100) : 100;
-  const progress = goal.length ? Math.min(100, Math.round((typedLength / goal.length) * 100)) : 0;
+  const progress = score.total ? Math.min(100, Math.round((score.done / score.total) * 100)) : 0;
   const timeUp = elapsedMs >= timeLimit * 1000;
   const finishedPassage = goal.length > 0 && typedLength >= goal.length;
   const done = forcedDone || (!paused && typedLength > 0 && (timeUp || finishedPassage));
@@ -194,12 +196,12 @@ export default function TypingPractice({ language, platform = "Unknown", initial
       correct: correctNow,
       wrongKeys: keys.wrong,
       keystrokes: keys.total,
-      uncorrected: typedLength - correctNow,
+      uncorrected: score.mistakes.length,
       durationSec: Math.round(durationMs / 1000),
       xp: !rule ? { kind: "none", amount: 0 } : lessonMet ? (wasDone ? { kind: "repeat", amount: 0 } : { kind: "lesson", amount: xpReward }) : { kind: "missed", amount: xpReward, minAccuracy: rule.minAccuracy, minWpm: rule.minWpm },
       outcome,
       best: history.best,
-      mistakes: typed.flatMap((cp, index) => (goal[index] !== undefined && cp !== goal[index] ? [{ index, expected: goal[index], typed: cp }] : [])),
+      mistakes: score.mistakes,
     });
     // Save once per finished session.
     // eslint-disable-next-line react-hooks/exhaustive-deps
@@ -253,7 +255,7 @@ export default function TypingPractice({ language, platform = "Unknown", initial
     setElapsedMs(0);
     setKeys({ total: 0, wrong: 0 });
     setRunning(false);
-    setNeedsKhmerInputSwitch(false);
+    setEmulatingNida(false);
     inputRef.current?.focus();
   }
 
@@ -265,7 +267,7 @@ export default function TypingPractice({ language, platform = "Unknown", initial
       return;
     }
 
-    const nextInput = Array.from(value).slice(0, goal.length).join("");
+    const nextInput = Array.from(normalizeTypedInput(value, language === "khmer")).slice(0, goal.length).join("");
     const nextChars = codepoints(normalizeText(nextInput, language));
     const previousLength = codepoints(normalizeText(previousValue, language)).length;
     if (!running && nextChars.length) setRunning(true);
@@ -280,15 +282,10 @@ export default function TypingPractice({ language, platform = "Unknown", initial
         recorder.keystroke(language, expected, ok);
       });
       recordKeystrokes(sessionStatsRef.current, lastKeyAtRef, judged);
-      const wrong = judged.filter(([, ok]) => !ok).length;
-      if (judged.length) setKeys((k) => ({ total: k.total + judged.length, wrong: k.wrong + wrong }));
-      playKeySound(wrong === 0);
-
-      if (language === "khmer") {
-        const latestCharacter = nextChars.at(-1) ?? "";
-        if (/[a-z]/i.test(latestCharacter)) setNeedsKhmerInputSwitch(true);
-        else if (/[ក-៿]/u.test(latestCharacter)) setNeedsKhmerInputSwitch(false);
-      }
+      // Accuracy counts physical keystrokes: Shift+A on NiDA types ា + ំ but is one press.
+      const strokes = keystrokesOf(nextChars.slice(previousLength, previousLength + judged.length), goal.slice(previousLength), language);
+      if (strokes.total) setKeys((k) => ({ total: k.total + strokes.total, wrong: k.wrong + strokes.wrong }));
+      playKeySound(strokes.wrong === 0);
     }
 
     setInput(nextInput);
@@ -414,6 +411,12 @@ export default function TypingPractice({ language, platform = "Unknown", initial
                 if (event.key === "Enter" && tabArmedRef.current) { event.preventDefault(); tabArmedRef.current = false; reset(); return; }
                 if (event.key === "Escape" && !done && (typedLength > 0 || paused)) { event.preventDefault(); togglePause(); return; }
                 tabArmedRef.current = false;
+                // Khmer lesson but the OS keyboard is Latin: type the NiDA character of the physical key instead.
+                const nida = emulatedNidaInput(event.nativeEvent, language);
+                if (nida !== null) {
+                  event.preventDefault();
+                  if (!event.repeat) { handleInput(`${input}${nida}`); setEmulatingNida(true); }
+                } else if (language === "khmer" && Array.from(event.key).length === 1 && /[ក-៿]/u.test(event.key)) setEmulatingNida(false);
               }}
               className="tp-input" aria-label={t("practice.typeTheLessonText")} lang={language === "khmer" ? "km" : "en"} autoCapitalize="off" autoCorrect="off" autoComplete="off" spellCheck={false} />
             {paused && <button type="button" className="tp-paused" onClick={togglePause}><Icon name="play" size={18} />{t("practice.paused")}</button>}
@@ -422,7 +425,7 @@ export default function TypingPractice({ language, platform = "Unknown", initial
           <div className="tp-card-foot">
             {nextGuide && !done && !paused
               ? <span className="tp-next" style={{ "--finger": colorOfFinger(nextGuide.finger) } as React.CSSProperties}>
-                  <i aria-hidden="true" />{t("practice.nextKey")} <kbd>{nextGuide.shift ? "Shift + " : ""}{nextGuide.keyName}</kbd><span className="tp-next-finger">{describeGuidance(nextGuide, locale === "km" ? "km" : "en", "short").split(" · ").slice(1).join(" · ")}</span>
+                  <i aria-hidden="true" />{t("practice.nextKey")} <kbd>{nextGuide.altGr ? "AltGr + " : nextGuide.shift ? "Shift + " : ""}{nextGuide.keyName}</kbd><span className="tp-next-finger">{describeGuidance(nextGuide, locale === "km" ? "km" : "en", "short").split(" · ").slice(1).join(" · ")}</span>
                 </span>
               : null}
             <span className="tp-hint"><kbd>tab</kbd> + <kbd>enter</kbd> {t("practice.restartHint")} · <kbd>esc</kbd> {t("practice.pause")}</span>
@@ -445,7 +448,7 @@ export default function TypingPractice({ language, platform = "Unknown", initial
             />
           )}
         </div>
-        {needsKhmerInputSwitch && language === "khmer" && <div className="input-switch-hint" role="alert"><span className="feedback-icon">!</span><span><strong>{t("practice.switchTitle")}</strong><br />{t(platform === "Windows" ? "practice.switchWindows" : platform === "macOS" ? "practice.switchMac" : "practice.switchUnknown")}</span></div>}
+        {emulatingNida && language === "khmer" && <div className="input-switch-hint" role="status"><span className="feedback-icon">i</span><span><strong>{t("practice.nidaEmulated")}</strong><br />{t("practice.nidaEmulatedHow")} {t(platform === "Windows" ? "practice.switchWindows" : platform === "macOS" ? "practice.switchMac" : "practice.switchUnknown")}</span></div>}
         {focusMode
           ? <p className="tp-focus-note"><Icon name="focus" size={15} />{t("ui.practice.focusOn")} <button type="button" onClick={() => setFocusMode(false)}>{t("ui.practice.focusExit")}</button></p>
           : showKeyboard

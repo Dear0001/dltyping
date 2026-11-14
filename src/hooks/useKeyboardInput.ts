@@ -77,10 +77,12 @@ export function useKeyboardInput({ language, expected, judge = true }: Options) 
         metaTimers.current.set(code, window.setTimeout(() => drop(code), 180));
       }
       const { language: lang, expected: want, judge: on } = opts.current;
-      if (!on || !want || e.repeat || e.ctrlKey || e.metaKey || e.altKey || MODIFIER_CODES.test(code)) return;
+      // AltGr (Ctrl+Alt on Windows, Option on Mac) types Khmer third-level characters, so it is judged for Khmer.
+      const altGr = lang === "khmer" && e.altKey && !e.metaKey;
+      if (!on || !want || e.repeat || e.metaKey || (e.ctrlKey && !altGr) || (e.altKey && !altGr) || MODIFIER_CODES.test(code)) return;
       const judged = code === "Space" || /^(Key[A-Z]|Digit\d|Backquote|Minus|Equal|Bracket(Left|Right)|Backslash|Semicolon|Quote|Comma|Period|Slash)$/.test(code);
       if (!judged) return;
-      const ok = code === "Space" ? want === " " : isCorrectPress(lang, code, e.shiftKey, e.getModifierState?.("CapsLock") ?? false, want);
+      const ok = code === "Space" ? want === " " : isCorrectPress(lang, code, e.shiftKey, e.getModifierState?.("CapsLock") ?? false, want, altGr);
       showFlash(code, ok);
     }
 

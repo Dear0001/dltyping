@@ -152,8 +152,30 @@ export function tallyWord(tally: SessionTally, language: Language, word: string,
 }
 
 /** Splits a text into words and tallies the ones whose characters were mistyped (by index into `target`). */
+/** Khmer words in `text` with their code-point offsets. Khmer has no spaces between words, so ICU's dictionary word breaker finds them. */
+function khmerWords(text: string): { word: string; start: number; end: number }[] {
+  const Ctor = (Intl as unknown as { Segmenter?: new (l: string, o: { granularity: string }) => { segment(s: string): Iterable<{ segment: string; isWordLike?: boolean }> } }).Segmenter;
+  if (!Ctor) return [];
+  const out: { word: string; start: number; end: number }[] = [];
+  let at = 0;
+  for (const part of new Ctor("km", { granularity: "word" }).segment(text)) {
+    const size = Array.from(part.segment).length;
+    if (part.isWordLike && isKhmerWord(part.segment)) out.push({ word: part.segment, start: at, end: at + size });
+    at += size;
+  }
+  return out;
+}
+
+/** A trackable Khmer word: Khmer letters only, 2 to 24 code points. */
+export const isKhmerWord = (w: string) => /^[\u1780-\u17DD]{2,24}$/u.test(w);
+
 export function tallyWordsFromText(tally: SessionTally, language: Language, target: string, typed: string) {
-  if (language !== "english") return; // Khmer text has no spaces to split on
+  if (language === "khmer") {
+    const got = Array.from(typed), goalCps = Array.from(target);
+    // A word counts only once the learner typed past its last character.
+    for (const w of khmerWords(target)) if (got.length >= w.end) tallyWord(tally, language, w.word, goalCps.slice(w.start, w.end).some((ch, k) => got[w.start + k] !== ch));
+    return;
+  }
   const goal = Array.from(target), got = Array.from(typed);
   let start = 0;
   for (let i = 0; i <= goal.length; i++) {

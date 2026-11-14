@@ -7,9 +7,24 @@
 export const COENG = "្";
 const KHMER_CHAR = /[ក-៿᧠-᧿]/u;
 
-/** Normalize canonically equivalent sequences and strip zero-width characters. */
+/**
+ * Normalize canonically equivalent sequences and strip zero-width characters.
+ * Subscript DA (្ដ) and subscript TA (្ត) are drawn identically, and Khmer texts
+ * use both for the same words, so a learner cannot see which one is expected.
+ * Both are folded to ្ត: typing J then T (or J then D) is correct either way.
+ */
 export function normalizeKhmer(value: string) {
-  return value.normalize("NFC").replace(/[​‌‍﻿]/g, "");
+  return value.normalize("NFC").replace(/[​‌‍﻿]/g, "").replace(/\u17D2\u178A/g, "\u17D2\u178F");
+}
+
+/**
+ * Text the learner typed, ready to compare with the lesson. The Windows Khmer
+ * (NiDA) layout types ZERO WIDTH SPACE (U+200B) on the Space bar, which
+ * normalizeKhmer would silently drop, leaving the learner stuck on every space.
+ * A typed U+200B is therefore read as a space press.
+ */
+export function normalizeTypedInput(value: string, khmer: boolean) {
+  return khmer ? value.replace(/\u200B/g, " ") : value;
 }
 
 export function isKhmerChar(value: string) {

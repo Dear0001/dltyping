@@ -14,7 +14,7 @@ import { useUserProgress } from "@/hooks/use-stored-value";
 import { useLocale } from "@/components/shared/LocaleProvider";
 import { useAccount } from "@/lib/account";
 import { useNow, useTypingProgress } from "@/hooks/useTypingProgress";
-import { buildDashboard, currentStreak, formatDuration, RANGES, type DayPoint, type RangeId } from "@/lib/progress/progress-analytics";
+import { buildDashboard, currentStreak, formatDuration, RANGES, type DayPoint, type GroupStat, type RangeId } from "@/lib/progress/progress-analytics";
 import type { Language } from "@/types";
 import { clearProgress } from "@/lib/progress/progress-storage";
 import { formatDay } from "@/lib/i18n/dates";
@@ -120,6 +120,8 @@ export default function DashboardOverview() {
             </ChartCard>
           </div>
 
+          <LanguageSplit groups={all.languages} lessons={(l) => Object.keys(userProgress.completedLessons).filter((k) => k.startsWith(`${l}:`)).length} rangeLabel={rangeLabel} />
+
           <ChartCard title={t("dash.diffTitle")} subtitle={t("dash.diffSub")} empty={!hasData || data.difficulties.every((d) => d.sessions === 0)}>
             <ComparisonBars groups={data.difficulties} colors={{ easy: "#38bdf8", medium: "#2563eb", hard: "#0f172a" }} labelFor={(k) => t(`games.difficulty.${k}`)} />
           </ChartCard>
@@ -149,6 +151,41 @@ function EmptyState() {
         <Link href="/learn/english" className="rounded-xl bg-brand px-5 py-3 text-sm font-bold text-white shadow-sm hover:brightness-110">{t("dash.practiceEn")}</Link>
         <Link href="/learn/khmer" className="rounded-xl bg-navy px-5 py-3 text-sm font-bold text-white shadow-sm hover:brightness-110">{t("dash.practiceKh")}</Link>
         <Link href="/games" className="rounded-xl border border-slate-200 bg-white px-5 py-3 text-sm font-bold text-navy hover:border-brand hover:text-brand">{t("dash.playGame")}</Link>
+      </div>
+    </section>
+  );
+}
+
+/** English and Khmer side by side for the chosen range (not the language filter): every number comes from saved sessions. */
+function LanguageSplit({ groups, lessons, rangeLabel }: { groups: GroupStat[]; lessons: (lang: Language) => number; rangeLabel: string }) {
+  const { t, locale } = useLocale();
+  const cols = groups.filter((g): g is GroupStat & { key: Language } => g.key === "english" || g.key === "khmer");
+  const rows: [string, (g: GroupStat & { key: Language }) => string | number][] = [
+    [t("dash.sessions"), (g) => g.sessions],
+    [t("dash.practiceTime"), (g) => (g.sessions ? formatDuration(g.practiceSeconds, locale) : "—")],
+    [t("dash.bestWpm"), (g) => (g.sessions ? g.bestWpm : "—")],
+    [t("dash.avgWpm"), (g) => (g.sessions ? g.avgWpm : "—")],
+    [t("dash.avgAcc"), (g) => (g.sessions ? `${g.avgAccuracy}%` : "—")],
+    [t("dash.lessonsDone"), (g) => lessons(g.key)],
+    [t("dash.gamesDone"), (g) => g.games],
+  ];
+  return (
+    <section className="rounded-2xl border border-slate-200 bg-white p-5 shadow-sm" aria-labelledby="split-heading">
+      <h2 id="split-heading" className="font-extrabold text-navy">{t("dash.splitTitle")}</h2>
+      <p className="text-xs text-mute">{t("dash.splitSub", { range: rangeLabel })}</p>
+      <div className="mt-4 overflow-x-auto">
+        <table className="w-full min-w-[20rem] text-sm">
+          <thead><tr className="border-b border-slate-200 text-xs text-mute">
+            <th scope="col" className="py-2 pr-3 text-left font-semibold"><span className="sr-only">{t("dash.splitMetric")}</span></th>
+            {cols.map((g) => <th key={g.key} scope="col" className={`py-2 pl-3 text-right font-semibold ${g.key === "khmer" ? "font-khmer" : ""}`}>{t(`category.${g.key}`)}</th>)}
+          </tr></thead>
+          <tbody>
+            {rows.map(([label, value]) => <tr key={label} className="border-b border-slate-100 last:border-0">
+              <th scope="row" className="py-2 pr-3 text-left font-semibold text-navy">{label}</th>
+              {cols.map((g) => <td key={g.key} className="py-2 pl-3 text-right font-bold tabular-nums text-navy">{value(g)}</td>)}
+            </tr>)}
+          </tbody>
+        </table>
       </div>
     </section>
   );

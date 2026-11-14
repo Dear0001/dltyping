@@ -127,16 +127,17 @@ function languageRecommendations(store: ProgressStore, language: Language, t: Tr
     });
   }
 
-  // 4. Commonly misspelled words (English text only).
-  if (language === "english") {
+  // 4. Words this learner often mistypes (Khmer words come from the dictionary word breaker).
+  {
+    const prefix = `${language}:`;
     const words = Object.entries(store.words)
-      .filter(([id, w]) => id.startsWith("english:") && w.n >= THRESHOLDS.minWordSamples && w.e / w.n >= THRESHOLDS.wordWeakAbove)
-      .map(([id, w]) => ({ word: id.slice("english:".length), n: w.n, e: w.e }))
+      .filter(([id, w]) => id.startsWith(prefix) && w.n >= THRESHOLDS.minWordSamples && w.e / w.n >= THRESHOLDS.wordWeakAbove)
+      .map(([id, w]) => ({ word: id.slice(prefix.length), n: w.n, e: w.e }))
       .sort((a, b) => b.e / b.n - a.e / a.n || b.n - a.n)
       .slice(0, 5);
     if (words.length) {
       out.push({
-        id: "words:english",
+        id: `words:${language}`,
         priority: "medium",
         category: "words",
         language,
@@ -145,7 +146,7 @@ function languageRecommendations(store: ProgressStore, language: Language, t: Tr
         minutes: 3,
         actions: [
           { label: start, href: drillHref(language, { words: words.map((w) => w.word).join(",") }, { time: "120" }), kind: "practice" },
-          { label: t("rec.actWordSprint"), href: "/games/word-sprint", kind: "game" },
+          ...(language === "english" ? [{ label: t("rec.actWordSprint"), href: "/games/word-sprint", kind: "game" as const }] : []),
         ],
       });
     }

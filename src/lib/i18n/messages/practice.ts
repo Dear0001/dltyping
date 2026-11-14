@@ -36,6 +36,8 @@ const messages = {
   "practice.keyboard": { en: "ON-SCREEN KEYBOARD", km: "ក្តារចុចលើអេក្រង់" },
   "practice.wrong": { en: "Wrong key. Check the red letter in the passage and try again.", km: "គ្រាប់ចុចមិនត្រឹមត្រូវទេ។ សូមពិនិត្យអក្សរពណ៌ក្រហម ហើយសាកល្បងម្តងទៀត។" },
   "practice.switchTitle": { en: "Your device is still typing Latin letters.", km: "ក្តារចុចរបស់អ្នកកំពុងវាយអក្សរឡាតាំង។" },
+  "practice.nidaEmulated": { en: "Your keyboard is typing Latin letters, so DL Typing is turning each key into its Khmer NiDA character for you.", km: "ក្តារចុចរបស់អ្នកកំពុងវាយអក្សរឡាតាំង ដូច្នេះ DL Typing កំពុងបម្លែងគ្រាប់ចុចនីមួយៗទៅជាតួអក្សរខ្មែរតាមប្លង់ NiDA ឱ្យអ្នក។" },
+  "practice.nidaEmulatedHow": { en: "Your lesson continues normally. To type Khmer in other apps too, add the Khmer (NiDA) keyboard:", km: "មេរៀនរបស់អ្នកនៅបន្តដូចធម្មតា។ ដើម្បីវាយខ្មែរក្នុងកម្មវិធីផ្សេងទៀតដែរ សូមបន្ថែមក្តារចុច Khmer (NiDA)៖" },
   "practice.switchWindows": { en: "Press Win + Space, then choose Khmer (NiDA).", km: "ចុច Win + Space រួចជ្រើសរើស Khmer (NiDA)។" },
   "practice.switchMac": { en: "Press Control + Space to switch input sources. Use Control + Option + Space to cycle forward.", km: "ចុច Control + Space ដើម្បីប្តូរប្រភពបញ្ចូល។ ចុច Control + Option + Space ដើម្បីប្តូរទៅមុខ។" },
   "practice.switchUnknown": { en: "Switch your system input source to Khmer (NiDA), then continue.", km: "ប្តូរប្រភពបញ្ចូលរបស់ឧបករណ៍ទៅ Khmer (NiDA) រួចបន្តវាយ។" },

@@ -25,7 +25,8 @@ function parseList(raw: string | undefined, valid: (item: string) => boolean): s
 
 export const parseCombos = (language: Language, raw?: string) =>
   parseList(raw, (c) => Array.from(c).length === 2 && Array.from(c).every((ch) => ch.trim() !== "" && findKeyFor(language, ch)));
-export const parseWords = (raw?: string) => parseList(raw, (w) => /^[a-z']{2,24}$/i.test(w));
+export const parseWords = (raw?: string, language: Language = "english") =>
+  parseList(raw, (w) => (language === "khmer" ? /^[\u1780-\u17DD]{2,24}$/u.test(w) : /^[a-z']{2,24}$/i.test(w)));
 
 /** Repeats each item a few times, shuffled, until the text is about `length` characters. */
 function repeatDrill(items: string[], length: number, rand: () => number): string {
@@ -44,8 +45,8 @@ function repeatDrill(items: string[], length: number, rand: () => number): strin
 
 /** Drill text for the given params, or null when none are valid. */
 export function buildDrillText(language: Language, params: DrillParams, rand: () => number = Math.random): string | null {
-  // Word drills are English-only: Khmer text has no spaces to split into words.
-  const words = language === "english" ? parseWords(params.words) : [];
+  // Khmer words come from the dictionary word breaker (see tallyWordsFromText); the drill separates them with spaces.
+  const words = parseWords(params.words, language);
   if (words.length) return repeatDrill(words, 60, rand);
   const combos = parseCombos(language, params.combo);
   if (combos.length) return repeatDrill(combos, 54, rand);

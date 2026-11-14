@@ -15,6 +15,8 @@ export type Guidance = {
   finger: FingerId;
   /** Present when the character needs Shift: the opposite-hand Shift key and its finger. */
   shift: { code: string; finger: FingerId } | null;
+  /** Present for third-level NiDA characters (ឱ, ឯ, ៈ...): hold right Alt (AltGr / Option) with the right thumb. */
+  altGr: { code: "AltRight"; finger: FingerId } | null;
   /** Short name of the physical key, e.g. "F", ";", "Space". */
   keyName: string;
 };
@@ -39,7 +41,7 @@ export function guidanceFor(language: Language, expected: string | null | undefi
   if (!finger) return null;
   // Caps Lock flips English letters only; Khmer has no case.
   const needShift = language === "english" && isLetterKey(target.code) ? target.shift !== caps : target.shift;
-  return { expected, code: target.code, finger, shift: needShift ? shiftFor(target.code) : null, keyName: keyName(target.code) };
+  return { expected, code: target.code, finger, shift: needShift ? shiftFor(target.code) : null, altGr: target.altGr ? { code: "AltRight", finger: "right-thumb" } : null, keyName: keyName(target.code) };
 }
 
 // ---- Wording (English and Khmer UI) ------------------------------------------
@@ -50,6 +52,7 @@ const WORDS = {
     finger: { pinky: "little finger", ring: "ring finger", middle: "middle finger", index: "index finger", thumb: "thumb" },
     use: (hand: string, finger: string, key: string) => `Use your ${hand} ${finger} to press ${key}.`,
     useShift: (hand: string, finger: string, key: string, sh: string) => `Use your ${hand} ${finger} to press ${key} while your ${sh} hand holds Shift.`,
+    useAltGr: (hand: string, finger: string, key: string) => `Hold the right Alt key (AltGr, or Option on a Mac) with your right thumb, then press ${key} with your ${hand} ${finger}.`,
     short: (hand: string, finger: string, key: string) => `${key} · ${hand} ${finger}`,
     home: "Rest your fingers on the home row: A S D F and J K L ;. Feel the bumps on F and J.",
     noKey: (ch: string) => `Type ${ch}. This character has no key in this layout.`,
@@ -64,6 +67,7 @@ const WORDS = {
     finger: { pinky: "ម្រាមតូច", ring: "ម្រាមនាង", middle: "ម្រាមកណ្តាល", index: "ម្រាមចង្អុល", thumb: "មេដៃ" },
     use: (hand: string, finger: string, key: string) => `ប្រើដៃ${hand} ${finger} ដើម្បីចុច ${key}។`,
     useShift: (hand: string, finger: string, key: string, sh: string) => `ប្រើដៃ${hand} ${finger} ចុច ${key} ហើយដៃ${sh}សង្កត់ Shift។`,
+    useAltGr: (hand: string, finger: string, key: string) => `សង្កត់គ្រាប់ Alt ខាងស្តាំ (AltGr ឬ Option លើ Mac) ដោយមេដៃស្តាំ រួចចុច ${key} ដោយដៃ${hand} ${finger}។`,
     short: (hand: string, finger: string, key: string) => `${key} · ដៃ${hand} ${finger}`,
     home: "ដាក់ម្រាមដៃលើជួរកណ្តាល៖ A S D F និង J K L ;។ ស្គាល់ដុំលើ F និង J។",
     noKey: (ch: string) => `វាយ ${ch}។ តួអក្សរនេះមិនមានគ្រាប់ចុចក្នុងប្លង់នេះទេ។`,
@@ -82,6 +86,7 @@ export function describeGuidance(g: Guidance, locale: Locale = "en", form: "full
   const w = WORDS[locale];
   const f = fingerWords(g.finger, locale);
   if (form === "short") return w.short(f.hand, f.name, g.keyName);
+  if (g.altGr) return w.useAltGr(f.hand, f.name, g.keyName);
   if (!g.shift) return w.use(f.hand, f.name, g.keyName);
   return w.useShift(f.hand, f.name, g.keyName, fingerWords(g.shift.finger, locale).hand);
 }

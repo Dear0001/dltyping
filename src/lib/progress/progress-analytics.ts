@@ -259,12 +259,13 @@ export function dailySeries(sessions: SessionRecord[], range: RangeId, now: numb
 }
 
 // ---- Breakdowns -------------------------------------------------------------
-export type GroupStat = { key: string; label: string; sessions: number; avgWpm: number; avgAccuracy: number };
+export type GroupStat = { key: string; label: string; sessions: number; avgWpm: number; avgAccuracy: number; bestWpm: number; practiceSeconds: number; games: number };
 
 function group(sessions: SessionRecord[], keyOf: (s: SessionRecord) => string | null, labels: [string, string][]): GroupStat[] {
   return labels.map(([key, label]) => {
     const list = sessions.filter((s) => keyOf(s) === key);
-    return { key, label, sessions: list.length, avgWpm: Math.round(mean(list.map((s) => s.wpm))), avgAccuracy: Math.round(mean(list.map((s) => s.accuracy))) };
+    const o = overview(list);
+    return { key, label, sessions: o.sessions, avgWpm: o.avgWpm, avgAccuracy: o.avgAccuracy, bestWpm: o.bestWpm, practiceSeconds: o.practiceSeconds, games: o.gamesCompleted };
   });
 }
 

@@ -6,9 +6,10 @@ import { useLocale } from "@/components/shared/LocaleProvider";
 import { useActivityRecorder } from "@/hooks/useActivityRecorder";
 import { useTicker } from "@/hooks/use-ticker";
 import type { Difficulty } from "@/lib/game-engine";
-import { codepoints } from "@/lib/khmer-unicode";
+import { codepoints, normalizeTypedInput } from "@/lib/khmer-unicode";
+import { emulatedNidaInput, keystrokesOf } from "@/lib/keyboard/keyboard-mapping";
 import { flushSession, recordKeystrokes, type KeyStats } from "@/lib/keyboard/key-stats";
-import { calcAccuracy, calcWpm, getCharStates, normalizeText } from "@/lib/typing-engine";
+import { calcAccuracy, calcWpm, getCharStates, normalizeText, scoreTyping } from "@/lib/typing-engine";
 import type { RunResult, RunSample } from "@/lib/typing-test";
 import type { Language } from "@/types";
 
@@ -23,7 +24,6 @@ type Props = {
   keyboard?: boolean;
 };
 
-const countMatches = (typed: readonly string[], goal: readonly string[]) => typed.reduce((n, cp, i) => (cp === goal[i] ? n + 1 : n), 0);
 
 /**
  * A timed typing run over a fixed text: the clock starts on the first keystroke and
@@ -60,7 +60,9 @@ export default function TypingRun({ language, text, durationSec, detail, difficu
     typedRef.current = typed;
   });
   const views = useMemo(() => getCharStates(text, typed, language), [text, typed, language]);
-  const correctNow = useMemo(() => countMatches(typed, goal), [typed, goal]);
+  // Cluster-aware: a Khmer syllable counts once it is complete and correct.
+  const countMatches = (current: readonly string[]) => scoreTyping(text, current, language).correct;
+  const correctNow = useMemo(() => scoreTyping(text, typed, language).correct, [text, typed, language]);
   const liveWpm = calcWpm(correctNow, elapsed);
   const liveAccuracy = calcAccuracy(keyCount.correct, keyCount.total);
   const remaining = Math.max(0, Math.ceil(durationSec - elapsed / 1000));
@@ -84,7 +86,7 @@ export default function TypingRun({ language, text, durationSec, detail, difficu
 
   function sample(second: number, current: readonly string[]): RunSample {
     const ms = second * 1000;
-    return { second, wpm: calcWpm(countMatches(current, goal), ms), raw: calcWpm(current.length, ms), errors: keysRef.current.total - keysRef.current.correct, chars: current.length };
+    return { second, wpm: calcWpm(countMatches(current), ms), raw: calcWpm(current.length, ms), errors: keysRef.current.total - keysRef.current.correct, chars: current.length };
   }
 
   function finish(ms: number, current: readonly string[]) {
@@ -95,7 +97,7 @@ export default function TypingRun({ language, text, durationSec, detail, difficu
     const seconds = Math.max(1, Math.round(ms / 100) / 10);
     const last = samplesRef.current.at(-1);
     if (!last || seconds - last.second >= 0.3) samplesRef.current.push(sample(seconds, current));
-    const correct = countMatches(current, goal);
+    const correct = countMatches(current);
     const keys = keysRef.current;
     const result: RunResult = {
       language,
@@ -130,18 +132,20 @@ export default function TypingRun({ language, text, durationSec, detail, difficu
       if (!running && value.length) setRunning(true);
       return;
     }
-    const next = Array.from(value).slice(0, goal.length).join("");
+    const next = Array.from(normalizeTypedInput(value, language === "khmer")).slice(0, goal.length).join("");
     const nextCps = codepoints(normalizeText(next, language));
     const prevLength = codepoints(normalizeText(previousValue, language)).length;
     if (!running && nextCps.length) setRunning(true);
     if (nextCps.length > prevLength) {
       const samples: [string, boolean][] = [];
+      // Accuracy counts physical keystrokes (one NiDA key can type two code points).
+      const strokes = keystrokesOf(nextCps.slice(prevLength, goal.length), goal.slice(prevLength), language);
+      keysRef.current.total += strokes.total;
+      keysRef.current.correct += strokes.total - strokes.wrong;
       nextCps.slice(prevLength).forEach((cp, offset) => {
         const expected = goal[prevLength + offset];
         if (!expected) return;
         const ok = cp === expected;
-        keysRef.current.total += 1;
-        if (ok) keysRef.current.correct += 1;
         samples.push([expected, ok]);
         recorder.keystroke(language, expected, ok);
       });
@@ -180,6 +184,13 @@ export default function TypingRun({ language, text, durationSec, detail, difficu
           onCompositionEnd={(e) => { composingRef.current = false; handleInput(e.currentTarget.value, compositionStartRef.current); }}
           onPaste={(e) => e.preventDefault()} onDrop={(e) => e.preventDefault()}
           onFocus={() => setFocused(true)} onBlur={() => setFocused(false)}
+          onKeyDown={(e) => {
+            // Khmer run on a Latin OS keyboard: type the NiDA character of the physical key.
+            const nida = emulatedNidaInput(e.nativeEvent, language);
+            if (nida === null) return;
+            e.preventDefault();
+            if (!e.repeat) handleInput(`${input}${nida}`);
+          }}
           disabled={finished}
           className="absolute inset-0 h-full w-full cursor-text resize-none opacity-0"
           aria-label={t("test.typeTheTextShown")} lang={language === "khmer" ? "km" : "en"}

@@ -75,6 +75,7 @@ export default function VirtualKeyboard({ language, expected = null, onChar, onB
   if (settings.showNext && guide.visible && guide.guidance) {
     next.add(guide.guidance.code);
     if (guide.guidance.shift && !shift) next.add(guide.guidance.shift.code);
+    if (guide.guidance.altGr && !mods.alt) next.add(guide.guidance.altGr.code);
   }
 
   function tap(code: string) {

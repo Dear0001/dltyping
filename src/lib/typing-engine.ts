@@ -70,3 +70,44 @@ export function getCharStates(target: string, typed: readonly string[], language
     return { text, state: "partial" as const };
   });
 }
+
+export type TypingScore = {
+  /**
+   * Correct characters for WPM. English: correct letters. Khmer: the keystrokes
+   * (code points) of clusters that are COMPLETE and fully correct, so a half-typed
+   * syllable or one with a wrong subscript earns nothing. Five per word either way.
+   */
+  correct: number;
+  /** Visible characters (Khmer: grapheme clusters) fully typed, right or wrong. Basis for progress. */
+  done: number;
+  /** Visible characters (Khmer: grapheme clusters) in the text. */
+  total: number;
+  /** One entry per visible character typed wrong (a whole Khmer cluster, never a lone sign). */
+  mistakes: { index: number; expected: string; typed: string }[];
+};
+
+/**
+ * Cluster-aware score of `typed` (normalized code points) against `target`.
+ * Code points are still compared one by one, but credit, progress and mistakes
+ * are given per user-perceived character, so Khmer is not judged as loose
+ * vowels, COENG signs and subscripts.
+ */
+export function scoreTyping(target: string, typed: readonly string[], language: Language): TypingScore {
+  const goal = codepoints(normalizeText(target, language));
+  const clusters = language === "khmer" ? splitGraphemes(target) : goal;
+  const score: TypingScore = { correct: 0, done: 0, total: clusters.length, mistakes: [] };
+  let start = 0;
+  clusters.forEach((text, index) => {
+    const end = start + codepoints(text).length;
+    if (typed.length > start) {
+      const complete = typed.length >= end;
+      const slice = typed.slice(start, end);
+      const ok = slice.every((cp, i) => cp === goal[start + i]);
+      if (complete) score.done++;
+      if (complete && ok) score.correct += end - start;
+      else if (!ok) score.mistakes.push({ index, expected: text, typed: slice.join("") });
+    }
+    start = end;
+  });
+  return score;
+}
