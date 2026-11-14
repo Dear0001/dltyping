@@ -22,6 +22,7 @@ import { bufferProgress, bufferView, expectedChar } from "@/lib/arcade/typing-co
 import { calcAccuracy, calcWpm, type CharView } from "@/lib/typing-engine";
 import type { Language } from "@/types";
 import { drawSpace } from "./space-render";
+import SpaceTutorialArt from "./SpaceTutorialArt";
 
 const GAME = "space-shooter";
 const STEP_ICONS = ["🛸", "🎯", "🔫", "🛡️", "⚡"];
@@ -224,7 +225,7 @@ export default function SpaceShooterGame() {
   return <ArcadeShell
     game={GAME} icon="🚀" music="space" session={session} difficulty={difficulty} onDifficulty={pick("space.difficulty")} runLanguage={hud.language} starting={starting}
     variant={`${GAME}:${language}:${difficulty}:${mode}`}
-    howTo={STEP_ICONS.map((icon, i) => ({ icon, title: t(`ss.s${i + 1}t`), text: t(`ss.s${i + 1}`) }))}
+    howTo={STEP_ICONS.map((icon, i) => ({ icon, title: t(`ss.s${i + 1}t`), text: t(`ss.s${i + 1}`), visual: <SpaceTutorialArt step={i} khmer={language === "khmer"} /> }))}
     controls={[{ keys: t("arc.keyLetters"), text: t("ss.c1") }, { keys: "Backspace", text: t("ss.c2") }, { keys: "1 · 2 · 3", text: t("ss.c3") }, { keys: "Enter", text: t("ss.cEnter") }, { keys: "Esc", text: t("arc.keyPause") }]}
     options={<>
       <div>
@@ -269,15 +270,15 @@ export default function SpaceShooterGame() {
       </details>
     </>}
     hud={<>
-      <Chip label={t("gm.score")} value={hud.points.toLocaleString("en-US")} />
-      <Chip label={hud.boss ? `🚀 ${t("ss.bossWave")}` : t("ss.wave")} value={hud.wave ? (last ? `${hud.wave}/${last}` : hud.wave) : "—"} tone={hud.boss ? "gold" : "default"} />
-      <div className={`min-w-0 rounded-xl px-2.5 py-1.5 sm:px-3 ${hud.hp <= hud.maxHp * 0.25 ? "arc-pulse bg-red-500/25" : "bg-white/10"}`}>
+      <div className={`min-w-0 rounded-xl px-2.5 py-1.5 sm:px-3 ${hud.hp <= hud.maxHp * 0.25 ? "arc-pulse bg-red-500/25 ring-1 ring-red-400/40" : "bg-white/[.16] ring-1 ring-white/20"}`}>
         <div className="flex justify-between gap-1 text-[10px] font-semibold uppercase tracking-wider text-slate-300"><span className="truncate">♥ {t("ss.health")}</span>{hud.shieldMs > 0 && <span aria-label={t("ss.power.shield")}>🛡️</span>}</div>
-        <div className="flex items-baseline gap-1"><span className={`text-base font-extrabold tabular-nums sm:text-lg ${hud.hp <= hud.maxHp * 0.3 ? "text-red-300" : "text-emerald-300"}`}>{hud.hp}</span><span className="text-[10px] text-slate-400">/{hud.maxHp}</span></div>
+        <div className="flex items-baseline gap-1"><span className={`text-lg font-extrabold tabular-nums sm:text-xl ${hud.hp <= hud.maxHp * 0.3 ? "text-red-300" : "text-emerald-300"}`}>{hud.hp}</span><span className="text-[10px] text-slate-400">/{hud.maxHp}</span></div>
         <div className="mt-0.5 h-1.5 overflow-hidden rounded-full bg-white/15" role="progressbar" aria-label={t("ss.health")} aria-valuenow={hud.hp} aria-valuemin={0} aria-valuemax={hud.maxHp}>
           <div className="h-full rounded-full transition-[width] duration-150" style={{ width: `${Math.max(0, Math.min(100, (hud.hp / hud.maxHp) * 100))}%`, background: hud.hp > hud.maxHp * 0.5 ? "#22c55e" : hud.hp > hud.maxHp * 0.25 ? "#f59e0b" : "#ef4444" }} />
         </div>
       </div>
+      <Chip primary label={t("gm.score")} value={hud.points.toLocaleString("en-US")} tone="gold" />
+      <Chip label={hud.boss ? `🚀 ${t("ss.bossWave")}` : t("ss.wave")} value={hud.wave ? (last ? `${hud.wave}/${last}` : hud.wave) : "—"} tone={hud.boss ? "gold" : "default"} />
       <Chip label={hud.timeLeft !== null ? t("ss.timeLeft") : t("gm.time")} value={formatTime(hud.timeLeft ?? hud.timeMs)} tone={hud.timeLeft !== null && hud.timeLeft < 10000 ? "bad" : "default"} />
       <Chip label={t("gm.combo")} value={hud.combo >= 5 ? `🔥 ×${hud.combo}` : `×${hud.combo}`} tone={hud.combo >= 10 ? "gold" : hud.combo >= 5 ? "good" : "default"} />
       <Chip label={t("ss.destroyed")} value={hud.kills} />
@@ -326,9 +327,9 @@ export default function SpaceShooterGame() {
     ]}
     resultHighlights={outcome ? [
       { label: t("arc.finalScore"), value: outcome.score.total.toLocaleString("en-US"), icon: "🏆", tone: "brand" },
-      { label: t("ss.shipsDestroyed"), value: outcome.kills, icon: "💥", tone: "good" },
       { label: "WPM", value: outcome.wpm, icon: "⚡", tone: "brand" },
       { label: t("gm.accuracy"), value: `${outcome.accuracy}%`, icon: "🎯", tone: outcome.accuracy >= 95 ? "good" : outcome.accuracy < 80 ? "bad" : "default" },
+      { label: t("gm.bestCombo"), value: `×${outcome.bestCombo}`, icon: "🔥", tone: outcome.bestCombo >= 10 ? "good" : "default" },
       { label: t("ss.waveReached"), value: outcome.wave, icon: "🌊" },
     ] : undefined}
     report={report}

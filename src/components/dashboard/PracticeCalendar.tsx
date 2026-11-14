@@ -1,6 +1,7 @@
 "use client";
 
 import { useLocale } from "@/components/shared/LocaleProvider";
+import { formatDay } from "@/lib/i18n/dates";
 import { longestDayRun } from "@/lib/achievements";
 import { dayKey, isQualifyingSession } from "@/lib/progress/progress-analytics";
 import type { SessionRecord } from "@/types/progress";
@@ -24,7 +25,7 @@ export default function PracticeCalendar({ sessions, now }: { sessions: SessionR
   const today = new Date(now);
   const mondayOffset = (today.getDay() + 6) % 7;
   const start = new Date(today.getFullYear(), today.getMonth(), today.getDate() - mondayOffset - (WEEKS - 1) * 7);
-  const fmt = new Intl.DateTimeFormat(locale === "km" ? "km-KH" : "en-US", { month: "short", day: "numeric" });
+  const fmt = { format: (d: Date) => formatDay(d, locale) };
   const cells = Array.from({ length: WEEKS * 7 }, (_, i) => {
     const date = new Date(start.getFullYear(), start.getMonth(), start.getDate() + i);
     const key = dayKey(date.getTime());

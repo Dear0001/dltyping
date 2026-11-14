@@ -1,6 +1,7 @@
 "use client";
 
 import { useLocale } from "@/components/shared/LocaleProvider";
+import { formatDay } from "@/lib/i18n/dates";
 import { EXCELLENT_AT, GOOD_AT, MIN_SAMPLES, physicalKeyName, type KeyAnalysis, type MasteryLevel } from "@/lib/progress/keyboard-analytics";
 import { MIN_TIMED, msToWpm, type KeySpeed } from "@/lib/progress/key-speed";
 import type { ActivityType, SessionRecord } from "@/types/progress";
@@ -33,7 +34,7 @@ export function useProgressText() {
       if (days <= 0) return t("km.last.today");
       if (days === 1) return t("km.last.yesterday");
       if (days < 30) return t("km.last.daysAgo", { n: days });
-      return new Date(ms).toLocaleDateString(locale === "km" ? "km-KH" : "en-US", { month: "short", day: "numeric", year: "numeric" });
+      return formatDay(new Date(ms), locale, true);
     },
     keyTooltip: (a: KeyAnalysis) => {
       const name = keyName(a.code);

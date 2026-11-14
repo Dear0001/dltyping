@@ -104,6 +104,18 @@
 .gm-flash { animation: gm-flash .45s ease-out forwards; }
 @keyframes gm-pop { 0% { transform: scale(.7); opacity: 0; } 60% { transform: scale(1.12); } 100% { transform: scale(1); opacity: 1; } }
 .gm-pop { animation: gm-pop .22s ease-out; }
+/* Space Shooter tutorial illustrations: slow, small loops; off under reduced motion. */
+@keyframes ss-drift { 0%, 100% { transform: translateY(0); } 50% { transform: translateY(5px); } }
+@keyframes ss-pulse { 0%, 100% { opacity: .45; } 50% { opacity: 1; } }
+@keyframes ss-laser { 0%, 40% { opacity: 0; } 55%, 75% { opacity: 1; } 100% { opacity: 0; } }
+@keyframes ss-fall { 0% { transform: translateY(-14px); } 100% { transform: translateY(4px); } }
+.ss-tut-drift { animation: ss-drift 3s ease-in-out infinite; }
+.ss-tut-d2 { animation-delay: -1s; }
+.ss-tut-d3 { animation-delay: -2s; }
+.ss-tut-pulse { animation: ss-pulse 1.6s ease-in-out infinite; }
+.ss-tut-laser { animation: ss-laser 2s ease-out infinite; }
+.ss-tut-fall { animation: ss-fall 2.4s ease-in infinite alternate; }
+@media (prefers-reduced-motion: reduce) { .ss-tut * { animation: none !important; } }
 
 /* ---------- Arcade games (racing, zombie survival, battle arena) ---------- */
 /* The stage takes the height left over by the navbar, HUD and typing panel, so the text to type is always on screen. */

@@ -18,7 +18,7 @@ import { useGameText } from "@/hooks/useGameText";
 import { useScores, useSeen, useSettings } from "@/hooks/use-stored-value";
 import { startMusic, stopMusic, type MusicTheme } from "@/lib/arcade/audio";
 import { ARCADE_DIFFICULTIES, type ArcadeDifficulty } from "@/lib/arcade/difficulty";
-import { ACHIEVEMENTS, statsFor, updateArcade, type ArcadeGameId } from "@/lib/arcade/progress";
+import { ACHIEVEMENTS, statsFor, UNLOCKS, updateArcade, type ArcadeGameId } from "@/lib/arcade/progress";
 import type { RunReport } from "@/lib/arcade/save";
 import { levelFromArcadeXp, xpForArcadeLevel } from "@/lib/arcade/scoring";
 import type { Language } from "@/types";
@@ -167,6 +167,11 @@ export default function ArcadeShell(props: ArcadeShellProps) {
   const achievements = ACHIEVEMENTS.filter((a) => a.game === game || a.game === null);
   const history = store.history.filter((h) => h.game === game).slice(-5).reverse();
   const bestFor = (difficulty: ArcadeDifficulty) => Object.entries(scores).filter(([key]) => key === `${game}:${settings.language}:${difficulty}` || key.startsWith(`${game}:${settings.language}:${difficulty}:`)).reduce((max, [, entry]) => Math.max(max, entry.best), 0);
+  const setupBest = scores[props.variant]?.best ?? 0;
+  const xpToNext = Math.max(0, levelCeil - store.xp);
+  const levelPct = Math.round(((store.xp - levelFloor) / Math.max(1, levelCeil - levelFloor)) * 100);
+  const gameUnlocks = UNLOCKS.filter((u) => u.game === game);
+  const unlocksEarned = gameUnlocks.filter((u) => store.unlocks.includes(u.id)).length;
   const iconButton = "grid h-9 w-9 flex-none place-items-center rounded-xl bg-white/10 text-base text-white transition hover:bg-white/20 focus-visible:outline-2 focus-visible:outline-white";
 
   return <GameLayout>
@@ -197,7 +202,7 @@ export default function ArcadeShell(props: ArcadeShellProps) {
             <LanguageSelector value={settings.language} onChange={(language) => updateSettings({ language })} />
             <Segmented label={t("gamehub.difficulty")} value={props.difficulty} onChange={props.onDifficulty} options={ARCADE_DIFFICULTIES.map((d) => ({ value: d, label: gt.difficulty(d) }))} />
             {props.options}
-            <p className="text-xs text-mute">{t("gm.bestOnSetup")}<strong className="text-navy">{(scores[props.variant]?.best ?? 0).toLocaleString("en-US")}</strong></p>
+            <p className="text-xs text-mute">{setupBest > 0 ? <>{t("gm.bestOnSetup")}<strong className="text-navy">{setupBest.toLocaleString("en-US")}</strong></> : t("arc.setupBestNone")}</p>
             <div className="flex flex-col gap-2 sm:flex-row">
               <button type="button" data-autofocus className={`${primaryBtn} flex-1 !py-3.5 !text-base disabled:opacity-60`} onClick={props.onStart} disabled={props.starting} aria-busy={props.starting}>{props.starting ? t("ss.preparing") : `${t("gm.startGame")} →`}</button>
               <Link href="/games" className={secondaryBtn}>{t("gm.allGames")}</Link>
@@ -222,17 +227,34 @@ export default function ArcadeShell(props: ArcadeShellProps) {
       <div className="grid gap-5 lg:grid-cols-3">
         <section className={card} aria-labelledby="arc-best">
           <h2 id="arc-best" className={heading}>{t("arc.bestScores")}</h2>
-          <ul className="space-y-1.5 text-sm">
-            {ARCADE_DIFFICULTIES.map((d) => <li key={d} className="flex justify-between rounded-xl bg-slate-50 px-3 py-2"><span className="font-semibold">{gt.difficulty(d)}</span><strong className="tabular-nums text-brand">{bestFor(d) ? bestFor(d).toLocaleString("en-US") : "—"}</strong></li>)}
-          </ul>
-          <dl className="mt-3 grid grid-cols-3 gap-2 text-center text-xs">
-            <div><dt className="text-mute">{t("arc.plays")}</dt><dd className="text-base font-extrabold">{stats.plays}</dd></div>
-            <div><dt className="text-mute">{t("arc.bestWpm")}</dt><dd className="text-base font-extrabold">{stats.bestWpm}</dd></div>
-            <div><dt className="text-mute">{t("arc.bestStreak")}</dt><dd className="text-base font-extrabold">{stats.bestStreak}</dd></div>
-          </dl>
-          <div className="mt-4">
-            <div className="mb-1 flex justify-between text-xs font-semibold text-mute"><span>{t("arc.level", { n: level })}</span><span>{store.xp.toLocaleString("en-US")} XP</span></div>
-            <div className="h-2.5 overflow-hidden rounded-full bg-slate-200"><div className="h-full rounded-full bg-gradient-to-r from-brand to-accent" style={{ width: `${Math.round(((store.xp - levelFloor) / (levelCeil - levelFloor)) * 100)}%` }} /></div>
+          {stats.plays === 0
+            ? <div className="rounded-2xl border border-dashed border-slate-300 bg-slate-50 px-4 py-5 text-center">
+                <p className="text-2xl" aria-hidden="true">🏁</p>
+                <p className="mt-1 text-sm font-bold text-navy">{t("arc.firstRunTitle")}</p>
+                <p className="mt-1 text-xs leading-relaxed text-mute">{t("arc.firstRunText")}</p>
+              </div>
+            : <>
+                <ul className="space-y-1.5 text-sm">
+                  {ARCADE_DIFFICULTIES.map((d) => { const best = bestFor(d); return <li key={d} className="flex justify-between rounded-xl bg-slate-50 px-3 py-2"><span className="font-semibold">{gt.difficulty(d)}</span>{best ? <strong className="tabular-nums text-brand">{best.toLocaleString("en-US")}</strong> : <span className="text-xs text-mute">{t("arc.notPlayedYet")}</span>}</li>; })}
+                </ul>
+                <dl className="mt-3 grid grid-cols-3 gap-2 text-center text-xs">
+                  <div><dt className="text-mute">{t("arc.plays")}</dt><dd className="text-base font-extrabold tabular-nums">{stats.plays}</dd></div>
+                  <div><dt className="text-mute">{t("arc.bestWpm")}</dt><dd className="text-base font-extrabold tabular-nums">{stats.bestWpm}</dd></div>
+                  <div><dt className="text-mute">{t("arc.bestStreak")}</dt><dd className="text-base font-extrabold tabular-nums">{stats.bestStreak}</dd></div>
+                </dl>
+              </>}
+          <div className="mt-4 border-t border-slate-100 pt-4">
+            <div className="mb-1 flex justify-between text-xs font-bold text-navy"><span>{t("arc.level", { n: level })}</span><span className="tabular-nums text-mute">{store.xp.toLocaleString("en-US")} XP</span></div>
+            <div className="h-2.5 overflow-hidden rounded-full bg-slate-200" role="progressbar" aria-label={t("arc.level", { n: level })} aria-valuenow={levelPct} aria-valuemin={0} aria-valuemax={100}><div className="h-full rounded-full bg-gradient-to-r from-brand to-accent" style={{ width: `${levelPct}%` }} /></div>
+            <p className="mt-1.5 text-xs text-mute">{t("arc.xpToNext", { xp: xpToNext.toLocaleString("en-US"), n: level + 1 })}</p>
+            <details className="group mt-2 text-xs text-slate-600">
+              <summary className="flex cursor-pointer list-none items-center gap-1 font-bold text-brand [&::-webkit-details-marker]:hidden">{t("arc.howXp")}<span className="transition group-open:rotate-180" aria-hidden="true">⌄</span></summary>
+              <ul className="mt-2 space-y-1.5 leading-relaxed">
+                <li>⭐ {t("arc.howXp1")}</li>
+                <li>📈 {t("arc.howXp2")}</li>
+                <li>🔓 {gameUnlocks.length ? t("arc.howXpUnlocks", { n: unlocksEarned, total: gameUnlocks.length }) : t("arc.howXpNoUnlocks")}</li>
+              </ul>
+            </details>
           </div>
         </section>
 
@@ -330,6 +352,7 @@ export default function ArcadeShell(props: ArcadeShellProps) {
                   <GameResults rows={props.resultRows} newBest={report.newBest} best={report.setupBest} />
                   {props.resultExtra}
                 </>}
+            <RecordsAndRewards report={report} />
             <div className="rounded-2xl bg-slate-50 p-4 text-sm">
               <h2 className="mb-2 text-xs font-bold uppercase tracking-wider text-mute">{t("arc.scoreBreakdown")}</h2>
               <dl className="grid grid-cols-2 gap-x-4 gap-y-1 tabular-nums">
@@ -341,15 +364,6 @@ export default function ArcadeShell(props: ArcadeShellProps) {
                 <dt className="border-t border-slate-200 pt-1 font-extrabold">{t("arc.finalScore")}</dt><dd className="border-t border-slate-200 pt-1 text-right text-base font-extrabold text-brand">{report.breakdown.total.toLocaleString("en-US")}</dd>
               </dl>
             </div>
-            <div className="rounded-2xl bg-blue-50 p-4 text-sm">
-              <p className="font-bold text-navy">+{report.outcome.xpGained} XP · {t("arc.level", { n: report.outcome.levelAfter })}{report.outcome.levelAfter > report.outcome.levelBefore && <span className="ml-2 rounded-full bg-brand px-2 py-0.5 text-xs text-white">{t("arc.levelUp")}</span>}</p>
-              {report.outcome.newAchievements.length > 0 && <ul className="mt-2 space-y-1">
-                {report.outcome.newAchievements.map((id) => <li key={id}>🏅 <strong>{t("arc.newAchievement")}</strong> {t(`ach.${id}.t`)}</li>)}
-              </ul>}
-              {report.outcome.newUnlocks.length > 0 && <ul className="mt-2 space-y-1">
-                {report.outcome.newUnlocks.map((id) => <li key={id}>🔓 <strong>{t("arc.newUnlock")}</strong> {t(`unl.${id.replace(":", "-")}`)}</li>)}
-              </ul>}
-            </div>
           </div>
         : <p className="rounded-xl bg-slate-100 px-4 py-3 text-center text-sm text-mute">{t("arc.notSaved")}</p>}
       <div className="mt-5 flex flex-col gap-2 sm:flex-row">
@@ -359,4 +373,49 @@ export default function ArcadeShell(props: ArcadeShellProps) {
       </div>
     </section>}
   </GameLayout>;
+}
+
+/** Personal records compared with this game's stats before the run, then XP, level progress, badges and unlocks. */
+function RecordsAndRewards({ report }: { report: RunReport }) {
+  const { t } = useLocale();
+  const { result, outcome, before } = report;
+  const first = before.plays === 0;
+  const records = [
+    { label: t("arc.recScore"), value: result.score, prev: report.setupBest, isNew: report.newBest },
+    { label: t("arc.bestWpm"), value: result.wpm, prev: before.bestWpm, isNew: result.wpm > before.bestWpm && result.wpm > 0 },
+    { label: t("arc.longestStreak"), value: result.bestStreak, prev: before.bestStreak, isNew: result.bestStreak > before.bestStreak && result.bestStreak > 0 },
+  ];
+  const floor = xpForArcadeLevel(outcome.levelAfter), ceil = xpForArcadeLevel(outcome.levelAfter + 1);
+  const xp = outcome.store.xp;
+  const pct = Math.round(((xp - floor) / Math.max(1, ceil - floor)) * 100);
+  return <>
+    <div className="rounded-2xl border border-slate-200 p-4 text-sm">
+      <h2 className="mb-2 text-xs font-bold uppercase tracking-wider text-mute">{t("arc.records")}</h2>
+      {first
+        ? <p className="text-slate-600">{t("arc.recFirst")}</p>
+        : <ul className="divide-y divide-slate-100">
+            {records.map((r) => <li key={r.label} className="flex items-center justify-between gap-2 py-1.5">
+              <span className="text-slate-600">{r.label}</span>
+              <span className="flex items-center gap-2 tabular-nums">
+                <strong className="text-navy">{r.value.toLocaleString("en-US")}</strong>
+                {r.isNew
+                  ? <span className="rounded-full bg-emerald-100 px-2 py-0.5 text-[11px] font-bold text-good">{t("arc.recNew")}</span>
+                  : <span className="text-xs text-mute">{t("arc.recBest", { n: Math.max(r.prev, r.value).toLocaleString("en-US") })}</span>}
+              </span>
+            </li>)}
+          </ul>}
+    </div>
+    <div className="rounded-2xl bg-blue-50 p-4 text-sm">
+      <h2 className="mb-2 text-xs font-bold uppercase tracking-wider text-mute">{t("arc.rewards")}</h2>
+      <p className="font-bold text-navy">+{outcome.xpGained} XP · {t("arc.level", { n: outcome.levelAfter })}{outcome.levelAfter > outcome.levelBefore && <span className="ml-2 rounded-full bg-brand px-2 py-0.5 text-xs text-white">{t("arc.levelUp")}</span>}</p>
+      <div className="mt-2 h-2 overflow-hidden rounded-full bg-white" role="progressbar" aria-label={t("arc.level", { n: outcome.levelAfter })} aria-valuenow={pct} aria-valuemin={0} aria-valuemax={100}><div className="h-full rounded-full bg-gradient-to-r from-brand to-accent" style={{ width: `${pct}%` }} /></div>
+      <p className="mt-1 text-xs text-mute">{t("arc.xpToNext", { xp: Math.max(0, ceil - xp).toLocaleString("en-US"), n: outcome.levelAfter + 1 })}</p>
+      {outcome.newAchievements.length > 0 && <ul className="mt-2 space-y-1">
+        {outcome.newAchievements.map((id) => <li key={id}>🏅 <strong>{t("arc.newAchievement")}</strong> {t(`ach.${id}.t`)}</li>)}
+      </ul>}
+      {outcome.newUnlocks.length > 0 && <ul className="mt-2 space-y-1">
+        {outcome.newUnlocks.map((id) => <li key={id}>🔓 <strong>{t("arc.newUnlock")}</strong> {t(`unl.${id.replace(":", "-")}`)}</li>)}
+      </ul>}
+    </div>
+  </>;
 }

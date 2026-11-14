@@ -6,11 +6,11 @@ import { useLocale } from "@/components/shared/LocaleProvider";
 import type { CharView } from "@/lib/typing-engine";
 
 /** Compact stat for the in-game HUD (dark frame). */
-export function Chip({ label, value, tone = "default" }: { label: string; value: React.ReactNode; tone?: "default" | "good" | "bad" | "gold" }) {
+export function Chip({ label, value, tone = "default", primary = false }: { label: string; value: React.ReactNode; tone?: "default" | "good" | "bad" | "gold"; /** Headline stat: larger value on a brighter tile. */ primary?: boolean }) {
   const color = tone === "good" ? "text-emerald-300" : tone === "bad" ? "text-red-300" : tone === "gold" ? "text-amber-300" : "text-white";
-  return <div className="min-w-0 rounded-xl bg-white/10 px-2.5 py-1.5 sm:px-3">
+  return <div className={`min-w-0 rounded-xl px-2.5 py-1.5 sm:px-3 ${primary ? "bg-white/[.16] ring-1 ring-white/20" : "bg-white/10"}`}>
     <div className="truncate text-[10px] font-semibold uppercase tracking-wider text-slate-300">{label}</div>
-    <div className={`truncate text-base font-extrabold tabular-nums sm:text-lg ${color}`}>{value}</div>
+    <div className={`truncate font-extrabold tabular-nums ${primary ? "text-lg sm:text-xl" : "text-base sm:text-lg"} ${color}`}>{value}</div>
   </div>;
 }
 
@@ -89,9 +89,11 @@ export function Tutorial({ steps, firstTime = false }: { steps: Instruction[]; f
   const nav = "grid h-8 min-w-8 place-items-center rounded-lg px-2.5 text-xs font-bold transition focus-visible:outline-2 focus-visible:outline-brand disabled:opacity-35";
   return <div>
     {firstTime && <p className="mb-2 inline-flex rounded-full bg-amber-100 px-2.5 py-0.5 text-xs font-bold text-amber-800">{t("gm.newHere")}</p>}
-    <div className="relative flex min-h-36 items-center gap-4 overflow-hidden rounded-2xl bg-gradient-to-br from-slate-900 via-indigo-950 to-slate-900 p-5 text-white" aria-live="polite">
+    <div className={`relative flex min-h-36 overflow-hidden rounded-2xl bg-gradient-to-br from-slate-900 via-indigo-950 to-slate-900 p-5 text-white ${step.visual ? "flex-col gap-3 sm:flex-row sm:items-center sm:gap-4" : "items-center gap-4"}`} aria-live="polite">
       <span aria-hidden="true" className="pointer-events-none absolute -right-6 -top-6 h-28 w-28 rounded-full bg-sky-400/10" />
-      <span key={index} className="gm-pop grid h-16 w-16 flex-none place-items-center rounded-2xl bg-white/10 text-4xl shadow-inner" aria-hidden="true">{step.icon}</span>
+      {step.visual
+        ? <span key={index} className="gm-pop block aspect-[5/3] w-full max-w-[13rem] flex-none self-center overflow-hidden rounded-xl ring-1 ring-white/10 sm:w-40" aria-hidden="true">{step.visual}</span>
+        : <span key={index} className="gm-pop grid h-16 w-16 flex-none place-items-center rounded-2xl bg-white/10 text-4xl shadow-inner" aria-hidden="true">{step.icon}</span>}
       <div className="min-w-0">
         <p className="text-[11px] font-bold text-sky-300">{t("arc.stepOf", { n: index + 1, total: steps.length })}</p>
         <h3 className="mt-0.5 text-base font-extrabold">{step.title}</h3>

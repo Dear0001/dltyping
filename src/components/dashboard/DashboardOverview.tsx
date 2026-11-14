@@ -9,6 +9,7 @@ import { SkChart, SkStatRow, SkTable } from "@/components/skeleton/Skeleton";
 import StatCard from "@/components/dashboard/StatCard";
 import StreakLevels from "@/components/dashboard/StreakLevels";
 import PracticeCalendar from "@/components/dashboard/PracticeCalendar";
+import ProgressSummary from "@/components/dashboard/ProgressSummary";
 import { useUserProgress } from "@/hooks/use-stored-value";
 import { useLocale } from "@/components/shared/LocaleProvider";
 import { useAccount } from "@/lib/account";
@@ -16,6 +17,7 @@ import { useNow, useTypingProgress } from "@/hooks/useTypingProgress";
 import { buildDashboard, currentStreak, formatDuration, RANGES, type DayPoint, type RangeId } from "@/lib/progress/progress-analytics";
 import type { Language } from "@/types";
 import { clearProgress } from "@/lib/progress/progress-storage";
+import { formatDay } from "@/lib/i18n/dates";
 
 export default function DashboardOverview() {
   const { t, locale } = useLocale();
@@ -34,8 +36,7 @@ export default function DashboardOverview() {
     return { ...built, streak: currentStreak(store.sessions, now) };
   }, [all, store, lang, range, now]);
   const lessonsDone = Object.keys(userProgress.completedLessons).filter((k) => lang === "all" || k.startsWith(`${lang}:`)).length;
-  const dateFmt = useMemo(() => new Intl.DateTimeFormat(locale === "km" ? "km-KH" : "en-US", { month: "short", day: "numeric" }), [locale]);
-  const dayLabel = (d: DayPoint) => { const [y, m, day] = d.date.split("-").map(Number); return dateFmt.format(new Date(y, m - 1, day)); };
+  const dayLabel = (d: DayPoint) => { const [y, m, day] = d.date.split("-").map(Number); return formatDay(new Date(y, m - 1, day), locale); };
   const hasData = data.overview.sessions > 0;
   const charsCorrect = data.sessions.reduce((n, s) => n + s.correct, 0);
   const charsTyped = charsCorrect + data.sessions.reduce((n, s) => n + s.incorrect, 0);
@@ -83,7 +84,7 @@ export default function DashboardOverview() {
             <StatCard icon="⚡" label={t("dash.avgWpm")} value={none(data.overview.avgWpm)} unit="WPM" accent="sky" hint={t("dash.avgWpmHint")} tooltip={t("dash.avgWpmTip")} />
             <StatCard icon="🏆" label={t("dash.bestWpm")} value={none(data.overview.bestWpm)} unit="WPM" accent="navy" hint={t("dash.bestWpmHint")} />
             <StatCard icon="🎯" label={t("dash.avgAcc")} value={none(data.overview.avgAccuracy)} unit="%" hint={t("dash.avgAccHint")} tooltip={t("dash.avgAccTip")} />
-            <StatCard icon="⏱️" label={t("dash.practiceTime")} value={none(formatDuration(data.overview.practiceSeconds))} accent="sky" hint={t("dash.inRange", { range: rangeLabel })} />
+            <StatCard icon="⏱️" label={t("dash.practiceTime")} value={none(formatDuration(data.overview.practiceSeconds, locale))} accent="sky" hint={t("dash.inRange", { range: rangeLabel })} />
             <StatCard icon="📘" label={t("dash.lessonsDone")} value={lessonsDone} hint={t("dash.lessonsDoneHint")} accent="navy" tooltip={t("dash.lessonsDoneTip")} />
             <StatCard icon="⌨️" label={t("dash.chars")} value={none(charsTyped.toLocaleString(locale === "km" ? "km-KH" : "en-US"))} hint={t("dash.charsHint", { correct: charsCorrect.toLocaleString(locale === "km" ? "km-KH" : "en-US"), range: rangeLabel })} />
             <StatCard icon="🎮" label={t("dash.gamesDone")} value={none(data.overview.gamesCompleted)} hint={t("dash.runsIn", { range: rangeLabel })} />
@@ -91,6 +92,8 @@ export default function DashboardOverview() {
               ? <StatCard icon="🔥" label={t("dash.streak")} value={data.streak} unit={t(data.streak === 1 ? "streak.unitOne" : "streak.unit")} accent="sky" hint={t(data.streak ? "dash.streakKeep" : "dash.streakStart")} tooltip={t("dash.streakTip")} />
               : <StatCard icon="🔒" label={t("dash.streak")} value={t("dash.locked")} accent="sky" hint={t("dash.lockedHint")} tooltip={t("dash.lockedTip")} />}
           </section>
+
+          <ProgressSummary />
 
           <PracticeCalendar sessions={store.sessions} now={now} />
 

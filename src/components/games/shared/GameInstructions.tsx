@@ -2,7 +2,8 @@
 
 import { useLocale } from "@/components/shared/LocaleProvider";
 
-export type Instruction = { icon: string; title: string; text: string };
+/** `visual` (optional) replaces the emoji with a small illustration in the step-by-step tutorial. */
+export type Instruction = { icon: string; title: string; text: string; visual?: React.ReactNode };
 
 /** How-to-play list. Open by default for first-time players, collapsed afterwards. */
 export default function GameInstructions({ steps, firstTime }: { steps: Instruction[]; firstTime: boolean }) {

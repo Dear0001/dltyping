@@ -278,5 +278,22 @@ const messages = {
   "arc.resuming": { en: "Get ready to resume", km: "ត្រៀមលេងបន្ត" },
   "arc.xpEarned": { en: "XP earned", km: "XP ទទួលបាន" },
   "arc.allStats": { en: "All statistics", km: "ស្ថិតិទាំងអស់" },
+  // First-time and progression explanations (details page + results).
+  "arc.setupBestNone": { en: "No score on this setup yet. Your first run sets the record.", km: "មិនទាន់មានពិន្ទុសម្រាប់ការកំណត់នេះនៅឡើយ។ វគ្គដំបូងរបស់អ្នកនឹងក្លាយជាកំណត់ត្រា។" },
+  "arc.firstRunTitle": { en: "Your records start here", km: "កំណត់ត្រារបស់អ្នកចាប់ផ្តើមនៅទីនេះ" },
+  "arc.firstRunText": { en: "Finish one game and your best score for each difficulty, your best WPM and your longest typing streak appear here.", km: "លេងឱ្យចប់មួយវគ្គ នោះពិន្ទុខ្ពស់បំផុតតាមកម្រិតនីមួយៗ WPM ខ្ពស់បំផុត និងការវាយត្រូវជាប់គ្នាវែងបំផុត នឹងបង្ហាញនៅទីនេះ។" },
+  "arc.notPlayedYet": { en: "Not played yet", km: "មិនទាន់លេង" },
+  "arc.xpToNext": { en: "{xp} XP to level {n}", km: "នៅសល់ {xp} XP ទៀតដល់កម្រិត {n}" },
+  "arc.howXp": { en: "How XP and levels work", km: "របៀបដែល XP និងកម្រិតដំណើរការ" },
+  "arc.howXp1": { en: "Every finished game earns 5 to 300 XP: more for a higher score, plus 20 for a win.", km: "ហ្គេមនីមួយៗដែលលេងចប់ ផ្តល់ 5 ដល់ 300 XP៖ ពិន្ទុកាន់តែខ្ពស់ XP កាន់តែច្រើន ហើយបន្ថែម 20 ពេលឈ្នះ។" },
+  "arc.howXp2": { en: "Your arcade level is shared by all four arcade games, so XP from any of them counts.", km: "កម្រិតហ្គេមរបស់អ្នក ប្រើរួមគ្នាសម្រាប់ហ្គេមទាំងបួន ដូច្នេះ XP ពីហ្គេមណាក៏រាប់បញ្ចូលដែរ។" },
+  "arc.howXpUnlocks": { en: "Extras in this game unlock by playing it, not by level. You have {n} of {total}; each locked option says how to earn it.", km: "របស់បន្ថែមក្នុងហ្គេមនេះ ដោះសោដោយការលេង មិនមែនដោយកម្រិតទេ។ អ្នកមាន {n} ក្នុងចំណោម {total}។ ជម្រើសដែលនៅជាប់សោនីមួយៗ ប្រាប់ពីរបៀបទទួលបាន។" },
+  "arc.howXpNoUnlocks": { en: "Nothing in this game is locked: every mode, difficulty and word set is open from the start.", km: "គ្មានអ្វីជាប់សោក្នុងហ្គេមនេះទេ៖ របៀបលេង កម្រិត និងប្រភេទពាក្យទាំងអស់ បើកឱ្យលេងតាំងពីដំបូង។" },
+  "arc.records": { en: "Personal records", km: "កំណត់ត្រាផ្ទាល់ខ្លួន" },
+  "arc.recScore": { en: "Score on this setup", km: "ពិន្ទុក្នុងការកំណត់នេះ" },
+  "arc.recNew": { en: "New record", km: "កំណត់ត្រាថ្មី" },
+  "arc.recBest": { en: "best {n}", km: "ល្អបំផុត {n}" },
+  "arc.recFirst": { en: "Your first game! These numbers are now the records to beat.", km: "ហ្គេមដំបូងរបស់អ្នក! លេខទាំងនេះ ឥឡូវជាកំណត់ត្រាដែលត្រូវបំបែក។" },
+  "arc.rewards": { en: "Rewards", km: "រង្វាន់" },
 } satisfies Dict;
 export default messages;

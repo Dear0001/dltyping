@@ -15,7 +15,7 @@ export default function GameResults({ rows, newBest, best, stars, bestLabel }: {
     </div>}
     {rows.length > 0 && <ResultGrid rows={rows} />}
     <p className={`rounded-xl px-4 py-2.5 text-center text-sm font-semibold ${newBest ? "bg-emerald-50 text-good" : "bg-slate-100 text-mute"}`}>
-      {newBest ? t("gm.newBest", { n: best.toLocaleString("en-US") }) : t("gm.bestOnDevice", { label: bestLabel ?? t("gm.bestScore"), n: best.toLocaleString("en-US") })}
+      {newBest ? t("gm.newBest", { n: best.toLocaleString("en-US") }) : best > 0 ? t("gm.bestOnDevice", { label: bestLabel ?? t("gm.bestScore"), n: best.toLocaleString("en-US") }) : t("gm.noBestYet")}
     </p>
   </div>;
 }

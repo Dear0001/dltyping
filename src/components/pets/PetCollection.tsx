@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useMemo, useRef, useState } from "react";
+import { formatDay } from "@/lib/i18n/dates";
 import PetSprite from "@/components/pets/PetSprite";
 import { effectiveMotion } from "@/components/pets/PetCompanion";
 import { SkCard, SkGrid } from "@/components/skeleton/Skeleton";
@@ -189,7 +190,7 @@ function PetCard({ pet, unlocked, unlockedAt, active, teamSize, companionOn, bes
             ) : (
               <button type="button" onClick={() => togglePet(pet.id)} disabled={teamSize >= MAX_ACTIVE_PETS} className="w-full rounded-xl bg-brand px-4 py-2 text-sm font-bold text-white hover:brightness-110 disabled:cursor-not-allowed disabled:opacity-50">{teamSize >= MAX_ACTIVE_PETS ? t("pets.teamFull", { a: MAX_ACTIVE_PETS, b: MAX_ACTIVE_PETS }) : teamSize === 0 ? t("pets.choose", { name: pt.name(pet) }) : t("pets.add", { name: pt.name(pet) })}</button>
             )}
-            {unlockedAt && <p className="mt-2 text-[11px] text-mute">{t("pets.unlockedOn", { date: new Date(unlockedAt).toLocaleDateString(locale === "km" ? "km-KH" : "en-US", { month: "short", day: "numeric", year: "numeric" }) })}</p>}
+            {unlockedAt && <p className="mt-2 text-[11px] text-mute">{t("pets.unlockedOn", { date: formatDay(new Date(unlockedAt), locale, true) })}</p>}
           </div>
         </>
       ) : (

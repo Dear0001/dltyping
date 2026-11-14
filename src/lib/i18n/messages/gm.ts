@@ -31,6 +31,7 @@ const messages = {
   "gm.howToPlay": { en: "How to play", km: "របៀបលេង" },
   "gm.starsAria": { en: "{n} of 3 stars", km: "{n} ក្នុងចំណោម 3 ផ្កាយ" },
   "gm.newBest": { en: "🏆 New personal best on this device: {n}", km: "🏆 ពិន្ទុខ្ពស់បំផុតថ្មីរបស់អ្នកក្នុងឧបករណ៍នេះ៖ {n}" },
+  "gm.noBestYet": { en: "No points this time, so no best score yet. Your next run can set one.", km: "លើកនេះមិនទាន់បានពិន្ទុទេ ដូច្នេះមិនទាន់មានពិន្ទុខ្ពស់បំផុតនៅឡើយ។ វគ្គក្រោយអាចបង្កើតវាបាន។" },
   "gm.bestOnDevice": { en: "{label} on this device: {n}", km: "{label} ក្នុងឧបករណ៍នេះ៖ {n}" },
   "gm.bestScore": { en: "Best score", km: "ពិន្ទុខ្ពស់បំផុត" },
   "gm.typeThis": { en: "Type this", km: "វាយនេះ" },

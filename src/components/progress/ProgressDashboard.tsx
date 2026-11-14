@@ -14,9 +14,8 @@ import { typingGames } from "@/data/games";
 import { bestForGame, levelFromXp, xpForLevel } from "@/lib/local-progress";
 import GameThumb from "@/components/games/shared/GameThumb";
 import { useNow, useStreak, useTypingProgress } from "@/hooks/useTypingProgress";
-import { useArcadeStore } from "@/hooks/use-arcade";
-import { ACHIEVEMENTS as ARCADE_BADGES } from "@/lib/arcade/progress";
-import { ACHIEVEMENT_CATEGORIES, achievementStatuses, type AchievementStatus } from "@/lib/achievements";
+import { useAchievements } from "@/hooks/useAchievements";
+import { ACHIEVEMENT_CATEGORIES, type AchievementStatus } from "@/lib/achievements";
 import { QUALIFYING_MIN_CORRECT, formatDuration, isQualifyingSession } from "@/lib/progress/progress-analytics";
 import { LineChart } from "@/components/dashboard/PerformanceChart";
 import type { SessionRecord } from "@/types/progress";
@@ -42,21 +41,14 @@ export default function ProgressDashboard() {
 }
 
 function ProgressContent() {
-  const { t } = useLocale();
+  const { t, locale } = useLocale();
   const gt = useGameText();
   const progress = useUserProgress();
   const signedIn = useAccount().status === "user";
   const liveStreak = useStreak();
   const streak = signedIn ? liveStreak : 0; // streaks need an account (same rule as the dashboard)
   const { store } = useTypingProgress();
-  const arcade = useArcadeStore();
-  const achievements = achievementStatuses({
-    sessions: store.sessions,
-    xp: progress.xp,
-    completedLessons: progress.completedLessons,
-    lessonTotals: { english: getAllLessons(curricula.english).length, khmer: getAllLessons(curricula.khmer).length },
-    arcadeBadges: { earned: Object.keys(arcade.achievements).length, total: ARCADE_BADGES.length },
-  });
+  const achievements = useAchievements();
   const unlockedCount = achievements.filter((a) => a.unlocked).length;
   const scores = useScores();
   const practiceBest = usePracticeBest();
@@ -140,7 +132,7 @@ function ProgressContent() {
           {[
             { label: t("prog.statLessons"), value: Object.keys(progress.completedLessons).length, icon: "📘" },
             { label: t("prog.statSessions"), value: practiceAll.length || "—", icon: "⌨️" },
-            { label: t("prog.statTime"), value: practiceAll.length ? formatDuration(practiceAll.reduce((n, s) => n + s.durationSec, 0)) : "—", icon: "⏱️" },
+            { label: t("prog.statTime"), value: practiceAll.length ? formatDuration(practiceAll.reduce((n, s) => n + s.durationSec, 0), locale) : "—", icon: "⏱️" },
             { label: t("prog.statGames"), value: totalPlays || "—", icon: "🎮" },
           ].map((stat) => (
             <div key={stat.label} className="rounded-2xl border border-slate-200 bg-white p-4 shadow-sm">

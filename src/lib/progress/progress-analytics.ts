@@ -276,11 +276,13 @@ export function recentSessions(sessions: SessionRecord[], limit?: number): Sessi
   return limit ? sorted.slice(0, limit) : sorted;
 }
 
-export const formatDuration = (seconds: number): string => {
-  if (seconds < 60) return `${Math.round(seconds)}s`;
+/** "1m 5s" in English; "1 នាទី 5 វិនាទី" in Khmer (`locale` defaults to English). */
+export const formatDuration = (seconds: number, locale: "en" | "km" = "en"): string => {
+  const [H, M, S, sep] = locale === "km" ? [" ម៉ោង", " នាទី", " វិនាទី", " "] : ["h", "m", "s", " "];
+  if (seconds < 60) return `${Math.round(seconds)}${S}`;
   const m = Math.floor(seconds / 60);
-  if (m < 60) return `${m}m${seconds % 60 >= 1 ? ` ${Math.round(seconds % 60)}s` : ""}`;
-  return `${Math.floor(m / 60)}h ${m % 60}m`;
+  if (m < 60) return `${m}${M}${seconds % 60 >= 1 ? `${sep}${Math.round(seconds % 60)}${S}` : ""}`;
+  return `${Math.floor(m / 60)}${H}${sep}${m % 60}${M}`;
 };
 
 /** Everything the overview page needs from one store, computed in one place. */

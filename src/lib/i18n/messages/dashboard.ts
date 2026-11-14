@@ -158,5 +158,23 @@ const messages = {
   "dash.dailyMinutes": { en: "Minutes", km: "នាទី" },
   "dash.dailyMore": { en: "Show {n} more days", km: "បង្ហាញ {n} ថ្ងៃទៀត" },
   "dash.dailyLess": { en: "Show fewer", km: "បង្ហាញតិចជាងនេះ" },
+  "dash.errorTitle": { en: "This page could not load", km: "ទំព័រនេះមិនអាចបើកបានទេ" },
+  "dash.errorText": { en: "Something went wrong while showing your progress. Your saved progress on this device has not been changed.", km: "មានបញ្ហាពេលបង្ហាញវឌ្ឍនភាពរបស់អ្នក។ វឌ្ឍនភាពដែលបានរក្សាទុកលើឧបករណ៍នេះ មិនត្រូវបានប៉ះពាល់ទេ។" },
+  "dash.errorRetry": { en: "Try again", km: "សាកម្តងទៀត" },
+  "dash.errorPractice": { en: "Practice instead", km: "ទៅហាត់វាយវិញ" },
+  "act.weakDrill": { en: "Weak-key drill", km: "លំហាត់គ្រាប់ចុចខ្សោយ" },
+  // Overview summary row: level, records, next step.
+  "dsum.title": { en: "Level, records and next step", km: "កម្រិត កំណត់ត្រា និងជំហានបន្ទាប់" },
+  "dsum.level": { en: "XP and level", km: "XP និងកម្រិត" },
+  "dsum.xpToNext": { en: "{xp} XP to level {n}", km: "នៅសល់ {xp} XP ទៀតដល់កម្រិត {n}" },
+  "dsum.howXp": { en: "How to earn XP →", km: "របៀបទទួលបាន XP →" },
+  "dsum.records": { en: "Achievements and game records", km: "សមិទ្ធផល និងកំណត់ត្រាហ្គេម" },
+  "dsum.noRecords": { en: "No game records yet. Finish a game and your best scores show up here.", km: "មិនទាន់មានកំណត់ត្រាហ្គេមទេ។ លេងហ្គេមមួយឱ្យចប់ ពិន្ទុខ្ពស់បំផុតរបស់អ្នកនឹងបង្ហាញនៅទីនេះ។" },
+  "dsum.allRecords": { en: "All achievements and records →", km: "សមិទ្ធផល និងកំណត់ត្រាទាំងអស់ →" },
+  "dsum.next": { en: "Recommended next", km: "ណែនាំបន្ទាប់" },
+  "dsum.allTraining": { en: "See all {n} suggestions →", km: "មើលការណែនាំទាំង {n} →" },
+  "dsum.noWeak": { en: "No weak spots stand out right now. Keep practising, or try one of these games:", km: "ឥឡូវនេះ មិនមានចំណុចខ្សោយគួរកត់សម្គាល់ទេ។ បន្តហាត់ ឬសាកលេងហ្គេមទាំងនេះ៖" },
+  "dsum.needMore": { en: "Finish {n} more practice sessions and suggestions based on your own weak keys appear here. Meanwhile, try:", km: "ហាត់ {n} វគ្គទៀត នោះការណែនាំផ្អែកលើគ្រាប់ចុចដែលអ្នកខ្សោយ នឹងបង្ហាញនៅទីនេះ។ ក្នុងពេលនេះ សាកលេង៖" },
+  "dsum.openTraining": { en: "Open personalized training →", km: "បើកការហ្វឹកហាត់ផ្ទាល់ខ្លួន →" },
 } satisfies Dict;
 export default messages;
