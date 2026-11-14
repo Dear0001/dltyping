@@ -79,6 +79,19 @@ const messages = {
   "ui.games.recSpeed": { en: "Matched to your recent {lang} speed of {wpm} WPM. Games you have not tried come first.", km: "ជ្រើសតាមល្បឿនវាយ{lang}ថ្មីៗរបស់អ្នក {wpm} WPM។ ហ្គេមដែលអ្នកមិនទាន់លេង បង្ហាញមុន។" },
   "ui.games.all": { en: "All games", km: "ហ្គេមទាំងអស់" },
   "ui.games.search": { en: "Search games", km: "ស្វែងរកហ្គេម" },
+  "ui.games.factEnemies": { en: "{n} enemy types", km: "សត្រូវ {n} ប្រភេទ" },
+  "ui.games.factPowers": { en: "{n} power-ups", km: "ថាមពលពិសេស {n}" },
+  "ui.games.factModes": { en: "{n} game modes", km: "របៀបលេង {n}" },
+  "ui.games.inside": { en: "What is inside", km: "អ្វីដែលមាននៅខាងក្នុង" },
+  "ui.games.noBestYet": { en: "No score yet", km: "មិនទាន់មានពិន្ទុ" },
+  "ui.games.bestN": { en: "Best {n}", km: "ល្អបំផុត {n}" },
+  "ui.games.playsLabel": { en: "Plays", km: "ចំនួនលេង" },
+  "ui.games.beatBest": { en: "Beat your best", km: "បំបែកកំណត់ត្រារបស់អ្នក" },
+  "ui.games.catDesc.racing": { en: "Race against the clock and computer cars. Rewards steady, sustained speed.", km: "ប្រណាំងជាមួយពេលវេលា និងឡានកុំព្យូទ័រ។ ផ្តល់រង្វាន់ដល់ល្បឿនថេរ និងជាប់លាប់។" },
+  "ui.games.catDesc.survival": { en: "Hold off waves that get faster. Rewards calm accuracy under pressure.", km: "ទប់ទល់រលកសត្រូវដែលកាន់តែលឿន។ ផ្តល់រង្វាន់ដល់ភាពត្រឹមត្រូវ ពេលមានសម្ពាធ។" },
+  "ui.games.catDesc.battle": { en: "Type words to attack enemy ships and monsters with lasers, spells and power-ups. Rewards speed and quick reactions.", km: "វាយពាក្យដើម្បីវាយប្រហារយានសត្រូវ និងសត្វចម្លែក ដោយឡាស៊ែរ វេទមន្ត និងថាមពលពិសេស។ ផ្តល់រង្វាន់ដល់ល្បឿន និងប្រតិកម្មរហ័ស។" },
+  "ui.games.catDesc.adventure": { en: "Travel through levels by typing keys and words. Gentle pace, good for beginners.", km: "ធ្វើដំណើរឆ្លងកម្រិតនានាដោយវាយគ្រាប់ចុច និងពាក្យ។ ល្បឿនស្រាល ល្អសម្រាប់អ្នកចាប់ផ្តើម។" },
+  "ui.games.catDesc.skill": { en: "Short focused drills for letters, words and sentences.", km: "លំហាត់ខ្លីៗផ្តោតលើអក្សរ ពាក្យ និងប្រយោគ។" },
 } satisfies Dict;
 
 export default messages;

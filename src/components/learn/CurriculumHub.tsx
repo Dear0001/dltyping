@@ -101,7 +101,7 @@ function LevelCard({ xp, streak }: { xp: number; streak: number }) {
       </div>
       <div className="flex flex-wrap gap-2 border-t border-line pt-3">
         {signedIn
-          ? <Badge tone={streak ? "warning" : "neutral"} icon="flame">{streak ? t("learn.streakDays", { n: streak }).replace("🔥 ", "") : t("ui.learn.noStreak")}</Badge>
+          ? <Badge tone={streak ? "warning" : "neutral"} icon="flame">{streak ? t(streak === 1 ? "streak.ptsOne" : "streak.pts", { n: streak }) : t("ui.learn.noStreak")}</Badge>
           : <Link href="/learn#streak" className="text-xs font-semibold text-mute hover:text-brand">{t("learn.signInStreak")}</Link>}
       </div>
     </div>

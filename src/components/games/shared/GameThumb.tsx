@@ -1,18 +1,39 @@
 import type { GameId } from "@/data/games";
 
-/** Small original illustrations for the game cards. */
+/**
+ * Original illustration for a game card, with a shared lighting layer (top sheen, soft vignette and a
+ * bottom shade) so every thumbnail has the same depth and badges on top stay readable.
+ */
 export default function GameThumb({ id }: { id: GameId }) {
+  return <span className="relative block h-full w-full">
+    <Art id={id} />
+    <span aria-hidden="true" className="pointer-events-none absolute inset-0 bg-[radial-gradient(130%_100%_at_50%_0%,rgba(255,255,255,.14),transparent_45%)]" />
+    <span aria-hidden="true" className="pointer-events-none absolute inset-0 bg-[radial-gradient(120%_120%_at_50%_45%,transparent_58%,rgba(2,6,23,.38))]" />
+    <span aria-hidden="true" className="pointer-events-none absolute inset-x-0 bottom-0 h-1/3 bg-gradient-to-t from-slate-950/35 to-transparent" />
+  </span>;
+}
+
+function Art({ id }: { id: GameId }) {
   if (id === "space-shooter") {
     return <svg viewBox="0 0 320 160" className="h-full w-full" aria-hidden="true" preserveAspectRatio="xMidYMid slice">
-      {[[20, 20], [70, 60], [120, 14], [200, 40], [250, 90], [300, 24], [40, 120], [160, 70], [290, 140], [100, 100]].map(([x, y], i) => <circle key={i} cx={x} cy={y} r={i % 3 ? 1.2 : 2} fill="#fff" opacity=".8" />)}
-      <circle cx="276" cy="122" r="26" fill="#6366F1" opacity=".7" /><ellipse cx="276" cy="122" rx="44" ry="10" fill="none" stroke="#C4B5FD" strokeWidth="3" opacity=".7" transform="rotate(-20 276 122)" />
-      <g transform="translate(78 44)"><ellipse rx="20" ry="9" fill="#34D399" /><path d="M-9-3a9 8 0 0118 0z" fill="#A7F3D0" /></g>
-      <g transform="translate(222 34)"><path d="M0 18L16-10 0-4-16-10z" fill="#F87171" /></g>
-      <rect x="40" y="10" width="76" height="22" rx="11" fill="#0F172A" opacity=".85" /><text x="78" y="26" textAnchor="middle" fontSize="13" fontWeight="800" fill="#34D399">orb<tspan fill="#E2E8F0">it</tspan></text>
-      <rect x="186" y="62" width="76" height="22" rx="11" fill="#0F172A" opacity=".85" /><text x="224" y="78" textAnchor="middle" fontSize="13" fontWeight="800" fill="#E2E8F0">comet</text>
-      <path d="M160 128L84 50" stroke="#67E8F9" strokeWidth="3" strokeLinecap="round" strokeDasharray="10 8" />
-      <g transform="translate(160 132)"><path d="M0-22L7-5 20 9 7 8 4 13H-4L-7 8-20 9-7-5z" fill="#E2E8F0" stroke="#1E3A8A" strokeWidth="1.5" /><ellipse cy="-6" rx="3.5" ry="7" fill="#38BDF8" /><path d="M-5 13h10l-5 16z" fill="#7DD3FC" /></g>
-      <rect x="0" y="122" width="320" height="2" fill="#38BDF8" opacity=".5" />
+      {/* nebula */}
+      <ellipse cx="96" cy="48" rx="110" ry="46" fill="#A855F7" opacity=".18" /><ellipse cx="230" cy="70" rx="90" ry="40" fill="#22D3EE" opacity=".12" />
+      {[[20, 20], [70, 60], [120, 14], [200, 40], [250, 90], [300, 24], [40, 120], [160, 70], [290, 140], [100, 100], [180, 18], [12, 78], [312, 64], [140, 40], [232, 128], [60, 146]].map(([x, y], i) => <circle key={i} cx={x} cy={y} r={i % 4 ? 1.1 : 2} fill="#fff" opacity={i % 3 ? 0.55 : 0.9} />)}
+      <circle cx="282" cy="124" r="26" fill="#6366F1" opacity=".75" /><circle cx="274" cy="116" r="9" fill="#818CF8" opacity=".6" /><ellipse cx="282" cy="124" rx="44" ry="10" fill="none" stroke="#C4B5FD" strokeWidth="3" opacity=".7" transform="rotate(-20 282 124)" />
+      {/* scout + elite enemies with their words */}
+      <g transform="translate(78 50)"><ellipse rx="20" ry="9" fill="#34D399" /><path d="M-9-3a9 8 0 0118 0z" fill="#A7F3D0" /><circle cx="-10" cy="2" r="1.6" fill="#065F46" /><circle cx="0" cy="3" r="1.6" fill="#065F46" /><circle cx="10" cy="2" r="1.6" fill="#065F46" /></g>
+      <g transform="translate(232 40)"><path d="M0 18L16-10 0-4-16-10z" fill="#F87171" /><path d="M0 8L6-4 0-2-6-4z" fill="#FECACA" /></g>
+      <g transform="translate(176 24) scale(.7)" opacity=".85"><path d="M0-12 12 0 0 12-12 0z" fill="#E879F9" /><circle r="4" fill="#FDF4FF" /></g>
+      <rect x="40" y="14" width="76" height="22" rx="11" fill="#0F172A" opacity=".88" /><text x="78" y="30" textAnchor="middle" fontSize="13" fontWeight="800" fill="#34D399">orb<tspan fill="#E2E8F0">it</tspan></text>
+      <rect x="196" y="66" width="76" height="22" rx="11" fill="#0F172A" opacity=".88" /><text x="234" y="82" textAnchor="middle" fontSize="13" fontWeight="800" fill="#E2E8F0">comet</text>
+      {/* laser lock + hit flash */}
+      <path d="M160 116L84 58" stroke="#67E8F9" strokeWidth="6" strokeLinecap="round" opacity=".25" /><path d="M160 116L84 58" stroke="#E0F2FE" strokeWidth="2.2" strokeLinecap="round" />
+      <circle cx="84" cy="56" r="13" fill="#FDE68A" opacity=".35" /><circle cx="84" cy="56" r="6" fill="#FEF9C3" />
+      {/* power-up orb */}
+      <g transform="translate(120 96)"><circle r="9" fill="#38BDF8" opacity=".35" /><circle r="6" fill="#0EA5E9" /><path d="M-2-4h4l-2 3h3l-5 6 1-4h-3z" fill="#fff" /></g>
+      {/* player ship with engine glow */}
+      <g transform="translate(160 132)"><path d="M-6 13h12l-6 22z" fill="#FDE68A" opacity=".55" /><path d="M-4 13h8l-4 14z" fill="#7DD3FC" /><path d="M0-22L7-5 20 9 7 8 4 13H-4L-7 8-20 9-7-5z" fill="#E2E8F0" stroke="#1E3A8A" strokeWidth="1.5" /><ellipse cy="-6" rx="3.5" ry="7" fill="#38BDF8" /></g>
+      <rect x="0" y="122" width="320" height="2" fill="#38BDF8" opacity=".55" /><rect x="0" y="119" width="320" height="8" fill="#38BDF8" opacity=".08" />
     </svg>;
   }
   if (id === "car-racing") {

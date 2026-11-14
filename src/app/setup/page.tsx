@@ -2,7 +2,6 @@ import type { Metadata } from "next";
 
 import SetupForm from "@/components/setup/SetupForm";
 import { SetupHeading } from "@/components/setup/SetupHeader";
-import VirtualKeyboard from "@/components/keyboard/VirtualKeyboard";
 
 export const metadata: Metadata = {
   title: "Setup — DL Typing",
@@ -13,12 +12,9 @@ export const metadata: Metadata = {
 export default function SetupPage() {
   return (
     <main className="min-h-screen bg-surface text-navy">
-      <div className="mx-auto max-w-6xl px-5 py-10 sm:py-14">
+      <div className="mx-auto max-w-4xl px-4 py-8 sm:px-6 sm:py-12">
         <SetupHeading />
         <SetupForm />
-        <section className="mt-6">
-          <VirtualKeyboard language="english" languageSelectable />
-        </section>
       </div>
     </main>
   );

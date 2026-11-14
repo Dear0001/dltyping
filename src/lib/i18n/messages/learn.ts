@@ -19,7 +19,6 @@ const messages = {
   "learn.toNext": { en: " · {n} to next level", km: " · នៅសល់ {n} ដល់កម្រិតបន្ទាប់" },
   "learn.maxLevel": { en: " · Max level", km: " · កម្រិតខ្ពស់បំផុត" },
   "learn.signInStreak": { en: "🔒 Sign in to unlock streaks", km: "🔒 ចូលគណនីដើម្បីដោះសោថ្ងៃជាប់ៗគ្នា" },
-  "learn.streakDays": { en: "🔥 {n}-day streak", km: "🔥 {n} ថ្ងៃជាប់ៗគ្នា" },
   "learn.kicker": { en: "Structured Learning", km: "រៀនតាមលំដាប់លំដោយ" },
   "learn.title": { en: "Choose your learning path", km: "ជ្រើសរើសផ្លូវរៀនរបស់អ្នក" },
   "learn.subtitle": { en: "Each path has structured levels, guided lessons, and games that reinforce what you learn. Progress is saved automatically on this device.", km: "ផ្លូវរៀននីមួយៗមានកម្រិតតាមលំដាប់ មេរៀនដែលមានការណែនាំ និងហ្គេមជួយពង្រឹងអ្វីដែលអ្នករៀន។ វឌ្ឍនភាពត្រូវបានរក្សាទុកដោយស្វ័យប្រវត្តិក្នុងឧបករណ៍នេះ។" },

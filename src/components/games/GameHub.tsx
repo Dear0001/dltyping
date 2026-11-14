@@ -8,7 +8,8 @@ import { GAME_CATEGORIES, typingGames, type GameCategory, type GameId } from "@/
 import { useLocale } from "@/components/shared/LocaleProvider";
 import { useGameText } from "@/hooks/useGameText";
 import { useScores } from "@/hooks/use-stored-value";
-import { useTypingProgress } from "@/hooks/useTypingProgress";
+import { useNow, useTypingProgress } from "@/hooks/useTypingProgress";
+import { ENEMY_KINDS, POWER_KINDS, SPACE_MODES } from "@/lib/arcade/space";
 import { ARCADE_DIFFICULTIES, type ArcadeDifficulty } from "@/lib/arcade/difficulty";
 import { bestForGame } from "@/lib/local-progress";
 import { recommendGames } from "@/lib/game-recommendations";
@@ -20,12 +21,25 @@ type Filter<T extends string> = T | "all";
 /** The game highlighted at the top of the Game Center. */
 const FEATURED_ID: GameId = "space-shooter";
 const GAME_IDS = new Set<string>(typingGames.map((g) => g.id));
+/** What the featured game really contains, counted from its own definitions. */
+const FEATURED_FACTS = [
+  { icon: "👾", key: "ui.games.factEnemies", n: Object.keys(ENEMY_KINDS).length },
+  { icon: "⚡", key: "ui.games.factPowers", n: POWER_KINDS.length },
+  { icon: "🎮", key: "ui.games.factModes", n: SPACE_MODES.length },
+] as const;
+
+/** Whole calendar days between two times, in local time. */
+function daysBetween(now: number, at: number) {
+  const day = (ms: number) => { const d = new Date(ms); return Date.UTC(d.getFullYear(), d.getMonth(), d.getDate()) / 86_400_000; };
+  return Math.max(0, Math.round(day(now) - day(at)));
+}
 
 export default function GameHub() {
   const { t } = useLocale();
   const gt = useGameText();
   const scores = useScores();
   const { store, hydrated } = useTypingProgress();
+  const now = useNow();
   const [language, setLanguage] = useState<Filter<Language>>("all");
   const [difficulty, setDifficulty] = useState<Filter<ArcadeDifficulty>>("all");
   const [category, setCategory] = useState<Filter<GameCategory>>("all");
@@ -46,6 +60,10 @@ export default function GameHub() {
   const rec = hydrated ? recommendGames(store.sessions, typingGames) : null;
   const featured = typingGames.find((g) => g.id === FEATURED_ID)!;
   const featuredBest = hydrated ? bestForGame(scores, featured.id) : 0;
+  const when = (iso: string) => {
+    const n = now ? daysBetween(now, Date.parse(iso)) : -1;
+    return n < 0 ? "" : n === 0 ? t("km.last.today") : n === 1 ? t("km.last.yesterday") : t("km.last.daysAgo", { n });
+  };
   const categories = GAME_CATEGORIES.filter((c) => typingGames.some((g) => g.category === c));
   const entry = (id: string) => Object.entries(scores).filter(([k]) => k === id || k.startsWith(`${id}:`)).reduce((n, [, s]) => n + s.plays, 0);
 
@@ -67,9 +85,13 @@ export default function GameHub() {
           <dl className="flex flex-wrap gap-x-6 gap-y-2 text-sm">
             <div><dt className="text-xs font-semibold text-mute">{t("gamehub.skill").replace(/[:：៖]\s*$/, "")}</dt><dd className="font-bold">{gt.skill(featured)}</dd></div>
             <div><dt className="text-xs font-semibold text-mute">{t("gamehub.difficulty")}</dt><dd className="font-bold">{gt.difficulty(featured.difficulties[0])}–{gt.difficulty(featured.difficulties[featured.difficulties.length - 1])}</dd></div>
-            <div><dt className="text-xs font-semibold text-mute">{t("gamehub.best")}</dt><dd className="font-bold tabular-nums">{featuredBest > 0 ? featuredBest.toLocaleString("en-US") : "—"}</dd></div>
+            <div><dt className="text-xs font-semibold text-mute">{t("gamehub.best")}</dt><dd className="font-bold tabular-nums">{featuredBest > 0 ? featuredBest.toLocaleString("en-US") : t("ui.games.noBestYet")}</dd></div>
+            {hydrated && entry(featured.id) > 0 && <div><dt className="text-xs font-semibold text-mute">{t("ui.games.playsLabel")}</dt><dd className="font-bold tabular-nums">{entry(featured.id)}</dd></div>}
           </dl>
-          <div><Link href={featured.href} className={btn("primary", "lg")}>{t("gamehub.playNow")}</Link></div>
+          <ul className="flex flex-wrap gap-2" aria-label={t("ui.games.inside")}>
+            {FEATURED_FACTS.map((f) => <li key={f.key} className="inline-flex items-center gap-1.5 rounded-full bg-slate-100 px-3 py-1 text-xs font-bold text-navy"><span aria-hidden="true">{f.icon}</span>{t(f.key, { n: f.n })}</li>)}
+          </ul>
+          <div><Link href={featured.href} className={btn("primary", "lg")}><Icon name="play" size={18} />{featuredBest > 0 ? t("ui.games.beatBest") : t("gamehub.playNow")}</Link></div>
         </div>
       </section>
 
@@ -77,12 +99,12 @@ export default function GameHub() {
       {recent.length > 0 && <section className="mt-10" aria-labelledby="recent-heading">
         <h2 id="recent-heading" className="mb-3 text-lg font-extrabold tracking-tight">{t("ui.games.recent")}</h2>
         <ul className="grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
-          {recent.map(({ id }) => {
+          {recent.map(({ id, at }) => {
             const game = typingGames.find((g) => g.id === id)!;
             const best = bestForGame(scores, id);
             return <li key={id}><Link href={game.href} className={cx(cardClass, "flex items-center gap-3 p-2.5 pr-4 transition hover:-translate-y-0.5 hover:shadow-[var(--shadow-md)]")}>
               <span className={`relative aspect-video w-24 flex-none overflow-hidden rounded-lg bg-gradient-to-br ${game.gradient}`}><GameThumb id={id} /></span>
-              <span className="min-w-0"><span className="block truncate text-sm font-bold">{gt.title(game)}</span><span className="mt-0.5 flex items-center gap-1 text-xs text-mute"><Icon name="trophy" size={12} className="text-amber-500" />{best > 0 ? best.toLocaleString("en-US") : "—"}</span></span>
+              <span className="min-w-0"><span className="block truncate text-sm font-bold">{gt.title(game)}</span><span className="mt-0.5 flex items-center gap-1 text-xs text-mute"><Icon name="trophy" size={12} className="text-amber-500" />{best > 0 ? t("ui.games.bestN", { n: best.toLocaleString("en-US") }) : t("ui.games.noBestYet")}</span><span className="block text-[11px] text-mute">{when(at)}{when(at) && " · "}{t("ui.games.plays", { n: entry(id) })}</span></span>
             </Link></li>;
           })}
         </ul>
@@ -112,8 +134,10 @@ export default function GameHub() {
         <div className="mb-6 flex flex-wrap items-center gap-3">
           <div role="group" aria-label={t("gamehub.category")} className="-mx-1 flex max-w-full gap-1.5 overflow-x-auto px-1 pb-1">
             {([["all", t("gamehub.all")], ...categories.map((c) => [c, gt.category(c)])] as [Filter<GameCategory>, string][]).map(([value, label]) => (
-              <button key={value} type="button" aria-pressed={category === value} onClick={() => setCategory(value)}
-                className={cx("h-9 whitespace-nowrap rounded-full px-4 text-[13px] font-bold transition", category === value ? "bg-navy text-white" : "bg-card text-navy ring-1 ring-inset ring-line hover:ring-slate-300")}>{label}</button>
+              <button key={value} type="button" aria-pressed={category === value} onClick={() => setCategory(value)} title={value === "all" ? undefined : t(`ui.games.catDesc.${value}`)}
+                className={cx("h-9 whitespace-nowrap rounded-full px-4 text-[13px] font-bold transition", category === value ? "bg-navy text-white" : "bg-card text-navy ring-1 ring-inset ring-line hover:ring-slate-300")}>
+                {label} <span className={cx("ml-0.5 text-xs font-semibold tabular-nums", category === value ? "text-white/70" : "text-mute")}>{value === "all" ? typingGames.length : typingGames.filter((g) => g.category === value).length}</span>
+              </button>
             ))}
           </div>
           <div className="ml-auto flex flex-wrap items-center gap-2">
@@ -127,6 +151,7 @@ export default function GameHub() {
           </div>
         </div>
 
+        {category !== "all" && <p className="-mt-3 mb-5 flex items-center gap-2 text-sm text-mute"><Icon name="sparkle" size={15} className="text-brand" /><span><strong className="text-navy">{gt.category(category)}:</strong> {t(`ui.games.catDesc.${category}`)}</span></p>}
         {shown.length === 0
           ? <EmptyState icon="games" title={t("gamehub.emptyTitle")} text={t("gamehub.emptyText")} action={<button type="button" className={btn("primary")} onClick={reset}>{t("gamehub.clear")}</button>} />
           : <ul className="grid gap-5 sm:grid-cols-2 lg:grid-cols-3">

@@ -41,7 +41,7 @@ export default function GameCard({ game, best = 0, plays = 0, size = "md", prior
         <div className="mt-auto flex items-center justify-between gap-3 border-t border-line pt-3 text-xs">
           <span className="inline-flex items-center gap-1 font-semibold text-mute"><Icon name="bolt" size={14} />{range}</span>
           {best > 0
-            ? <span className="inline-flex items-center gap-1 font-bold text-navy" title={t("ui.games.plays", { n: plays })}><Icon name="trophy" size={14} className="text-amber-500" />{best.toLocaleString("en-US")}</span>
+            ? <span className="inline-flex items-center gap-1 font-bold text-navy" title={t("ui.games.plays", { n: plays })}><Icon name="trophy" size={14} className="text-amber-500" />{t("ui.games.bestN", { n: best.toLocaleString("en-US") })}</span>
             : <span className="font-semibold text-brand">{t("ui.games.playFree")}</span>}
         </div>
       </div>

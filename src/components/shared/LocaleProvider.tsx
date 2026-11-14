@@ -60,7 +60,7 @@ export function LocaleProvider({ children }: { children: ReactNode }) {
     // CSS for always-visible chrome (BiText) reads this; the pre-paint script sets it on refresh.
     if (locale === "km") root.setAttribute("data-locale", "km");
     else root.removeAttribute("data-locale");
-    document.title = locale === "km" ? "DL Typing — ហាត់វាយអក្សរខ្មែរ និងអង់គ្លេស" : "DL Typing — Find your typing rhythm";
+    // Tab titles come from each page's metadata; LocalizedTitle swaps in the Khmer version.
   }, [locale]);
 
   const setLocale = useCallback((nextLocale: AppLocale) => saveLocale(nextLocale), []);

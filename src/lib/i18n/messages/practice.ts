@@ -5,14 +5,7 @@ const messages = {
   "setup.kicker": { en: "YOUR PRACTICE, YOUR PACE", km: "ហាត់តាមល្បឿនរបស់អ្នក" },
   "setup.title": { en: "Set up your session.", km: "រៀបចំវគ្គហាត់របស់អ្នក។" },
   "setup.intro": { en: "Choose a language, a lesson, and how long you want to practice. No sign-up needed.", km: "ជ្រើសរើសភាសា មេរៀន និងរយៈពេលហាត់។ មិនចាំបាច់ចុះឈ្មោះទេ។" },
-  "setup.stepLanguage": { en: "01 · CHOOSE A LANGUAGE", km: "០១ · ជ្រើសរើសភាសា" },
-  "setup.stepLesson": { en: "02 · PICK A LESSON", km: "០២ · ជ្រើសរើសមេរៀន" },
-  "setup.stepTime": { en: "03 · SET YOUR SESSION LENGTH", km: "០៣ · កំណត់រយៈពេលហាត់" },
-  "setup.free": { en: "Free practice · no account required", km: "ហាត់ដោយឥតគិតថ្លៃ · មិនចាំបាច់មានគណនី" },
   "setup.start": { en: "Start typing", km: "ចាប់ផ្តើមវាយ" },
-  "setup.upNext": { en: "UP NEXT", km: "មេរៀនបន្ទាប់" },
-  "setup.loading": { en: "Loading your keyboard preview…", km: "កំពុងបើកប្លង់ក្តារចុច…" },
-  "setup.categoryLessons": { en: "starter lessons · open access", km: "មេរៀនដំបូង · អាចចូលហាត់បានដោយសេរី" },
   "setup.min": { en: "min", km: "នាទី" },
   "setup.seconds": { en: "seconds", km: "វិនាទី" },
   "setup.beginner": { en: "Beginner", km: "កម្រិតដំបូង" },
@@ -83,5 +76,6 @@ const messages = {
   "practice.errorsLabel": { en: "Errors", km: "កំហុស" },
   "practice.timeStat": { en: "Time", km: "ពេលវេលា" },
   "practice.secondsShort": { en: "{n}s", km: "{n}វិ" },
+  "practice.nextKey": { en: "Next key", km: "គ្រាប់បន្ទាប់" },
 } satisfies Dict;
 export default messages;

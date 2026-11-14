@@ -12,19 +12,20 @@ const FILTERS: [Filter, string][] = [["all", "act.all"], ["english", "category.e
 const matches = (s: SessionRecord, f: Filter) =>
   f === "all" || f === s.language || (f === "games" && isGame(s.activity)) || (f === "lessons" && !isGame(s.activity));
 
-function formatWhen(iso: string, t: (key: string, vars?: Record<string, string | number>) => string) {
+function formatWhen(iso: string, t: (key: string, vars?: Record<string, string | number>) => string, tag: string) {
   const d = new Date(iso);
-  const time = d.toLocaleTimeString("en-US", { hour: "numeric", minute: "2-digit" });
+  const time = d.toLocaleTimeString(tag, { hour: "numeric", minute: "2-digit" });
   const today = new Date();
   const yesterday = new Date(today.getFullYear(), today.getMonth(), today.getDate() - 1);
   if (d.toDateString() === today.toDateString()) return t("act.today", { time });
   if (d.toDateString() === yesterday.toDateString()) return t("act.yesterday", { time });
-  return `${d.toLocaleDateString("en-US", { month: "short", day: "numeric", year: d.getFullYear() === today.getFullYear() ? undefined : "numeric" })}, ${time}`;
+  return `${d.toLocaleDateString(tag, { month: "short", day: "numeric", year: d.getFullYear() === today.getFullYear() ? undefined : "numeric" })}, ${time}`;
 }
 
 /** Newest-first list of finished sessions. `sessions` must already be sorted. */
 export default function ActivityHistory({ sessions, pageSize = 8 }: { sessions: SessionRecord[]; pageSize?: number }) {
-  const { t } = useLocale();
+  const { t, locale } = useLocale();
+  const tag = locale === "km" ? "km-KH" : "en-US";
   const pt = useProgressText();
   const [filter, setFilter] = useState<Filter>("all");
   const [shown, setShown] = useState(pageSize);
@@ -56,7 +57,7 @@ export default function ActivityHistory({ sessions, pageSize = 8 }: { sessions: 
                 <div className="min-w-0 flex-1 basis-48">
                   <p className="truncate text-sm font-bold text-navy">{pt.describeSession(s)}</p>
                   <p className="truncate text-xs text-mute">
-                    {s.detail ? <>{s.detail} · </> : null}{formatWhen(s.completedAt, t)} · {formatDuration(s.durationSec)}
+                    {s.detail ? <>{s.detail} · </> : null}{formatWhen(s.completedAt, t, tag)} · {formatDuration(s.durationSec)}
                   </p>
                 </div>
                 <div className="flex flex-none flex-wrap items-center gap-2 text-xs">

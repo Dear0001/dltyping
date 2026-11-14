@@ -3,9 +3,10 @@ import type { Dict } from "../types";
 /** overview: each key carries both languages side by side. English is the reference; Khmer follows docs/khmer-glossary.md. */
 const messages = {
   "overview.badge": { en: "English & Khmer · Free · No sign-up", km: "អង់គ្លេស · ខ្មែរ · ឥតគិតថ្លៃ · មិនបាច់ចុះឈ្មោះ" },
-  "overview.heroPre": { en: "Learn to type faster in", km: "រៀនវាយអក្សរឱ្យលឿនជាភាសា" },
-  "overview.heroAnd": { en: "and", km: "និង" },
-  "overview.heroPost": { en: ".", km: "។" },
+  // One sentence per language; {en} and {km} mark the highlighted language names.
+  "overview.hero": { en: "Learn to type faster in {en} and {km}.", km: "រៀនវាយអក្សរឱ្យលឿនជា{en} និង{km}។" },
+  "overview.heroEn": { en: "English", km: "ភាសាអង់គ្លេស" },
+  "overview.heroKm": { en: "Khmer", km: "ភាសាខ្មែរ" },
   "overview.heroText": { en: "Guided lessons, typing games and live speed and accuracy feedback. Free, and no account needed.", km: "មេរៀនមានការណែនាំ ហ្គេមវាយអក្សរ និងការវាយតម្លៃល្បឿន និងភាពត្រឹមត្រូវភ្លាមៗ។ ឥតគិតថ្លៃ ហើយមិនបាច់មានគណនីទេ។" },
   "overview.ctaStart": { en: "Start learning to type", km: "ចាប់ផ្តើមរៀនវាយអក្សរ" },
   "overview.ctaQuick": { en: "Try quick practice", km: "សាកល្បងហាត់វាយរហ័ស" },

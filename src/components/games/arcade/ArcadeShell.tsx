@@ -5,9 +5,10 @@ import { useCallback, useEffect, useRef, useState, useSyncExternalStore } from "
 import VirtualKeyboard from "@/components/keyboard/VirtualKeyboard";
 import GameControls from "@/components/games/shared/GameControls";
 import { primaryBtn, secondaryBtn } from "@/components/games/shared/GameDialog";
-import GameInstructions, { type Instruction } from "@/components/games/shared/GameInstructions";
+import type { Instruction } from "@/components/games/shared/GameInstructions";
+import { ResultTile, Tutorial } from "@/components/games/arcade/ArcadeParts";
 import GameLayout from "@/components/games/shared/GameLayout";
-import GameResults, { type ResultRow } from "@/components/games/shared/GameResults";
+import GameResults, { ResultGrid, type ResultRow } from "@/components/games/shared/GameResults";
 import GameThumb from "@/components/games/shared/GameThumb";
 import { LanguageSelector, Segmented } from "@/components/games/shared/Selectors";
 import { useLocale } from "@/components/shared/LocaleProvider";
@@ -64,6 +65,15 @@ export type ArcadeShellProps = {
   /** Ends the run early and shows its results. */
   onQuit: () => void;
   keyboard: { expected: string | null; onChar: (char: string) => void; onBackspace: () => void };
+  /** Reference material under the controls (e.g. expandable enemy and power-up lists). */
+  guide?: React.ReactNode;
+  /** Live stats shown on the pause menu. */
+  pauseStats?: { label: string; value: React.ReactNode }[];
+  /**
+   * Headline numbers for the game-over screen, shown as large tiles (XP is added automatically).
+   * When given, the full `resultRows` list moves into an expandable "All statistics" section.
+   */
+  resultHighlights?: (ResultRow & { icon?: string })[];
 };
 
 /**
@@ -199,11 +209,12 @@ export default function ArcadeShell(props: ArcadeShellProps) {
         <div className="space-y-5">
           <section className={card} aria-labelledby="arc-how">
             <h2 id="arc-how" className={heading}>{t("gm.howToPlay")}</h2>
-            <GameInstructions steps={props.howTo} firstTime={!seen[game]} />
+            <Tutorial steps={props.howTo} firstTime={!seen[game]} />
             <h3 className="mb-2 mt-4 text-xs font-bold uppercase tracking-wider text-mute">{t("arc.controls")}</h3>
             <ul className="space-y-1.5 text-sm text-slate-600">
               {props.controls.map((c) => <li key={c.keys} className="flex items-start gap-2"><kbd className="flex-none rounded-md border border-slate-300 bg-slate-50 px-2 py-0.5 text-xs font-bold text-navy">{c.keys}</kbd><span>{c.text}</span></li>)}
             </ul>
+            {props.guide && <div className="mt-4 space-y-2">{props.guide}</div>}
           </section>
         </div>
       </div>
@@ -266,13 +277,17 @@ export default function ArcadeShell(props: ArcadeShellProps) {
         <div className={`arc-stage relative ${props.stageClass ?? ""}`}>
           {props.canvas}
           {phase === "countdown" && <div className="absolute inset-0 grid place-items-center bg-slate-900/35" aria-live="assertive">
+            {session.resuming && <span className="absolute top-[22%] rounded-full bg-black/40 px-3 py-1 text-sm font-bold text-sky-200">{t("arc.resuming")}</span>}
             <span key={session.count} className="gm-pop text-7xl font-extrabold text-white drop-shadow-lg sm:text-9xl">{session.count > 0 ? session.count : t("arc.go")}</span>
           </div>}
           {phase === "paused" && <div className="absolute inset-0 grid place-items-center overflow-y-auto bg-slate-900/80 p-4" role="dialog" aria-modal="true" aria-labelledby="arc-paused">
             <div className="w-full max-w-xs space-y-2 text-center">
               <h2 id="arc-paused" className="text-2xl font-extrabold">⏸️ {t("gm.paused")}</h2>
               <p className="pb-2 text-sm text-slate-300">{t("gm.pausedSub")}</p>
-              <button type="button" autoFocus className={`${primaryBtn} w-full`} onClick={session.resume}>{t("gm.resume")}</button>
+              {props.pauseStats && <dl className="mb-2 grid grid-cols-2 gap-1.5 text-left">
+                {props.pauseStats.map((stat) => <div key={stat.label} className="rounded-xl bg-white/10 px-3 py-1.5"><dt className="truncate text-[10px] font-bold text-slate-300">{stat.label}</dt><dd className="text-base font-extrabold tabular-nums">{stat.value}</dd></div>)}
+              </dl>}
+              <button type="button" autoFocus className={`${primaryBtn} w-full`} onClick={session.resume}>{t("gm.resume")} <kbd className="ml-1 rounded bg-black/20 px-1.5 text-[10px]">Esc</kbd></button>
               <button type="button" className={`${secondaryBtn} w-full`} onClick={props.onStart}>{t("gm.restart")}</button>
               <button type="button" className={`${secondaryBtn} w-full`} onClick={props.onQuit}>{t("arc.endRun")}</button>
             </div>
@@ -298,8 +313,23 @@ export default function ArcadeShell(props: ArcadeShellProps) {
       </div>
       {report
         ? <div className="space-y-4">
-            <GameResults rows={props.resultRows} newBest={report.newBest} best={report.setupBest} />
-            {props.resultExtra}
+            {props.resultHighlights
+              ? <>
+                  <div className="grid grid-cols-2 gap-2 sm:grid-cols-3">
+                    {props.resultHighlights.map((row) => <ResultTile key={row.label} {...row} />)}
+                    <ResultTile label={t("arc.xpEarned")} value={`+${report.outcome.xpGained}`} icon="⭐" tone="good" />
+                  </div>
+                  <GameResults rows={[]} newBest={report.newBest} best={report.setupBest} />
+                  {props.resultExtra}
+                  <details className="group rounded-2xl border border-slate-200 p-3">
+                    <summary className="flex cursor-pointer list-none items-center justify-between text-sm font-bold text-navy">{t("arc.allStats")}<span className="text-mute transition group-open:rotate-180" aria-hidden="true">⌄</span></summary>
+                    <div className="mt-3"><ResultGrid rows={props.resultRows} /></div>
+                  </details>
+                </>
+              : <>
+                  <GameResults rows={props.resultRows} newBest={report.newBest} best={report.setupBest} />
+                  {props.resultExtra}
+                </>}
             <div className="rounded-2xl bg-slate-50 p-4 text-sm">
               <h2 className="mb-2 text-xs font-bold uppercase tracking-wider text-mute">{t("arc.scoreBreakdown")}</h2>
               <dl className="grid grid-cols-2 gap-x-4 gap-y-1 tabular-nums">

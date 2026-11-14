@@ -2,7 +2,7 @@
 
 import { useRef, useState } from "react";
 import ArcadeShell from "@/components/games/arcade/ArcadeShell";
-import { Chip, formatTime, Meter, OptionPicker, TypeLine } from "@/components/games/arcade/ArcadeParts";
+import { Chip, formatTime, TypeLine } from "@/components/games/arcade/ArcadeParts";
 import { burst, floatText, ring, setTimer, shoot, showBanner } from "@/components/games/arcade/canvas-utils";
 import { Segmented } from "@/components/games/shared/Selectors";
 import { useLocale } from "@/components/shared/LocaleProvider";
@@ -225,37 +225,61 @@ export default function SpaceShooterGame() {
     game={GAME} icon="🚀" music="space" session={session} difficulty={difficulty} onDifficulty={pick("space.difficulty")} runLanguage={hud.language} starting={starting}
     variant={`${GAME}:${language}:${difficulty}:${mode}`}
     howTo={STEP_ICONS.map((icon, i) => ({ icon, title: t(`ss.s${i + 1}t`), text: t(`ss.s${i + 1}`) }))}
-    controls={[{ keys: t("arc.keyLetters"), text: t("ss.c1") }, { keys: "Backspace", text: t("ss.c2") }, { keys: "1 · 2 · 3", text: t("ss.c3") }, { keys: "Enter", text: t("ss.c3") }, { keys: "Esc", text: t("arc.keyPause") }]}
+    controls={[{ keys: t("arc.keyLetters"), text: t("ss.c1") }, { keys: "Backspace", text: t("ss.c2") }, { keys: "1 · 2 · 3", text: t("ss.c3") }, { keys: "Enter", text: t("ss.cEnter") }, { keys: "Esc", text: t("arc.keyPause") }]}
     options={<>
       <div>
         <div className="mb-1.5 text-xs font-bold uppercase tracking-wider text-mute" id="ss-mode">{t("ss.mode")}</div>
-        <div role="radiogroup" aria-labelledby="ss-mode" className="grid gap-2 sm:grid-cols-2">
+        <div role="radiogroup" aria-labelledby="ss-mode" className="grid grid-cols-2 gap-1.5">
           {SPACE_MODES.map((m) => <button key={m} type="button" role="radio" aria-checked={m === mode} onClick={() => pick("space.mode")(m)}
-            className={`rounded-xl border-2 px-3 py-2 text-left transition focus-visible:outline-2 focus-visible:outline-brand ${m === mode ? "border-brand bg-blue-50" : "border-slate-200 bg-white hover:border-brand"}`}>
-            <span className={`block text-sm font-bold ${m === mode ? "text-brand" : "text-navy"}`}><span aria-hidden="true">{MODE_ICONS[m]} </span>{t(`ss.mode.${m}`)}</span>
-            <span className="block text-xs text-mute">{t(`ss.mode.${m}.d`)}</span>
+            className={`flex min-w-0 items-center gap-2 rounded-xl border-2 px-3 py-2 text-left text-sm font-bold leading-tight transition focus-visible:outline-2 focus-visible:outline-brand ${m === mode ? "border-brand bg-blue-50 text-brand" : "border-slate-200 bg-white text-navy hover:border-brand"}`}>
+            <span aria-hidden="true">{MODE_ICONS[m]}</span><span>{t(`ss.mode.${m}`)}</span>
           </button>)}
         </div>
+        <p className="mt-1.5 text-xs text-mute">{t(`ss.mode.${mode}.d`)}</p>
       </div>
       {mode === "time" && <Segmented label={t("ss.timeLimit")} value={timeLimit} onChange={pick("space.time")} options={TIME_LIMITS.map((s) => ({ value: s as number, label: t("ss.nMin", { n: s / 60 }) }))} />}
       {mode === "waves" && <Segmented label={t("ss.waveTarget")} value={waveTarget} onChange={pick("space.waves")} options={WAVE_TARGETS.map((n) => ({ value: n as number, label: t("ss.nWaves", { n }) }))} />}
-      <OptionPicker label={t("ss.topic")} value={topic} onChange={pick("space.topic")} columns={4} options={SPACE_TOPICS.map((id) => ({ id, label: t(`ss.topic.${id}`), preview: <span className="text-xl" aria-hidden="true">{TOPIC_ICONS[id]}</span> }))} />
-      <details className="rounded-2xl border border-slate-200 p-3 text-xs text-slate-600">
-        <summary className="cursor-pointer text-sm font-bold text-navy">{t("ss.enemy.boss")} · {t("ss.powers")}</summary>
+      <div>
+        <div className="mb-1.5 text-xs font-bold uppercase tracking-wider text-mute" id="ss-topic">{t("ss.topic")}</div>
+        <div role="radiogroup" aria-labelledby="ss-topic" className="grid grid-cols-2 gap-1.5">
+          {SPACE_TOPICS.map((id) => <button key={id} type="button" role="radio" aria-checked={id === topic} onClick={() => pick("space.topic")(id)}
+            className={`flex min-w-0 items-center gap-2 rounded-xl border-2 px-3 py-2 text-left text-sm font-bold leading-tight transition focus-visible:outline-2 focus-visible:outline-brand ${id === topic ? "border-brand bg-blue-50 text-brand" : "border-slate-200 bg-white text-navy hover:border-brand"}`}>
+            <span className="text-lg" aria-hidden="true">{TOPIC_ICONS[id]}</span><span>{t(`ss.topic.${id}`)}</span>
+          </button>)}
+        </div>
+      </div>
+    </>}
+    guide={<>
+      <details className="group rounded-2xl border border-slate-200 p-3 text-xs text-slate-600">
+        <summary className="flex cursor-pointer list-none items-center justify-between text-sm font-bold text-navy">
+          <span><span aria-hidden="true">👾 </span>{t("ss.enemyGuide", { n: Object.keys(ENEMY_KINDS).length })}</span><span className="text-mute transition group-open:rotate-180" aria-hidden="true">⌄</span>
+        </summary>
         <ul className="mt-2 grid gap-1.5 sm:grid-cols-2">
-          {(Object.keys(ENEMY_KINDS) as EnemyKind[]).map((k) => <li key={k} className="rounded-xl bg-slate-50 px-2.5 py-2"><strong className="block text-navy"><span aria-hidden="true">{ENEMY_ICONS[k]} </span>{t(`ss.enemy.${k}`)}</strong>{t(`ss.enemy.${k}.d`)}</li>)}
+          {(Object.keys(ENEMY_KINDS) as EnemyKind[]).map((k) => <li key={k} className="flex gap-2 rounded-xl bg-slate-50 px-2.5 py-2"><span className="text-lg" aria-hidden="true">{ENEMY_ICONS[k]}</span><span><strong className="block text-navy">{t(`ss.enemy.${k}`)}</strong>{t(`ss.enemy.${k}.d`)}</span></li>)}
         </ul>
+      </details>
+      <details className="group rounded-2xl border border-slate-200 p-3 text-xs text-slate-600">
+        <summary className="flex cursor-pointer list-none items-center justify-between text-sm font-bold text-navy">
+          <span><span aria-hidden="true">⚡ </span>{t("ss.powerGuide", { n: POWER_KINDS.length })}</span><span className="text-mute transition group-open:rotate-180" aria-hidden="true">⌄</span>
+        </summary>
+        <p className="mt-2">{t("ss.noPowers")}</p>
         <ul className="mt-2 grid gap-1.5 sm:grid-cols-2">
-          {POWER_KINDS.map((k) => <li key={k} className="rounded-xl bg-blue-50 px-2.5 py-2"><strong className="block text-navy"><span aria-hidden="true">{POWER_ICONS[k]} </span>{t(`ss.power.${k}`)}</strong>{t(`ss.power.${k}.d`)}</li>)}
+          {POWER_KINDS.map((k) => <li key={k} className="flex gap-2 rounded-xl bg-blue-50 px-2.5 py-2"><span className="text-lg" aria-hidden="true">{POWER_ICONS[k]}</span><span><strong className="block text-navy">{t(`ss.power.${k}`)}</strong>{t(`ss.power.${k}.d`)}</span></li>)}
         </ul>
       </details>
     </>}
     hud={<>
       <Chip label={t("gm.score")} value={hud.points.toLocaleString("en-US")} />
-      <Chip label={t("ss.wave")} value={hud.wave ? (last ? `${hud.wave}/${last}` : hud.wave) : "—"} tone={hud.boss ? "gold" : "default"} />
-      <Chip label={`♥ ${t("ss.health")}`} value={`${hud.hp}`} tone={hud.hp <= hud.maxHp * 0.3 ? "bad" : "good"} />
+      <Chip label={hud.boss ? `🚀 ${t("ss.bossWave")}` : t("ss.wave")} value={hud.wave ? (last ? `${hud.wave}/${last}` : hud.wave) : "—"} tone={hud.boss ? "gold" : "default"} />
+      <div className={`min-w-0 rounded-xl px-2.5 py-1.5 sm:px-3 ${hud.hp <= hud.maxHp * 0.25 ? "arc-pulse bg-red-500/25" : "bg-white/10"}`}>
+        <div className="flex justify-between gap-1 text-[10px] font-semibold uppercase tracking-wider text-slate-300"><span className="truncate">♥ {t("ss.health")}</span>{hud.shieldMs > 0 && <span aria-label={t("ss.power.shield")}>🛡️</span>}</div>
+        <div className="flex items-baseline gap-1"><span className={`text-base font-extrabold tabular-nums sm:text-lg ${hud.hp <= hud.maxHp * 0.3 ? "text-red-300" : "text-emerald-300"}`}>{hud.hp}</span><span className="text-[10px] text-slate-400">/{hud.maxHp}</span></div>
+        <div className="mt-0.5 h-1.5 overflow-hidden rounded-full bg-white/15" role="progressbar" aria-label={t("ss.health")} aria-valuenow={hud.hp} aria-valuemin={0} aria-valuemax={hud.maxHp}>
+          <div className="h-full rounded-full transition-[width] duration-150" style={{ width: `${Math.max(0, Math.min(100, (hud.hp / hud.maxHp) * 100))}%`, background: hud.hp > hud.maxHp * 0.5 ? "#22c55e" : hud.hp > hud.maxHp * 0.25 ? "#f59e0b" : "#ef4444" }} />
+        </div>
+      </div>
       <Chip label={hud.timeLeft !== null ? t("ss.timeLeft") : t("gm.time")} value={formatTime(hud.timeLeft ?? hud.timeMs)} tone={hud.timeLeft !== null && hud.timeLeft < 10000 ? "bad" : "default"} />
-      <Chip label={t("gm.combo")} value={hud.combo} tone={hud.combo >= 10 ? "gold" : hud.combo >= 5 ? "good" : "default"} />
+      <Chip label={t("gm.combo")} value={hud.combo >= 5 ? `🔥 ×${hud.combo}` : `×${hud.combo}`} tone={hud.combo >= 10 ? "gold" : hud.combo >= 5 ? "good" : "default"} />
       <Chip label={t("ss.destroyed")} value={hud.kills} />
     </>}
     canvas={<canvas ref={attachCanvas} className="block h-full w-full" role="img" aria-label={t("ss.canvas")} />}
@@ -278,7 +302,7 @@ export default function SpaceShooterGame() {
           {Array.from({ length: MAX_POWERS }, (_, slot) => {
             const kind = hud.powers[slot];
             return <button key={slot} type="button" disabled={!kind || session.phase !== "playing"} onClick={() => firePower(slot)} title={kind ? t(`ss.power.${kind}.d`) : t("ss.noPowers")} aria-label={kind ? `${slot + 1}: ${t(`ss.power.${kind}`)}` : `${slot + 1}: ${t("ss.noPowers")}`}
-              className={`flex min-w-0 flex-col items-center justify-center gap-0.5 rounded-xl border px-1.5 py-1.5 text-[11px] font-bold leading-tight transition ${kind ? "border-sky-400/60 bg-sky-500/15 text-white hover:bg-sky-500/30" : "border-white/10 bg-white/5 text-slate-500"}`}>
+              className={`flex min-w-0 flex-col items-center justify-center gap-0.5 rounded-xl border px-1.5 py-1.5 text-[11px] font-bold leading-tight transition ${kind ? "border-sky-400/70 bg-sky-500/20 text-white shadow-[0_0_12px_rgba(56,189,248,.35)] hover:bg-sky-500/35" : "border-dashed border-white/15 bg-white/5 text-slate-500"}`}>
               <span className="flex items-center gap-1"><kbd className="rounded bg-black/40 px-1.5 text-[10px]">{slot + 1}</kbd><span aria-hidden="true">{kind ? POWER_ICONS[kind] : "·"}</span></span>
               <span className="max-w-full truncate">{kind ? t(`ss.power.${kind}`) : "—"}</span>
             </button>;
@@ -286,13 +310,27 @@ export default function SpaceShooterGame() {
         </div>
       </div>
       <div className="flex flex-wrap items-center gap-x-3 gap-y-1.5">
-        <div className="min-w-40 flex-1"><Meter label={`♥ ${t("ss.health")}`} value={hud.hp / hud.maxHp} text={`${hud.hp}/${hud.maxHp}`} color={hud.hp > hud.maxHp * 0.5 ? "#22c55e" : hud.hp > hud.maxHp * 0.25 ? "#f59e0b" : "#ef4444"} pulse={hud.hp <= hud.maxHp * 0.25} /></div>
         {effects.map(([kind, ms]) => <span key={kind} className="rounded-full bg-white/10 px-2.5 py-1 text-xs font-bold text-sky-200">{POWER_ICONS[kind]} {t(`ss.power.${kind}`)} {(ms / 1000).toFixed(1)}s
           <span className="mt-1 block h-1 overflow-hidden rounded-full bg-white/15"><span className="block h-full bg-sky-300" style={{ width: `${(ms / POWER_MS[kind]) * 100}%` }} /></span></span>)}
-        <span className="text-xs font-semibold tabular-nums text-slate-300">{hud.wpm} WPM · {hud.accuracy}%</span>
+        <span className="ml-auto rounded-full bg-white/10 px-2.5 py-1 text-xs font-bold tabular-nums text-slate-200">{hud.wpm} WPM · {hud.accuracy}%</span>
         {hud.powers.length === 0 && <span className="w-full text-[11px] text-slate-400">{t("ss.noPowers")}</span>}
       </div>
     </div>}
+    pauseStats={[
+      { label: t("gm.score"), value: hud.points.toLocaleString("en-US") },
+      { label: t("ss.wave"), value: hud.wave ? (last ? `${hud.wave}/${last}` : hud.wave) : "—" },
+      { label: "WPM", value: hud.wpm },
+      { label: t("gm.accuracy"), value: `${hud.accuracy}%` },
+      { label: t("ss.shipsDestroyed"), value: hud.kills },
+      { label: t("ss.health"), value: `${hud.hp}/${hud.maxHp}` },
+    ]}
+    resultHighlights={outcome ? [
+      { label: t("arc.finalScore"), value: outcome.score.total.toLocaleString("en-US"), icon: "🏆", tone: "brand" },
+      { label: t("ss.shipsDestroyed"), value: outcome.kills, icon: "💥", tone: "good" },
+      { label: "WPM", value: outcome.wpm, icon: "⚡", tone: "brand" },
+      { label: t("gm.accuracy"), value: `${outcome.accuracy}%`, icon: "🎯", tone: outcome.accuracy >= 95 ? "good" : outcome.accuracy < 80 ? "bad" : "default" },
+      { label: t("ss.waveReached"), value: outcome.wave, icon: "🌊" },
+    ] : undefined}
     report={report}
     resultIcon={result?.won ? "🏆" : outcome && outcome.hpLeft <= 0 ? "💥" : "🛰️"}
     resultTitle={result?.won ? (mode === "time" ? t("ss.timeWin") : t("ss.victory")) : outcome && outcome.hpLeft <= 0 ? t("ss.lost") : t("ss.ended")}

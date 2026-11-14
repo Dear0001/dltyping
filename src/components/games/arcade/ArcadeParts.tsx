@@ -1,5 +1,8 @@
 "use client";
 
+import { useState } from "react";
+import type { Instruction } from "@/components/games/shared/GameInstructions";
+import { useLocale } from "@/components/shared/LocaleProvider";
 import type { CharView } from "@/lib/typing-engine";
 
 /** Compact stat for the in-game HUD (dark frame). */
@@ -74,4 +77,45 @@ export function OptionPicker({ label, value, options, onChange, columns = 3 }: {
 export function formatTime(ms: number) {
   const tenths = Math.floor(Math.max(0, ms) / 100);
   return `${Math.floor(tenths / 600)}:${String(Math.floor(tenths / 10) % 60).padStart(2, "0")}.${tenths % 10}`;
+}
+
+/** Visual step-by-step tutorial: one big illustrated step at a time, with dots and Back/Next. */
+export function Tutorial({ steps, firstTime = false }: { steps: Instruction[]; firstTime?: boolean }) {
+  const { t } = useLocale();
+  const [index, setIndex] = useState(0);
+  const step = steps[index];
+  const last = index === steps.length - 1;
+  if (!step) return null;
+  const nav = "grid h-8 min-w-8 place-items-center rounded-lg px-2.5 text-xs font-bold transition focus-visible:outline-2 focus-visible:outline-brand disabled:opacity-35";
+  return <div>
+    {firstTime && <p className="mb-2 inline-flex rounded-full bg-amber-100 px-2.5 py-0.5 text-xs font-bold text-amber-800">{t("gm.newHere")}</p>}
+    <div className="relative flex min-h-36 items-center gap-4 overflow-hidden rounded-2xl bg-gradient-to-br from-slate-900 via-indigo-950 to-slate-900 p-5 text-white" aria-live="polite">
+      <span aria-hidden="true" className="pointer-events-none absolute -right-6 -top-6 h-28 w-28 rounded-full bg-sky-400/10" />
+      <span key={index} className="gm-pop grid h-16 w-16 flex-none place-items-center rounded-2xl bg-white/10 text-4xl shadow-inner" aria-hidden="true">{step.icon}</span>
+      <div className="min-w-0">
+        <p className="text-[11px] font-bold text-sky-300">{t("arc.stepOf", { n: index + 1, total: steps.length })}</p>
+        <h3 className="mt-0.5 text-base font-extrabold">{step.title}</h3>
+        <p className="mt-1 text-sm leading-relaxed text-slate-300">{step.text}</p>
+      </div>
+    </div>
+    <div className="mt-2.5 flex items-center justify-between gap-2">
+      <div className="flex gap-1.5">
+        {steps.map((s, i) => <button key={i} type="button" onClick={() => setIndex(i)} aria-label={`${i + 1}. ${s.title}`} aria-current={i === index ? "step" : undefined}
+          className={`h-2.5 rounded-full transition-all ${i === index ? "w-6 bg-brand" : "w-2.5 bg-slate-300 hover:bg-slate-400"}`} />)}
+      </div>
+      <div className="flex gap-1.5">
+        <button type="button" className={`${nav} bg-slate-100 text-navy hover:bg-slate-200`} disabled={index === 0} onClick={() => setIndex(index - 1)} aria-label={t("arc.prevStep")}>←</button>
+        <button type="button" className={`${nav} bg-brand text-white hover:bg-blue-700`} onClick={() => setIndex(last ? 0 : index + 1)}>{last ? t("arc.restartTutorial") : t("arc.nextStep")}</button>
+      </div>
+    </div>
+  </div>;
+}
+
+/** Large result tile for the game-over headline (score, WPM, accuracy…). */
+export function ResultTile({ label, value, icon, tone = "default" }: { label: string; value: React.ReactNode; icon?: string; tone?: "default" | "good" | "bad" | "brand" }) {
+  const color = tone === "good" ? "text-good" : tone === "bad" ? "text-bad" : tone === "brand" ? "text-brand" : "text-navy";
+  return <div className="min-w-0 rounded-2xl border border-slate-200 bg-white px-3 py-3 text-center shadow-sm">
+    <div className="truncate text-[11px] font-bold text-mute">{icon && <span aria-hidden="true">{icon} </span>}{label}</div>
+    <div className={`mt-0.5 truncate text-2xl font-extrabold tabular-nums ${color}`}>{value}</div>
+  </div>;
 }

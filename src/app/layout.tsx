@@ -8,6 +8,7 @@ import ProgressSync from "@/components/shared/ProgressSync";
 import PetCompanion from "@/components/pets/PetCompanion";
 import PetRewards from "@/components/pets/PetRewards";
 import StreakCelebration from "@/components/shared/StreakCelebration";
+import LocalizedTitle from "@/components/shared/LocalizedTitle";
 import { THEME_LABEL_CSS } from "@/lib/themes";
 import { NAV_ACTIVE_SCRIPT, PREPAINT_SCRIPT } from "@/lib/prepaint";
 import GoogleAnalytics from "@/components/shared/GoogleAnalytics";
@@ -38,7 +39,7 @@ export default function RootLayout({ children }: LayoutProps<"/">) {
   return (
     <html lang="en" data-scroll-behavior="smooth" className={poppins.variable} suppressHydrationWarning>
       <head><script dangerouslySetInnerHTML={{ __html: PREPAINT_SCRIPT }} /><style dangerouslySetInnerHTML={{ __html: THEME_LABEL_CSS }} /></head>
-      <body id="top" suppressHydrationWarning><LocaleProvider><SiteHeader /><script dangerouslySetInnerHTML={{ __html: NAV_ACTIVE_SCRIPT }} />{children}<SiteFooter /><ProgressSync /><Suspense fallback={null}><PetCompanion /></Suspense><PetRewards /><StreakCelebration /></LocaleProvider><GoogleAnalytics /></body>
+      <body id="top" suppressHydrationWarning><LocaleProvider><SiteHeader /><script dangerouslySetInnerHTML={{ __html: NAV_ACTIVE_SCRIPT }} />{children}<SiteFooter /><ProgressSync /><Suspense fallback={null}><PetCompanion /></Suspense><PetRewards /><StreakCelebration /><Suspense fallback={null}><LocalizedTitle /></Suspense></LocaleProvider><GoogleAnalytics /></body>
     </html>
   );
 }

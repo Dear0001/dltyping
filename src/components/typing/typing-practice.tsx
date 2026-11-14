@@ -19,6 +19,8 @@ import PracticeResults, { type PracticeResult } from "@/components/typing/Practi
 import { useKeyStatBook } from "@/hooks/useKeyStatBook";
 import { flushSession, recordKeystrokes, weakKeys, type KeyStats } from "@/lib/keyboard/key-stats";
 import { findKeyFor } from "@/lib/keyboard/keyboard-mapping";
+import { describeGuidance, guidanceFor } from "@/lib/keyboard/typing-guidance";
+import { colorOfFinger } from "@/lib/keyboard/finger-mapping";
 import { useActivityRecorder } from "@/hooks/useActivityRecorder";
 import { useAutoPause, useTicker } from "@/hooks/use-ticker";
 import { useStoredValue } from "@/hooks/use-stored-value";
@@ -44,7 +46,7 @@ const countMatches = (typed: readonly string[], goal: readonly string[]) => type
 const wpmFor = (correct: number, ms: number) => Math.round(correct / 5 / (Math.max(ms, 1000) / 60000));
 
 export default function TypingPractice({ language, platform = "Unknown", initialLessonId, timeLimit: initialTimeLimit = 60, initialDrill = null, initialArticle = null }: TypingPracticeProps) {
-  const { t } = useLocale();
+  const { t, locale } = useLocale();
   const ct = useCurriculumText();
   const list = lessons[language];
   const [lessonId, setLessonId] = useState(() => list.find((item) => item.id === initialLessonId)?.id ?? list[0].id);
@@ -104,6 +106,8 @@ export default function TypingPractice({ language, platform = "Unknown", initial
   const lessonIndex = list.findIndex((item) => item.id === lessonId);
   const nextLesson = list[lessonIndex + 1];
   const nextCharacter = goal[typedLength] ?? "";
+  // Next key + finger, shown under the text so guidance stays visible even with the keyboard hidden.
+  const nextGuide = useMemo(() => guidanceFor(language, nextCharacter || null), [language, nextCharacter]);
   const cursorIndex = views.findIndex((v) => v.state === "current" || v.state === "partial");
 
   useEffect(() => () => {
@@ -416,6 +420,11 @@ export default function TypingPractice({ language, platform = "Unknown", initial
             {!paused && !focused && !done && <button type="button" className="tp-unfocused" onClick={() => inputRef.current?.focus()}><Icon name="keyboard" size={18} />{t(typedLength ? "results.clickToContinue" : "results.clickToStart")}</button>}
           </div>
           <div className="tp-card-foot">
+            {nextGuide && !done && !paused
+              ? <span className="tp-next" style={{ "--finger": colorOfFinger(nextGuide.finger) } as React.CSSProperties}>
+                  <i aria-hidden="true" />{t("practice.nextKey")} <kbd>{nextGuide.shift ? "Shift + " : ""}{nextGuide.keyName}</kbd><span className="tp-next-finger">{describeGuidance(nextGuide, locale === "km" ? "km" : "en", "short").split(" · ").slice(1).join(" · ")}</span>
+                </span>
+              : null}
             <span className="tp-hint"><kbd>tab</kbd> + <kbd>enter</kbd> {t("practice.restartHint")} · <kbd>esc</kbd> {t("practice.pause")}</span>
             <div className="tp-foot-actions">
               {!done && <button type="button" onClick={togglePause} disabled={typedLength === 0 && !paused}><Icon name={paused ? "play" : "pause"} size={15} />{t(paused ? "practice.resume" : "practice.pause")}</button>}

@@ -19,6 +19,8 @@ export function useArcadeSession(sound: boolean) {
   const [phase, setPhase] = useState<ArcadePhase>("lobby");
   /** 3, 2, 1, then 0 = "GO!". */
   const [count, setCount] = useState(3);
+  /** True when the current countdown is a resume after a pause (not a fresh start). */
+  const [resuming, setResuming] = useState(false);
 
   useEffect(() => {
     if (phase !== "countdown") return;
@@ -45,14 +47,22 @@ export function useArcadeSession(sound: boolean) {
 
   const start = useCallback(() => {
     setCount(3);
+    setResuming(false);
     setPhase("countdown");
   }, []);
   const pause = useCallback(() => setPhase((p) => (p === "playing" ? "paused" : p)), []);
-  const resume = useCallback(() => setPhase((p) => (p === "paused" ? "playing" : p)), []);
+  // Resuming goes through a short 3-2-1 so the player has their hands back on the keys before ships move again.
+  // The countdown never steps the simulation, so nothing is lost or gained while it runs.
+  const resume = useCallback(() => {
+    if (phase !== "paused") return;
+    setCount(3);
+    setResuming(true);
+    setPhase("countdown");
+  }, [phase]);
   const finish = useCallback(() => setPhase((p) => (p === "lobby" ? p : "finished")), []);
   const toLobby = useCallback(() => setPhase("lobby"), []);
 
-  return { phase, count, start, pause, resume, finish, toLobby };
+  return { phase, count, resuming, start, pause, resume, finish, toLobby };
 }
 export type ArcadeSession = ReturnType<typeof useArcadeSession>;
 

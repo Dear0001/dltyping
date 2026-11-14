@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useRef, useState, type ReactNode } from "react";
+import { useLocale } from "@/components/shared/LocaleProvider";
 
 export type ChartPoint = { label: string; value: number | null; note?: string };
 
@@ -35,14 +36,20 @@ function niceMax(max: number) {
   return (n <= 1 ? 1 : n <= 2 ? 2 : n <= 5 ? 5 : 10) * pow;
 }
 
-export function ChartCard({ title, subtitle, children, empty, emptyText }: { title: string; subtitle?: string; children: ReactNode; empty?: boolean; emptyText?: string }) {
+export function ChartCard({ title, subtitle, children, empty, emptyText, action }: { title: string; subtitle?: string; children: ReactNode; empty?: boolean; emptyText?: string; action?: ReactNode }) {
+  const { t } = useLocale();
   return (
     <section className="rounded-2xl border border-slate-200 bg-white p-4 shadow-sm sm:p-5">
-      <h3 className="text-base font-extrabold text-navy">{title}</h3>
-      {subtitle && <p className="mt-0.5 text-xs text-mute">{subtitle}</p>}
+      <div className="flex flex-wrap items-start justify-between gap-2">
+        <div className="min-w-0">
+          <h3 className="text-base font-extrabold text-navy">{title}</h3>
+          {subtitle && <p className="mt-0.5 text-xs text-mute">{subtitle}</p>}
+        </div>
+        {action}
+      </div>
       <div className="mt-4">
         {empty ? (
-          <div className="grid h-40 place-items-center rounded-xl border border-dashed border-slate-300 bg-slate-50 px-4 text-center text-sm text-mute">{emptyText ?? "No practice in this period yet."}</div>
+          <div className="grid h-40 place-items-center rounded-xl border border-dashed border-slate-300 bg-slate-50 px-4 text-center text-sm text-mute">{emptyText ?? t("dash.chartEmpty")}</div>
         ) : children}
       </div>
     </section>
@@ -110,6 +117,7 @@ function Tooltip({ x, width, children }: { x: number; width: number; children: R
 
 /** Line chart over time. Days without practice are skipped, never drawn as zero. */
 export function LineChart({ points, color, unit, ariaLabel, max, height = 220, decimals = 0 }: SeriesProps) {
+  const { t } = useLocale();
   const [ref, width] = useWidth();
   const [active, setActive] = useState<number | null>(null);
   const values = points.map((p) => p.value).filter((v): v is number => v !== null);
@@ -118,6 +126,8 @@ export function LineChart({ points, color, unit, ariaLabel, max, height = 220, d
   const y = (v: number) => PAD.t + innerH * (1 - Math.min(v, top) / top);
   const plotted = points.map((p, i) => (p.value === null ? null : { i, x: xAt(i, points.length, width), y: y(p.value), p })).filter((v): v is NonNullable<typeof v> => v !== null);
   const path = plotted.map((d, k) => `${k ? "L" : "M"}${d.x.toFixed(1)} ${d.y.toFixed(1)}`).join(" ");
+  // Soft fill under the line makes the trend easier to read than a thin stroke alone.
+  const area = plotted.length > 1 ? `${path} L${plotted[plotted.length - 1].x.toFixed(1)} ${height - PAD.b} L${plotted[0].x.toFixed(1)} ${height - PAD.b} Z` : "";
   const sparse = points.length <= 45;
   const activePoint = active === null ? null : points[active];
 
@@ -125,6 +135,7 @@ export function LineChart({ points, color, unit, ariaLabel, max, height = 220, d
     <div ref={ref} className="relative" onMouseLeave={() => setActive(null)}>
       <svg width={width} height={height} role="img" aria-label={ariaLabel} className="block overflow-visible">
         <Axes width={width} height={height} max={top} unit={unit} labels={pickLabels(points, Math.max(2, Math.floor(width / 90)))} count={points.length} />
+        {area && <path d={area} fill={color} opacity={0.1} />}
         {plotted.length > 1 && <path d={path} fill="none" stroke={color} strokeWidth={2.5} strokeLinejoin="round" strokeLinecap="round" />}
         {active !== null && <line x1={xAt(active, points.length, width)} x2={xAt(active, points.length, width)} y1={PAD.t} y2={height - PAD.b} stroke={AXIS} strokeDasharray="3 3" />}
         {plotted.map((d) => (
@@ -135,7 +146,7 @@ export function LineChart({ points, color, unit, ariaLabel, max, height = 220, d
           return (
             <rect
               key={i} x={xAt(i, points.length, width) - w / 2} y={PAD.t} width={w} height={innerH} fill="transparent" tabIndex={p.value === null ? -1 : 0}
-              aria-label={`${p.label}: ${p.value === null ? "no practice" : `${p.value.toFixed(decimals)} ${unit}`}`}
+              aria-label={`${p.label}: ${p.value === null ? t("dash.noPractice") : `${p.value.toFixed(decimals)} ${unit}`}`}
               onMouseEnter={() => setActive(i)} onFocus={() => setActive(i)} onBlur={() => setActive(null)}
             />
           );
@@ -144,7 +155,7 @@ export function LineChart({ points, color, unit, ariaLabel, max, height = 220, d
       {activePoint && active !== null && (
         <Tooltip x={xAt(active, points.length, width)} width={width}>
           <strong>{activePoint.label}</strong>
-          <div>{activePoint.value === null ? "No practice" : `${activePoint.value.toFixed(decimals)} ${unit}`}</div>
+          <div>{activePoint.value === null ? t("dash.noPractice") : `${activePoint.value.toFixed(decimals)} ${unit}`}</div>
           {activePoint.note && <div className="text-slate-300">{activePoint.note}</div>}
         </Tooltip>
       )}
@@ -207,22 +218,23 @@ export function BarChart({ points, color, unit, ariaLabel, max, height = 220, de
 export type ComparisonGroup = { key: string; label: string; sessions: number; avgWpm: number; avgAccuracy: number };
 
 /** Side-by-side WPM and accuracy bars for groups such as English vs Khmer, or Easy/Medium/Hard. */
-export function ComparisonBars({ groups, colors }: { groups: ComparisonGroup[]; colors?: Record<string, string> }) {
+export function ComparisonBars({ groups, colors, labelFor }: { groups: ComparisonGroup[]; colors?: Record<string, string>; /** Localized name for a group key. */ labelFor?: (key: string) => string }) {
+  const { t } = useLocale();
   const maxWpm = niceMax(Math.max(...groups.map((g) => g.avgWpm), 0));
   return (
     <ul className="space-y-4">
       {groups.map((g) => (
         <li key={g.key}>
           <div className="mb-1.5 flex items-baseline justify-between">
-            <span className="text-sm font-bold text-navy">{g.label}</span>
-            <span className="text-xs text-mute">{g.sessions ? `${g.sessions} session${g.sessions === 1 ? "" : "s"}` : "No sessions"}</span>
+            <span className="text-sm font-bold text-navy">{labelFor?.(g.key) ?? g.label}</span>
+            <span className="text-xs text-mute">{g.sessions ? t(g.sessions === 1 ? "dash.sessionCountOne" : "dash.sessionCountMany", { n: g.sessions }) : t("dash.noSessionsShort")}</span>
           </div>
           {g.sessions === 0 ? (
             <div className="h-9 rounded-lg border border-dashed border-slate-300 bg-slate-50" />
           ) : (
             <div className="space-y-1.5">
-              <Bar label="Avg speed" valueText={`${g.avgWpm} WPM`} pct={(g.avgWpm / maxWpm) * 100} color={colors?.[g.key] ?? "#2563eb"} />
-              <Bar label="Avg accuracy" valueText={`${g.avgAccuracy}%`} pct={g.avgAccuracy} color="#38bdf8" />
+              <Bar label={t("dash.barSpeed")} valueText={`${g.avgWpm} WPM`} pct={(g.avgWpm / maxWpm) * 100} color={colors?.[g.key] ?? "#2563eb"} />
+              <Bar label={t("dash.barAcc")} valueText={`${g.avgAccuracy}%`} pct={g.avgAccuracy} color="#38bdf8" />
             </div>
           )}
         </li>

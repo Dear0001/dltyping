@@ -78,7 +78,7 @@ function WelcomeBack() {
         <h2 id="welcome-heading" className="text-xl font-extrabold tracking-tight text-navy">{t("ui.home.welcome")}</h2>
         <div className="flex flex-wrap gap-2">
           <Badge tone="brand" icon="star">{t("ui.home.level", { n: level })} · {progress.xp} XP</Badge>
-          {streak > 0 && <Badge tone="warning" icon="flame">{t("learn.streakDays", { n: streak })}</Badge>}
+          {streak > 0 && <Badge tone="warning" icon="flame">{t(streak === 1 ? "streak.ptsOne" : "streak.pts", { n: streak })}</Badge>}
         </div>
       </div>
       <ContinueCard />
@@ -87,9 +87,7 @@ function WelcomeBack() {
 }
 
 export default function Landing({ children }: { children?: React.ReactNode }) {
-  const { t, locale } = useLocale();
-  // Khmer does not put spaces between words, only between phrases.
-  const sp = locale === "km" ? "" : " ";
+  const { t } = useLocale();
   const practice = usePracticeBest();
   const scores = useScores();
   const hydrated = useHydrated();
@@ -104,7 +102,10 @@ export default function Landing({ children }: { children?: React.ReactNode }) {
           <div>
             <Badge tone="brand" icon="sparkle" className="!px-3 !py-1 !text-xs">{t("ui.home.badge")}</Badge>
             <h1 className="mt-5 text-[2.6rem] font-extrabold leading-[1.05] tracking-tight text-navy sm:text-6xl">
-              {t("overview.heroPre")}{sp}<span className="text-brand">{t("category.english")}</span> {t("overview.heroAnd")}{sp}<span className="hero-khmer bg-gradient-to-r from-emerald-600 to-teal-500 bg-clip-text text-transparent">{t("category.khmer")}</span>{t("overview.heroPost")}
+              {t("overview.hero").split(/(\{en\}|\{km\})/).map((part, i) =>
+                part === "{en}" ? <span key={i} className="text-brand">{t("overview.heroEn")}</span>
+                : part === "{km}" ? <span key={i} className="hero-khmer bg-gradient-to-r from-emerald-600 to-teal-500 bg-clip-text text-transparent">{t("overview.heroKm")}</span>
+                : part)}
             </h1>
             <p className="mt-5 max-w-xl text-lg leading-relaxed text-mute">{t("overview.heroText")}</p>
             <div className="mt-8 flex flex-wrap gap-3">
