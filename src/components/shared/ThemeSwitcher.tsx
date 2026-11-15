@@ -3,7 +3,7 @@
 import { useEffect, useRef, useState, useSyncExternalStore } from "react";
 import { useLocale } from "@/components/shared/LocaleProvider";
 import BiText from "@/components/shared/BiText";
-import { AUTO_THEME, THEMES, THEME_KEY, THEME_MODE_ATTR, isThemeId, isThemeMode, themeForHour, type ThemeId, type ThemeMode } from "@/lib/themes";
+import { AUTO_THEME, DARK_THEME_IDS, THEMES, THEME_KEY, THEME_MODE_ATTR, isThemeId, isThemeMode, themeForHour, type ThemeId, type ThemeMode } from "@/lib/themes";
 
 const listeners = new Set<() => void>();
 const subscribe = (cb: () => void) => { listeners.add(cb); return () => { listeners.delete(cb); }; };
@@ -18,6 +18,8 @@ function paint(id: ThemeId) {
   const root = document.documentElement;
   if (id === "developer-blue") root.removeAttribute("data-theme");
   else root.setAttribute("data-theme", id);
+  if (DARK_THEME_IDS.includes(id)) root.setAttribute("data-tone", "dark");
+  else root.removeAttribute("data-tone");
 }
 
 function apply(mode: ThemeMode) {

@@ -9,6 +9,10 @@ const messages = {
   "theme.midnight-blossom": { en: "Midnight Blossom", km: "ផ្កាពាក់កណ្តាលអធ្រាត្រ" },
   "theme.ethereal-flora": { en: "Ethereal Flora", km: "ផ្កាស្រទន់" },
   "theme.velvet-petal": { en: "Velvet Petal", km: "ផ្កាក្រហមទន់" },
+  "theme.dawn-peach": { en: "Dawn Peach", km: "ផ្កាព្រលឹម" },
+  "theme.meadow-mint": { en: "Meadow Mint", km: "ស្មៅបៃតងស្រស់" },
+  "theme.golden-hour": { en: "Golden Hour", km: "ម៉ោងមាស" },
+  "theme.twilight-indigo": { en: "Twilight Indigo", km: "ពណ៌ល្ងាចស្រទន់" },
   "nav.overview": { en: "Home", km: "ទំព័រដើម" },
   "nav.learn": { en: "Learn", km: "មេរៀន" },
   "nav.practice": { en: "Practice", km: "ហាត់វាយ" },
@@ -22,6 +26,6 @@ const messages = {
   "nav.guest": { en: "Guest learner", km: "អ្នកហាត់ជាភ្ញៀវ" },
   "nav.back": { en: "Back to overview", km: "ត្រឡប់ទៅទំព័រដើម" },
   "theme.auto": { en: "Auto (by time of day)", km: "ស្វ័យប្រវត្តិ (តាមម៉ោង)" },
-  "theme.autoHint": { en: "Morning: Ethereal Flora · Afternoon: Developer Blue · Evening: Velvet Petal · Night: Midnight Blossom", km: "ព្រឹក៖ ផ្កាស្រទន់ · រសៀល៖ ខៀវអ្នកអភិវឌ្ឍន៍ · ល្ងាច៖ ផ្កាក្រហមទន់ · យប់៖ ផ្កាពាក់កណ្តាលអធ្រាត្រ" },
+  "theme.autoHint": { en: "Gentler on your eyes through the day: soft light themes by day, warm and dim in the evening, dark with the least blue light at night.", km: "ស្រាលភ្នែកពេញមួយថ្ងៃ៖ ពណ៌ភ្លឺទន់នៅពេលថ្ងៃ ក្តៅនិងស្រអាប់នៅពេលល្ងាច ហើយងងឹតដោយមានពន្លឺខៀវតិចបំផុតនៅពេលយប់។" },
 } satisfies Dict;
 export default messages;

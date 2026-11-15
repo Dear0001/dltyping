@@ -99,7 +99,7 @@ function ProgressContent() {
             <div className="flex-1">
               <p className="text-xs font-bold uppercase tracking-widest text-blue-300">{t("prog.level", { n: level })}</p>
               <p className="text-2xl font-extrabold">{t(`typist.${level}`) === `typist.${level}` ? t("typist.default") : t(`typist.${level}`)}</p>
-              <p className="mt-1 text-sm text-blue-200">
+              <p className="mt-1 text-sm text-white/75">
                 {progress.xp} XP{nextMin > progress.xp ? t("prog.toNext", { xp: nextMin - progress.xp, n: level + 1 }) : t("prog.maxLevel")}
               </p>
             </div>
@@ -107,17 +107,17 @@ function ProgressContent() {
               <div className="rounded-2xl bg-white/10 px-4 py-3 text-center">
                 <p className="text-2xl">🔥</p>
                 <p className="text-lg font-extrabold">{streak}</p>
-                <p className="text-xs text-blue-200">{t("prog.dayStreak")}</p>
+                <p className="text-xs text-white/75">{t("prog.dayStreak")}</p>
               </div>
             ) : !signedIn && (
               <div className="rounded-2xl bg-white/10 px-4 py-3 text-center">
                 <p className="text-2xl">🔒</p>
-                <p className="text-xs text-blue-200">{t("prog.signInLine1")}<br />{t("prog.signInLine2")}</p>
+                <p className="text-xs text-white/75">{t("prog.signInLine1")}<br />{t("prog.signInLine2")}</p>
               </div>
             )}
           </div>
           <div className="mt-4">
-            <div className="mb-1 flex justify-between text-xs text-blue-200">
+            <div className="mb-1 flex justify-between text-xs text-white/75">
               <span>{t("prog.level", { n: level })}</span>
               <span>{t("prog.level", { n: level + 1 })}</span>
             </div>

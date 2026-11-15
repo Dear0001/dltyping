@@ -159,9 +159,13 @@
 
 /* Each theme supplies five inputs; everything else is derived from them.
    --t-brand is a deepened shade of the palette primary so white text on buttons stays readable. */
-:root[data-theme="midnight-blossom"]{--t-primary:#C8A2C8;--t-brand:#8E5E94;--t-accent:#D98880;--t-paper:#FDFBF7;--t-ink:#34495E}
+:root[data-theme="midnight-blossom"]{--t-primary:#C8A2C8;--t-brand:#D9B4D9;--t-accent:#E0958D;--t-paper:#1A1417;--t-ink:#E6D9DC}
 :root[data-theme="ethereal-flora"]{--t-primary:#E06D73;--t-brand:#C24E56;--t-accent:#9B7EBD;--t-paper:#F5F5F3;--t-ink:#2C2C2C}
-:root[data-theme="velvet-petal"]{--t-primary:#B08984;--t-brand:#8F625C;--t-accent:#FF6B6B;--t-paper:#FAFAFA;--t-ink:#1A1A1A}
+:root[data-theme="velvet-petal"]{--t-primary:#B08984;--t-brand:#8F625C;--t-accent:#E5645F;--t-paper:#F3EAE4;--t-ink:#2B1E1C}
+:root[data-theme="dawn-peach"]{--t-primary:#F4A58A;--t-brand:#B5533A;--t-accent:#7C93C4;--t-paper:#F8EDE4;--t-ink:#3A2E2E}
+:root[data-theme="meadow-mint"]{--t-primary:#5FB894;--t-brand:#1F7A57;--t-accent:#E0A93B;--t-paper:#F3FAF6;--t-ink:#1F2D27}
+:root[data-theme="golden-hour"]{--t-primary:#F2B544;--t-brand:#A8620A;--t-accent:#D9534F;--t-paper:#FFFAEF;--t-ink:#33280F}
+:root[data-theme="twilight-indigo"]{--t-primary:#8E86D6;--t-brand:#ADA6F2;--t-accent:#EE9CC0;--t-paper:#1C1F38;--t-ink:#DEE1F4}
 
 :root[data-theme]{
   --ink:var(--t-ink);
@@ -195,6 +199,95 @@
   --color-slate-600:color-mix(in srgb,var(--t-ink) 75%,var(--t-paper));
   --color-slate-700:color-mix(in srgb,var(--t-ink) 88%,var(--t-paper));
 }
+
+/* ---------- Dark tone (night and dusk themes): <html data-tone="dark"> ----------
+   Eye comfort: paper is dim and warm-tinted (never pure black), text is soft off-white (never #fff), and the
+   brand colour is a light tint so it reads as text on dark. Tailwind's hardcoded whites are remapped below. */
+:root[data-tone="dark"]{
+  color-scheme:dark;
+  --surface:color-mix(in srgb,var(--t-ink) 7%,var(--t-paper));
+  --line:color-mix(in srgb,var(--t-ink) 17%,var(--t-paper));
+  --color-line:var(--line);
+  --panel:color-mix(in srgb,var(--t-primary) 22%,var(--t-paper));
+  --on-brand:var(--t-paper);
+  --color-placeholder:color-mix(in srgb,var(--t-ink) 45%,var(--t-paper));
+  --shadow-sm:0 1px 2px rgb(0 0 0/.35);--shadow-md:0 1px 2px rgb(0 0 0/.3),0 8px 24px -12px rgb(0 0 0/.55);--shadow-lg:0 2px 4px rgb(0 0 0/.3),0 18px 40px -16px rgb(0 0 0/.65);
+  
+  /* status tints: dark-tinted backgrounds with light text, so alerts stay readable without glowing */
+  --color-red-50:color-mix(in srgb,#f87171 13%,var(--t-paper));--color-red-100:color-mix(in srgb,#f87171 22%,var(--t-paper));--color-red-200:color-mix(in srgb,#f87171 34%,var(--t-paper));
+  
+  --color-emerald-50:color-mix(in srgb,#34d399 12%,var(--t-paper));--color-emerald-100:color-mix(in srgb,#34d399 21%,var(--t-paper));--color-emerald-200:color-mix(in srgb,#34d399 32%,var(--t-paper));
+  
+  --color-amber-50:color-mix(in srgb,#fbbf24 12%,var(--t-paper));--color-amber-100:color-mix(in srgb,#fbbf24 21%,var(--t-paper));--color-amber-200:color-mix(in srgb,#fbbf24 32%,var(--t-paper));
+  
+  --color-orange-50:color-mix(in srgb,#fb923c 12%,var(--t-paper));--color-orange-100:color-mix(in srgb,#fb923c 21%,var(--t-paper));--color-orange-200:color-mix(in srgb,#fb923c 32%,var(--t-paper));
+  --color-green-50:color-mix(in srgb,#4ade80 12%,var(--t-paper));--color-green-100:color-mix(in srgb,#4ade80 21%,var(--t-paper));--color-green-200:color-mix(in srgb,#4ade80 32%,var(--t-paper));
+  --color-sky-50:color-mix(in srgb,#38bdf8 12%,var(--t-paper));--color-sky-100:color-mix(in srgb,#38bdf8 21%,var(--t-paper));--color-sky-200:color-mix(in srgb,#38bdf8 32%,var(--t-paper));
+  --color-indigo-50:color-mix(in srgb,#818cf8 12%,var(--t-paper));--color-indigo-100:color-mix(in srgb,#818cf8 21%,var(--t-paper));--color-indigo-200:color-mix(in srgb,#818cf8 32%,var(--t-paper));
+  --color-violet-50:color-mix(in srgb,#a78bfa 12%,var(--t-paper));--color-violet-100:color-mix(in srgb,#a78bfa 21%,var(--t-paper));--color-violet-200:color-mix(in srgb,#a78bfa 32%,var(--t-paper));
+  --color-purple-50:color-mix(in srgb,#c084fc 12%,var(--t-paper));--color-purple-100:color-mix(in srgb,#c084fc 21%,var(--t-paper));--color-purple-200:color-mix(in srgb,#c084fc 32%,var(--t-paper));
+  --color-rose-50:color-mix(in srgb,#fb7185 12%,var(--t-paper));--color-rose-100:color-mix(in srgb,#fb7185 21%,var(--t-paper));--color-rose-200:color-mix(in srgb,#fb7185 32%,var(--t-paper));
+  
+}
+/* readable text shades on dark paper (text only: the same palette steps stay dark where they are gradient stops or fills) */
+:root[data-tone="dark"] .text-slate-800{color:color-mix(in srgb,var(--t-ink) 94%,var(--t-paper))}
+:root[data-tone="dark"] .text-red-600{color:#f9a0a0}
+:root[data-tone="dark"] .text-red-700{color:#fbb6b6}
+:root[data-tone="dark"] .text-red-800{color:#fdcaca}
+:root[data-tone="dark"] .text-emerald-600{color:#5fddb0}
+:root[data-tone="dark"] .text-emerald-700{color:#86e8c4}
+:root[data-tone="dark"] .text-emerald-800{color:#a9f0d6}
+:root[data-tone="dark"] .text-amber-600{color:#f5c04a}
+:root[data-tone="dark"] .text-amber-700{color:#f8d172}
+:root[data-tone="dark"] .text-amber-800{color:#fbe3a3}
+:root[data-tone="dark"] .text-orange-700{color:#fdba74}
+:root[data-tone="dark"] .text-orange-800{color:#fed7aa}
+:root[data-tone="dark"] .text-green-700{color:#86efac}
+:root[data-tone="dark"] .text-green-800{color:#bbf7d0}
+:root[data-tone="dark"] .text-sky-700{color:#7dd3fc}
+:root[data-tone="dark"] .text-sky-800{color:#bae6fd}
+:root[data-tone="dark"] .text-sky-900{color:#e0f2fe}
+:root[data-tone="dark"] .text-indigo-600{color:#a5b4fc}
+:root[data-tone="dark"] .text-indigo-700{color:#c7d2fe}
+:root[data-tone="dark"] .text-indigo-800{color:#e0e7ff}
+:root[data-tone="dark"] .text-violet-600{color:#c4b5fd}
+:root[data-tone="dark"] .text-violet-800{color:#ddd6fe}
+:root[data-tone="dark"] .text-purple-600{color:#d8b4fe}
+:root[data-tone="dark"] .text-purple-800{color:#e9d5ff}
+:root[data-tone="dark"] .text-purple-900{color:#f3e8ff}
+:root[data-tone="dark"] .text-rose-800{color:#fecdd3}
+:root[data-tone="dark"] .text-teal-600{color:#5eead4}
+:root[data-tone="dark"] .text-teal-900{color:#ccfbf1}
+:root[data-tone="dark"] .text-blue-600{color:var(--t-brand)}
+:root[data-tone="dark"] .text-blue-900{color:color-mix(in srgb,var(--t-brand) 60%,var(--t-ink))}
+:root[data-tone="dark"] .bg-white{background-color:var(--surface)}
+:root[data-tone="dark"] .bg-navy{background-color:var(--panel)}
+:root[data-tone="dark"] .from-navy{--tw-gradient-from:var(--panel)}
+:root[data-tone="dark"] .to-navy{--tw-gradient-to:var(--panel)}
+:root[data-tone="dark"] .via-navy{--tw-gradient-via:var(--panel)}
+/* gradients carrying white text must stay deep, so the light brand tint is mixed down into the paper */
+:root[data-tone="dark"]{--brand-deep:color-mix(in srgb,var(--t-brand) 42%,var(--t-paper));--accent-deep:color-mix(in srgb,var(--t-accent) 48%,var(--t-paper))}
+:root[data-tone="dark"] .from-brand,:root[data-tone="dark"] .from-blue-900{--tw-gradient-from:var(--brand-deep)}
+:root[data-tone="dark"] .to-blue-900{--tw-gradient-to:var(--brand-deep)}
+:root[data-tone="dark"] .via-brand{--tw-gradient-via:var(--brand-deep)}
+:root[data-tone="dark"] .to-brand{--tw-gradient-to:var(--brand-deep)}
+:root[data-tone="dark"] .from-accent{--tw-gradient-from:var(--accent-deep)}
+:root[data-tone="dark"] .to-accent{--tw-gradient-to:var(--accent-deep)}
+/* light brand fill → dark text on it (instead of Tailwind's text-white) */
+:root[data-tone="dark"] .bg-brand,:root[data-tone="dark"] .bg-blue-700,:root[data-tone="dark"] .hover\:bg-blue-700:hover{color:var(--on-brand)}
+/* translucent white scrims and panels become translucent paper */
+:root[data-tone="dark"] .bg-white\/70{background-color:color-mix(in srgb,var(--t-paper) 72%,transparent)}
+:root[data-tone="dark"] .bg-white\/50{background-color:color-mix(in srgb,var(--surface) 55%,transparent)}
+:root[data-tone="dark"] .hover\:bg-white:hover,:root[data-tone="dark"] .focus\:bg-white:focus{background-color:var(--surface)}
+:root[data-tone="dark"] .tp-paused{color:var(--on-brand)}
+/* older hand-written components that hardcode light colours */
+:root[data-tone="dark"] :is(.language-card,.goal-card,.stats-card,.typing-card,.lesson-bar,.game-card,.game-play-panel,.game-scorebar>div,.games-badge,.gm-menu){background:var(--surface);color:var(--ink)}
+:root[data-tone="dark"] kbd{background:var(--paper);border-color:var(--line);color:var(--muted);box-shadow:0 1px 0 rgb(0 0 0/.5)}
+:root[data-tone="dark"] .input-switch-hint{background:color-mix(in srgb,#fbbf24 12%,var(--t-paper));border-color:color-mix(in srgb,#fbbf24 32%,var(--t-paper));color:#f8d172}
+:root[data-tone="dark"] .key-feedback{background:color-mix(in srgb,#f87171 13%,var(--t-paper));border-color:color-mix(in srgb,#f87171 34%,var(--t-paper));color:#fbb6b6}
+:root[data-tone="dark"] :is(.char.wrong,.game-char-wrong){background:color-mix(in srgb,#f87171 22%,var(--t-paper));color:#fdcaca}
+:root[data-tone="dark"] .site-footer{background:var(--surface)}
+:root[data-tone="dark"] .acct-avatar,:root[data-tone="dark"] .dr-main.active .dr-icon{color:var(--on-brand)}
 
 /* ---------- Site footer ---------- */
 .site-footer{margin-top:56px;border-top:1px solid var(--line);background:#fff;color:var(--muted);font-size:13px}
@@ -278,7 +371,7 @@ body{padding-top:var(--topbar-h,74px)}html{scroll-padding-top:calc(var(--topbar-
 .ts-btn:hover,.ts-btn[aria-expanded="true"]{background:color-mix(in srgb,var(--ink) 12%,transparent)}
 .ts-dot{width:16px;height:16px;flex:none;border-radius:50%;background:linear-gradient(135deg,var(--sw1) 50%,var(--sw2) 50%);box-shadow:inset 0 0 0 1px #0000001f}
 .ts-caret{font-size:12px;margin-top:-3px;opacity:.6}
-.ts-menu{position:absolute;right:0;top:calc(100% + 10px);z-index:70;min-width:210px;padding:6px;border:1px solid var(--line);border-radius:14px;background:var(--paper);box-shadow:0 18px 40px #1a263a26;animation:tb-pop .18s ease-out}
+.ts-menu{position:absolute;right:0;top:calc(100% + 10px);z-index:70;min-width:210px;max-height:min(70vh,480px);overflow-y:auto;padding:6px;border:1px solid var(--line);border-radius:14px;background:var(--paper);box-shadow:0 18px 40px #1a263a26;animation:tb-pop .18s ease-out}
 .ts-item{display:flex;align-items:center;gap:10px;width:100%;padding:9px 10px;border:0;border-radius:9px;background:transparent;color:var(--ink);font-size:13px;font-weight:500;text-align:left;cursor:pointer}
 .ts-item:hover,.ts-item:focus-visible{background:color-mix(in srgb,var(--ink) 8%,transparent)}
 .ts-item.active{color:var(--green);font-weight:600}.ts-check{margin-left:auto}
