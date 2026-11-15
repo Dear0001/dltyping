@@ -1,3 +1,4 @@
+import { sealed } from "@/lib/secure-route";
 import { randomInt } from "node:crypto";
 import { assertSameOrigin, getSessionUser, throttle } from "@/lib/auth";
 import { accountPlayerId } from "@/lib/claim";
@@ -11,7 +12,7 @@ const VERIFIED_GAMES: Record<string, (setup: unknown) => object | null> = { "spa
  * POST /api/arcade/runs — starts a verified run for a signed-in player.
  * Body: { game, setup }. Returns { runId, seed }. Guests get 401 and play locally.
  */
-export async function POST(request: Request) {
+async function handlePOST(request: Request) {
   if (!(await assertSameOrigin(request))) return Response.json({ error: "invalid" }, { status: 403 });
   const user = await getSessionUser();
   if (!user) return Response.json({ error: "signin" }, { status: 401 });
@@ -42,3 +43,5 @@ export async function POST(request: Request) {
     return Response.json({ error: "unavailable" }, { status: 503 });
   }
 }
+
+export const POST = sealed(handlePOST);

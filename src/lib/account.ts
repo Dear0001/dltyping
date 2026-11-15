@@ -2,6 +2,7 @@
 
 // Client account store: who is signed in, plus sign-in / sign-up / sign-out actions.
 import { useSyncExternalStore } from "react";
+import { secureFetch } from "@/lib/secure-fetch";
 import { ACCOUNT_HINT_KEY } from "@/lib/prepaint";
 import { clearLocalProgress, getDeviceId, setSyncAccount, syncProgress } from "@/lib/sync";
 
@@ -30,7 +31,7 @@ export function useAccount(): Account {
 
 export async function refreshAccount() {
   try {
-    const res = await fetch("/api/auth/me", { cache: "no-store" });
+    const res = await secureFetch("/api/auth/me", { cache: "no-store" });
     const data = (await res.json()) as { user: { email: string; name?: string | null; perks?: { allPets?: boolean } } | null };
     set(data.user ? { status: "user", email: data.user.email, name: data.user.name, perks: data.user.perks } : { status: "anon" });
   } catch {
@@ -46,7 +47,7 @@ export type AuthResult = { error: string | null; verify?: "sent" | "not-sent" | 
 
 export async function authenticate(mode: "login" | "signup", email: string, password: string, name?: string): Promise<AuthResult> {
   try {
-    const res = await fetch(`/api/auth/${mode}`, { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ email, password, name, deviceId: getDeviceId() }) });
+    const res = await secureFetch(`/api/auth/${mode}`, { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ email, password, name, deviceId: getDeviceId() }) });
     const data = (await res.json().catch(() => ({}))) as { error?: string; code?: string; user?: { email: string; name?: string | null }; pendingVerification?: boolean; emailSent?: boolean; devCode?: string; expiresIn?: number };
     if (res.ok && data.pendingVerification) return { error: null, verify: data.emailSent === false ? "not-sent" : "sent", devCode: data.devCode, expiresIn: data.expiresIn };
     if (res.status === 403 && data.code === "unverified") return { error: data.error ?? "Please verify your email first.", verify: "unverified" };
@@ -63,7 +64,7 @@ export async function authenticate(mode: "login" | "signup", email: string, pass
 /** Asks for a fresh verification code. `error` is a message, or null on success; `devCode` is development-only (see AuthResult). */
 export async function resendVerification(email: string): Promise<{ error: string | null; devCode?: string; expiresIn?: number }> {
   try {
-    const res = await fetch("/api/auth/resend", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ email }) });
+    const res = await secureFetch("/api/auth/resend", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ email }) });
     const data = (await res.json().catch(() => ({}))) as { error?: string; devCode?: string; expiresIn?: number };
     if (res.ok) return { error: null, devCode: data.devCode, expiresIn: data.expiresIn };
     return { error: data.error ?? "Could not send the email. Please try again." };
@@ -75,7 +76,7 @@ export async function resendVerification(email: string): Promise<{ error: string
 /** Checks the 6-digit code from the verification email. Returns an error message, or null when the email is now verified. */
 export async function verifyEmailCode(email: string, code: string): Promise<string | null> {
   try {
-    const res = await fetch("/api/auth/verify", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ email, code }) });
+    const res = await secureFetch("/api/auth/verify", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ email, code }) });
     if (res.ok) return null;
     return ((await res.json().catch(() => ({}))) as { error?: string }).error ?? "Could not verify the code. Please try again.";
   } catch {
@@ -86,7 +87,7 @@ export async function verifyEmailCode(email: string, code: string): Promise<stri
 export async function signOut() {
   await syncProgress(true); // push anything unsynced first
   try {
-    await fetch("/api/auth/logout", { method: "POST", headers: { "Content-Type": "application/json" }, body: "{}" });
+    await secureFetch("/api/auth/logout", { method: "POST", headers: { "Content-Type": "application/json" }, body: "{}" });
   } catch {
     // Even if the request fails, treat this browser as signed out locally.
   }

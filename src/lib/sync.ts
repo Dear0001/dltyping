@@ -1,3 +1,4 @@
+import { secureFetch } from "@/lib/secure-fetch";
 // Browser-side sync client. Local storage stays the source the UI reads;
 // the server only ever raises records, so sync is safe to retry at any time.
 import { LEVELS_KEY, levelsKeyFor, PRACTICE_KEY, SCORES_KEY, SETTINGS_KEY, parseStored, readRaw, validateLevels, validatePractice, validateScores, removeRaw, writeRaw, type LevelBook, type PracticeBest, type ScoreBook } from "@/lib/local-progress";
@@ -119,7 +120,7 @@ export async function syncProgress(force = false): Promise<void> {
   if (!force && (body === lastSynced || (empty && !signedIn))) return;
   inFlight = true;
   try {
-    const response = await fetch("/api/sync", { method: "POST", headers: { "Content-Type": "application/json" }, body, keepalive: true });
+    const response = await secureFetch("/api/sync", { method: "POST", headers: { "Content-Type": "application/json" }, body, keepalive: true });
     if (!response.ok) return;
     const server = (await response.json()) as SyncState;
     const check = parsePayload({ deviceId, ...server });

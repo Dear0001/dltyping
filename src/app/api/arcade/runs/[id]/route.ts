@@ -1,3 +1,4 @@
+import { sealed } from "@/lib/secure-route";
 import { assertSameOrigin, getSessionUser } from "@/lib/auth";
 import { accountPlayerId } from "@/lib/claim";
 import { prisma } from "@/lib/db";
@@ -13,7 +14,7 @@ type RunRow = { seed: bigint | number; setup: unknown; game: string; wall_ms: nu
  * The server replays the inputs from the seed it issued and stores its own
  * result; the score the browser shows is never trusted.
  */
-export async function POST(request: Request, { params }: { params: Promise<{ id: string }> }) {
+async function handlePOST(request: Request, { params }: { params: Promise<{ id: string }> }) {
   if (!(await assertSameOrigin(request))) return Response.json({ error: "invalid" }, { status: 403 });
   const user = await getSessionUser();
   if (!user) return Response.json({ error: "signin" }, { status: 401 });
@@ -73,3 +74,5 @@ export async function POST(request: Request, { params }: { params: Promise<{ id:
     return Response.json({ error: "unavailable" }, { status: 503 });
   }
 }
+
+export const POST = sealed(handlePOST);

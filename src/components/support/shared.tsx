@@ -1,6 +1,8 @@
 "use client";
 
 import Link from "next/link";
+import { secureFetch } from "@/lib/secure-fetch";
+import { toB64 } from "@/lib/secure-api";
 import { useEffect, useRef, useState, type FormEvent, type ReactNode } from "react";
 import { useLocale } from "@/components/shared/LocaleProvider";
 import { LIMITS, validateSupport, type ErrCode, type FieldErrors, type FieldName, type SupportFields, type SupportKind } from "@/lib/support";
@@ -78,12 +80,12 @@ export function useSupportForm(kind: SupportKind, initial: SupportFields = {}) {
     if (Object.values(errs).some(Boolean)) return showErrors(errs);
 
     setStatus({ state: "sending" });
-    const body = new FormData();
-    body.set("kind", kind);
-    for (const [k, v] of Object.entries(fields)) if (v) body.set(k, v);
-    if (extra.attachment) body.set("attachment", extra.attachment);
+    // Sent as a JSON object (attachment as base64) so the whole submission can go through secureFetch.
+    const payload: Record<string, unknown> = { kind };
+    for (const [k, v] of Object.entries(fields)) if (v) payload[k] = v;
+    if (extra.attachment) payload.attachment = { name: extra.attachment.name, data: toB64(new Uint8Array(await extra.attachment.arrayBuffer())) };
     try {
-      const res = await fetch("/api/support", { method: "POST", body });
+      const res = await secureFetch("/api/support", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify(payload) });
       const data = (await res.json().catch(() => null)) as { ok?: boolean; reference?: string; error?: string; errors?: FieldErrors } | null;
       if (res.ok && data?.ok) {
         setStatus({ state: "done", reference: typeof data.reference === "string" ? data.reference : undefined });

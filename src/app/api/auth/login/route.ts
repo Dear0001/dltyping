@@ -1,8 +1,9 @@
+import { sealed } from "@/lib/secure-route";
 import { assertSameOrigin, clearThrottle, clientIp, createSession, parseCredentials, throttle, verifyPassword } from "@/lib/auth";
 import { claimDevice } from "@/lib/claim";
 import { prisma } from "@/lib/db";
 
-export async function POST(request: Request) {
+async function handlePOST(request: Request) {
   if (!(await assertSameOrigin(request))) return Response.json({ error: "Bad request" }, { status: 400 });
   const body = await request.json().catch(() => null);
   const creds = parseCredentials(body);
@@ -28,3 +29,5 @@ export async function POST(request: Request) {
     return Response.json({ error: "Could not sign in" }, { status: 500 });
   }
 }
+
+export const POST = sealed(handlePOST);

@@ -1,3 +1,4 @@
+import { sealed } from "@/lib/secure-route";
 import { assertSameOrigin, clientIp, throttle } from "@/lib/auth";
 import { prisma } from "@/lib/db";
 import { issueVerification } from "@/lib/verification";
@@ -6,7 +7,7 @@ import { CODE_TTL_MS } from "@/lib/verification-core";
 const EMAIL = /^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/;
 
 /** Sends a fresh verification code. Always answers the same way, so it can't be used to find out which emails have accounts. */
-export async function POST(request: Request) {
+async function handlePOST(request: Request) {
   if (!(await assertSameOrigin(request))) return Response.json({ error: "Bad request" }, { status: 400 });
   const body = (await request.json().catch(() => null)) as { email?: unknown } | null;
   const raw = typeof body?.email === "string" ? body.email.trim().toLowerCase() : "";
@@ -20,3 +21,5 @@ export async function POST(request: Request) {
   const result = user && !user.email_verified_at ? await issueVerification(user.id, user.email, user.name) : null;
   return Response.json({ ok: true, expiresIn: CODE_TTL_MS / 1000, ...(result?.devCode && { devCode: result.devCode }) });
 }
+
+export const POST = sealed(handlePOST);

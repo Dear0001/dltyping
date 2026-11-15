@@ -1,3 +1,4 @@
+import { sealed } from "@/lib/secure-route";
 import { assertSameOrigin, clientIp, throttle } from "@/lib/auth";
 import { prisma } from "@/lib/db";
 import { codesMatch, hashCode, isExpired, isPlausibleCode, MAX_CODE_ATTEMPTS } from "@/lib/verification-core";
@@ -6,7 +7,7 @@ const EMAIL = /^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/;
 const GONE = "This code has expired or is no longer valid. Request a new one.";
 
 /** Confirms an email address from the 6-digit code in the verification email. Does not sign anyone in. */
-export async function POST(request: Request) {
+async function handlePOST(request: Request) {
   if (!(await assertSameOrigin(request))) return Response.json({ error: "Bad request" }, { status: 400 });
   const body = (await request.json().catch(() => null)) as { email?: unknown; code?: unknown } | null;
   const email = typeof body?.email === "string" ? body.email.trim().toLowerCase() : "";
@@ -36,3 +37,5 @@ export async function POST(request: Request) {
   ]);
   return Response.json({ ok: true, email: user.email });
 }
+
+export const POST = sealed(handlePOST);

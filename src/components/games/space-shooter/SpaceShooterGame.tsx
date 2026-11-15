@@ -1,4 +1,5 @@
 "use client";
+import { secureFetch } from "@/lib/secure-fetch";
 
 import { useRef, useState } from "react";
 import ArcadeShell from "@/components/games/arcade/ArcadeShell";
@@ -59,7 +60,7 @@ async function startRun(setup: Omit<SpaceConfig, "seed">): Promise<{ run: Run; s
   const controller = new AbortController();
   const timeout = window.setTimeout(() => controller.abort(), 2500);
   try {
-    const response = await fetch("/api/arcade/runs", { method: "POST", headers: { "content-type": "application/json" }, body: JSON.stringify({ game: GAME, setup }), signal: controller.signal });
+    const response = await secureFetch("/api/arcade/runs", { method: "POST", headers: { "content-type": "application/json" }, body: JSON.stringify({ game: GAME, setup }), signal: controller.signal });
     if (response.status === 401) return { run: { runId: null, status: "guest" }, ...local };
     if (!response.ok) return { run: { runId: null, status: "unavailable" }, ...local };
     const data = (await response.json()) as { runId: string; seed: number };
@@ -92,7 +93,7 @@ export default function SpaceShooterGame() {
     if (!run.runId) return setVerify({ status: run.status });
     setVerify({ status: "pending" });
     try {
-      const response = await fetch(`/api/arcade/runs/${run.runId}`, { method: "POST", headers: { "content-type": "application/json" }, body: JSON.stringify({ ticks: sim.tick, log: sim.log }) });
+      const response = await secureFetch(`/api/arcade/runs/${run.runId}`, { method: "POST", headers: { "content-type": "application/json" }, body: JSON.stringify({ ticks: sim.tick, log: sim.log }) });
       const data = (await response.json().catch(() => ({}))) as { status?: string; result?: { score: number } };
       if (response.ok && data.status === "verified" && data.result) setVerify({ status: "verified", score: data.result.score });
       else setVerify({ status: response.status === 422 ? "rejected" : "unavailable" });

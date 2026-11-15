@@ -1,3 +1,4 @@
+import { sealed } from "@/lib/secure-route";
 import { getSessionUser } from "@/lib/auth";
 import { accountPlayerId } from "@/lib/claim";
 import { prisma } from "@/lib/db";
@@ -44,7 +45,7 @@ async function syncKeyStats(playerId: string, deviceId: string, own: SyncKeyStat
  * value, so syncing is idempotent and never lowers a record. Signed-in requests (session cookie)
  * go to the account's player; anonymous ones to the device's player.
  */
-export async function POST(request: Request) {
+async function handlePOST(request: Request) {
   const raw = await request.text();
   if (raw.length > 100_000) return Response.json({ error: "Payload too large" }, { status: 413 });
   let json: unknown;
@@ -158,3 +159,5 @@ export async function POST(request: Request) {
     return Response.json({ error: "Sync failed" }, { status: 500 });
   }
 }
+
+export const POST = sealed(handlePOST);

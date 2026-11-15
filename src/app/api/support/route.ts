@@ -1,4 +1,6 @@
 import { randomUUID } from "node:crypto";
+import { sealed } from "@/lib/secure-route";
+import { fromB64 } from "@/lib/secure-api";
 import { after } from "next/server";
 import { clientIp, getSessionUser, isSameOrigin, throttle } from "@/lib/auth";
 import { prisma } from "@/lib/db";
@@ -8,19 +10,31 @@ import { ATTACHMENT, CONTACT, TEXT_FIELDS, referenceFor, safeFileName, sniffFile
 const escapeHtml = (s: string) => s.replace(/[&<>"']/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" })[c]!);
 const fail = (status: number, body: { error?: string; errors?: FieldErrors }) => Response.json(body, { status });
 
+/** Rebuilds the multipart shape from a sealed JSON submission: text fields plus an optional base64 attachment. */
+async function jsonToForm(request: Request): Promise<FormData> {
+  const body = (await request.json()) as Record<string, unknown>;
+  const form = new FormData();
+  for (const [k, v] of Object.entries(body)) if (typeof v === "string") form.set(k, v);
+  const a = body.attachment as { name?: unknown; data?: unknown } | undefined;
+  if (a && typeof a.name === "string" && typeof a.data === "string") form.set("attachment", new File([fromB64(a.data) as BlobPart], a.name));
+  return form;
+}
+
 /**
  * Saves a Contact / Feedback / Report submission (multipart form data) and emails a copy to the site owner after responding.
  * Answers `{ ok, reference }` only once the row is stored; validation problems come back as `{ errors: { field: code } }`.
  */
-export async function POST(request: Request) {
+async function handlePOST(request: Request) {
   if (!(await isSameOrigin(request))) return fail(403, { error: "invalid" });
-  if (!request.headers.get("content-type")?.includes("multipart/form-data")) return fail(415, { error: "invalid" });
+  const contentType = request.headers.get("content-type") ?? "";
+  const isJson = contentType.includes("application/json"); // sealed submissions arrive here already decrypted
+  if (!isJson && !contentType.includes("multipart/form-data")) return fail(415, { error: "invalid" });
   // Reject oversized bodies before reading them (file limit plus room for the text fields).
-  if (Number(request.headers.get("content-length") ?? 0) > ATTACHMENT.maxBytes + 100_000) return fail(413, { errors: { attachment: "fileSize" } });
+  if (Number(request.headers.get("content-length") ?? 0) > ATTACHMENT.maxBytes * 2 + 100_000) return fail(413, { errors: { attachment: "fileSize" } });
 
   let form: FormData;
   try {
-    form = await request.formData();
+    form = isJson ? await jsonToForm(request) : await request.formData();
   } catch {
     return fail(400, { error: "invalid" });
   }
@@ -92,3 +106,5 @@ export async function POST(request: Request) {
 
   return Response.json({ ok: true, reference });
 }
+
+export const POST = sealed(handlePOST);

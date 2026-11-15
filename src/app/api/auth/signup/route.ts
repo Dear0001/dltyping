@@ -1,9 +1,10 @@
+import { sealed } from "@/lib/secure-route";
 import { assertSameOrigin, clientIp, hashPassword, parseCredentials, parseName, throttle } from "@/lib/auth";
 import { prisma } from "@/lib/db";
 import { issueVerification } from "@/lib/verification";
 import { CODE_TTL_MS } from "@/lib/verification-core";
 
-export async function POST(request: Request) {
+async function handlePOST(request: Request) {
   if (!(await assertSameOrigin(request))) return Response.json({ error: "Bad request" }, { status: 400 });
   const body = await request.json().catch(() => null);
   const creds = parseCredentials(body);
@@ -38,3 +39,5 @@ export async function POST(request: Request) {
     return Response.json({ error: "Could not create the account" }, { status: 500 });
   }
 }
+
+export const POST = sealed(handlePOST);
