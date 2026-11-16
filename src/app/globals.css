@@ -160,11 +160,11 @@
 /* Each theme supplies five inputs; everything else is derived from them.
    --t-brand is a deepened shade of the palette primary so white text on buttons stays readable. */
 :root[data-theme="midnight-blossom"]{--t-primary:#C8A2C8;--t-brand:#D9B4D9;--t-accent:#E0958D;--t-paper:#1A1417;--t-ink:#E6D9DC}
-:root[data-theme="ethereal-flora"]{--t-primary:#E06D73;--t-brand:#C24E56;--t-accent:#9B7EBD;--t-paper:#F5F5F3;--t-ink:#2C2C2C}
-:root[data-theme="velvet-petal"]{--t-primary:#B08984;--t-brand:#8F625C;--t-accent:#E5645F;--t-paper:#F3EAE4;--t-ink:#2B1E1C}
-:root[data-theme="dawn-peach"]{--t-primary:#F4A58A;--t-brand:#B5533A;--t-accent:#7C93C4;--t-paper:#F8EDE4;--t-ink:#3A2E2E}
+:root[data-theme="ethereal-flora"]{--t-primary:#E06D73;--t-brand:#B54B52;--t-accent:#9B7EBD;--t-paper:#F5F5F3;--t-ink:#2C2C2C}
+:root[data-theme="velvet-petal"]{--t-primary:#B08984;--t-brand:#885D58;--t-accent:#E5645F;--t-paper:#F3EAE4;--t-ink:#2B1E1C}
+:root[data-theme="dawn-peach"]{--t-primary:#F4A58A;--t-brand:#A94F39;--t-accent:#7C93C4;--t-paper:#F8EDE4;--t-ink:#3A2E2E}
 :root[data-theme="meadow-mint"]{--t-primary:#5FB894;--t-brand:#1F7A57;--t-accent:#E0A93B;--t-paper:#F3FAF6;--t-ink:#1F2D27}
-:root[data-theme="golden-hour"]{--t-primary:#F2B544;--t-brand:#A8620A;--t-accent:#D9534F;--t-paper:#FFFAEF;--t-ink:#33280F}
+:root[data-theme="golden-hour"]{--t-primary:#F2B544;--t-brand:#A4600A;--t-accent:#D9534F;--t-paper:#FFFAEF;--t-ink:#33280F}
 :root[data-theme="twilight-indigo"]{--t-primary:#8E86D6;--t-brand:#ADA6F2;--t-accent:#EE9CC0;--t-paper:#1C1F38;--t-ink:#DEE1F4}
 
 :root[data-theme]{
@@ -199,6 +199,9 @@
   --color-slate-600:color-mix(in srgb,var(--t-ink) 75%,var(--t-paper));
   --color-slate-700:color-mix(in srgb,var(--t-ink) 88%,var(--t-paper));
 }
+
+/* WCAG AA: secondary text on the light themes' paper and cards (checked for every theme at 4.5:1 or better). */
+:root[data-theme]:not([data-tone="dark"]){--muted:color-mix(in srgb,var(--t-ink) 70%,var(--t-paper))}
 
 /* ---------- Dark tone (night and dusk themes): <html data-tone="dark"> ----------
    Eye comfort: paper is dim and warm-tinted (never pure black), text is soft off-white (never #fff), and the
@@ -450,3 +453,23 @@ html[lang="km"] .topnav a,html[lang="km"] .topnav .gm-trigger{white-space:nowrap
 html[lang="km"] :is(button,.btn){line-height:1.5}
 .ts-auto{background:conic-gradient(#E06D73 0 25%,#2563eb 0 50%,#FF6B6B 0 75%,#C8A2C8 0)}
 .ts-sep{height:1px;margin:4px 6px;background:var(--line)}
+/* ---- Theme menu: Auto / Light / Dark tabs and the Auto schedule ---- */
+.ts-menu{min-width:272px}
+.ts-seg{display:grid;grid-template-columns:repeat(3,1fr);gap:2px;padding:3px;margin:0 0 6px;border-radius:11px;background:color-mix(in srgb,var(--ink) 8%,var(--paper))}
+.ts-seg-btn{border:0;border-radius:8px;padding:7px 6px;background:transparent;color:var(--muted);font-size:12.5px;font-weight:600;cursor:pointer}
+.ts-seg-btn:hover{color:var(--ink)}
+.ts-seg-btn.on{background:var(--paper);color:var(--ink);box-shadow:0 1px 2px #0000001f}
+.ts-seg-btn:focus-visible,.ts-item:focus-visible{outline:2px solid var(--green);outline-offset:1px}
+.ts-list{display:flex;flex-direction:column}
+.ts-auto-panel{padding:4px 6px 6px}
+.ts-now{display:flex;align-items:center;gap:8px;margin:2px 0 6px;font-size:13px;font-weight:700;color:var(--ink)}
+.ts-hint{margin:0 0 8px;font-size:12px;line-height:1.5;color:var(--muted)}
+.ts-sub{margin:0 0 4px;font-size:11px;font-weight:700;letter-spacing:.04em;color:var(--muted)}
+.ts-sched{list-style:none;margin:0;padding:0}
+.ts-sched li{display:flex;align-items:center;gap:8px;padding:6px 6px;border-radius:8px;font-size:12.5px;color:var(--ink)}
+.ts-sched li.now{background:color-mix(in srgb,var(--green) 12%,transparent)}
+.ts-sched-name{display:flex;flex-direction:column;flex:1;min-width:0;font-weight:600;line-height:1.25}
+.ts-sched-name small{font-weight:400;font-size:11px;color:var(--muted)}
+.ts-sched-time{font-size:11.5px;font-variant-numeric:tabular-nums;color:var(--muted)}
+.ts-badge{font-size:10.5px;font-weight:700;color:var(--green);border:1px solid currentColor;border-radius:999px;padding:0 6px}
+@media(max-width:480px){.ts-menu{min-width:min(272px,calc(100vw - 32px))}}

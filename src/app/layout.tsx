@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import { Poppins } from "next/font/google";
 import { Suspense } from "react";
 import { LocaleProvider } from "@/components/shared/LocaleProvider";
+import { ThemeProvider } from "@/components/shared/ThemeProvider";
 import SiteHeader from "@/components/shared/SiteHeader";
 import SiteFooter from "@/components/shared/SiteFooter";
 import ProgressSync from "@/components/shared/ProgressSync";
@@ -39,7 +40,7 @@ export default function RootLayout({ children }: LayoutProps<"/">) {
   return (
     <html lang="en" data-scroll-behavior="smooth" className={poppins.variable} suppressHydrationWarning>
       <head><script dangerouslySetInnerHTML={{ __html: PREPAINT_SCRIPT }} /><style dangerouslySetInnerHTML={{ __html: THEME_LABEL_CSS }} /></head>
-      <body id="top" suppressHydrationWarning><LocaleProvider><SiteHeader /><script dangerouslySetInnerHTML={{ __html: NAV_ACTIVE_SCRIPT }} />{children}<SiteFooter /><ProgressSync /><Suspense fallback={null}><PetCompanion /></Suspense><PetRewards /><StreakCelebration /><Suspense fallback={null}><LocalizedTitle /></Suspense></LocaleProvider><GoogleAnalytics /></body>
+      <body id="top" suppressHydrationWarning><ThemeProvider><LocaleProvider><SiteHeader /><script dangerouslySetInnerHTML={{ __html: NAV_ACTIVE_SCRIPT }} />{children}<SiteFooter /><ProgressSync /><Suspense fallback={null}><PetCompanion /></Suspense><PetRewards /><StreakCelebration /><Suspense fallback={null}><LocalizedTitle /></Suspense></LocaleProvider></ThemeProvider><GoogleAnalytics /></body>
     </html>
   );
 }

@@ -1,47 +1,29 @@
 "use client";
 
-import { useEffect, useRef, useState, useSyncExternalStore } from "react";
+import { useEffect, useRef, useState } from "react";
 import { useLocale } from "@/components/shared/LocaleProvider";
+import { useTheme } from "@/components/shared/ThemeProvider";
 import BiText from "@/components/shared/BiText";
-import { AUTO_THEME, DARK_THEME_IDS, THEMES, THEME_KEY, THEME_MODE_ATTR, isThemeId, isThemeMode, themeForHour, type ThemeId, type ThemeMode } from "@/lib/themes";
+import { AUTO_THEME, DEFAULT_THEME_BY_TONE, THEMES, toneOf, type ThemeId } from "@/lib/themes";
+import { DEFAULT_SCHEDULE, formatStart } from "@/lib/theme-schedule";
 
-const listeners = new Set<() => void>();
-const subscribe = (cb: () => void) => { listeners.add(cb); return () => { listeners.delete(cb); }; };
-/** What the user chose: a theme id or "auto". Nothing stored yet means the default theme. */
-const readMode = (): ThemeMode => {
-  try { const v = localStorage.getItem(THEME_KEY); if (isThemeMode(v)) return v; } catch { /* storage unavailable */ }
-  return "developer-blue";
+type View = "auto" | "light" | "dark";
+const VIEWS: View[] = ["auto", "light", "dark"];
+const swatch = (id: ThemeId) => THEMES.find((t) => t.id === id) ?? THEMES[0];
+const dot = (t: (typeof THEMES)[number]) => ({ "--sw1": t.swatch[0], "--sw2": t.swatch[1] }) as React.CSSProperties;
+/** "05:00–07:59": a period runs until the minute before the next one starts (the last wraps past midnight). */
+const range = (i: number) => {
+  const next = DEFAULT_SCHEDULE[(i + 1) % DEFAULT_SCHEDULE.length].start;
+  return `${formatStart(DEFAULT_SCHEDULE[i].start)}–${formatStart((next + 1439) % 1440)}`;
 };
-const resolve = (mode: ThemeMode): ThemeId => (mode === AUTO_THEME ? themeForHour(new Date().getHours()) : mode);
-
-function paint(id: ThemeId) {
-  const root = document.documentElement;
-  if (id === "developer-blue") root.removeAttribute("data-theme");
-  else root.setAttribute("data-theme", id);
-  if (DARK_THEME_IDS.includes(id)) root.setAttribute("data-tone", "dark");
-  else root.removeAttribute("data-tone");
-}
-
-function apply(mode: ThemeMode) {
-  paint(resolve(mode));
-  document.documentElement.setAttribute(THEME_MODE_ATTR, mode); // drives the button label CSS (THEME_LABEL_CSS)
-  try { localStorage.setItem(THEME_KEY, mode); } catch { /* storage unavailable */ }
-  listeners.forEach((l) => l());
-}
 
 export default function ThemeSwitcher() {
-  const mode = useSyncExternalStore(subscribe, readMode, () => "developer-blue" as ThemeMode);
+  const { theme, period, isAuto, setMode } = useTheme();
   const { t: tr } = useLocale();
-  // In auto mode, re-check the clock every minute so the theme changes while the page is open.
-  useEffect(() => {
-    if (mode !== AUTO_THEME) return;
-    const tick = () => { paint(resolve(AUTO_THEME)); listeners.forEach((l) => l()); };
-    const id = window.setInterval(tick, 60_000);
-    return () => window.clearInterval(id);
-  }, [mode]);
-  const isAuto = mode === AUTO_THEME;
-  const theme: ThemeId = isThemeId(mode) ? mode : resolve(mode);
   const [open, setOpen] = useState(false);
+  /** Which tab of the menu is shown; null follows the current mode. Picking a tab other than Auto switches to manual mode. */
+  const [pick, setPick] = useState<View | null>(null);
+  const view: View = pick ?? (isAuto ? "auto" : toneOf(theme));
   const ref = useRef<HTMLDivElement>(null);
   useEffect(() => {
     if (!open) return;
@@ -50,7 +32,7 @@ export default function ThemeSwitcher() {
       if (e.key === "Escape") { setOpen(false); ref.current?.querySelector<HTMLElement>(".ts-btn")?.focus(); }
       if (e.key === "ArrowDown" || e.key === "ArrowUp") {
         e.preventDefault();
-        const items = Array.from(ref.current?.querySelectorAll<HTMLElement>(".ts-item") ?? []);
+        const items = Array.from(ref.current?.querySelectorAll<HTMLElement>(".ts-seg-btn, .ts-item") ?? []);
         const i = items.indexOf(document.activeElement as HTMLElement);
         items[(i + (e.key === "ArrowDown" ? 1 : -1) + items.length) % items.length]?.focus();
       }
@@ -58,11 +40,19 @@ export default function ThemeSwitcher() {
     document.addEventListener("mousedown", onDown); document.addEventListener("keydown", onKey);
     return () => { document.removeEventListener("mousedown", onDown); document.removeEventListener("keydown", onKey); };
   }, [open]);
-  const cur = THEMES.find((t) => t.id === theme) ?? THEMES[0];
-  const dot = (t: (typeof THEMES)[number]) => ({ "--sw1": t.swatch[0], "--sw2": t.swatch[1] }) as React.CSSProperties;
+  const cur = swatch(theme);
+  const periodName = period ? tr(`theme.period.${period}`) : "";
+  const autoLabel = period ? tr("theme.autoNow", { period: periodName }) : tr("theme.auto");
+  const toggle = () => { setPick(null); setOpen((v) => !v); };
+  const choose = (v: View) => {
+    setPick(v);
+    if (v === "auto") { setMode(AUTO_THEME); setPick(null); return; }
+    // Light / Dark: manual mode right away, keeping the current look when it already has that tone.
+    if (toneOf(theme) !== v || isAuto) setMode(toneOf(theme) === v ? theme : DEFAULT_THEME_BY_TONE[v]);
+  };
   return (
     <div className="theme-switcher" ref={ref}>
-      <button type="button" className="ts-btn" aria-haspopup="menu" aria-expanded={open} aria-label={`${tr("nav.theme")}: ${isAuto ? tr("theme.auto") : tr(`theme.${cur.id}`)}`} onClick={() => setOpen((v) => !v)}>
+      <button type="button" className="ts-btn" aria-haspopup="true" aria-expanded={open} title={isAuto ? autoLabel : undefined} aria-label={`${tr("nav.theme")}: ${isAuto ? autoLabel : tr(`theme.${cur.id}`)}`} onClick={toggle}>
         {/* Every option is rendered; CSS shows the stored one from the first paint, before React reads localStorage. */}
         <span className="ts-cur" data-t={AUTO_THEME}><span className="ts-dot ts-auto" aria-hidden="true" /><span className="ts-name"><BiText k="theme.auto" /></span></span>
         {THEMES.map((th) => (
@@ -70,20 +60,41 @@ export default function ThemeSwitcher() {
         ))}
         <span className="ts-caret" aria-hidden="true">⌄</span>
       </button>
-      {open && <div className="ts-menu" role="menu" aria-label={tr("nav.theme")}>
-        <button type="button" role="menuitemradio" aria-checked={isAuto} autoFocus={isAuto} title={tr("theme.autoHint")}
-          className={`ts-item${isAuto ? " active" : ""}`} onClick={() => { apply(AUTO_THEME); setOpen(false); }}>
-          <span className="ts-dot ts-auto" aria-hidden="true" />{tr("theme.auto")}
-          {isAuto && <span className="ts-check" aria-hidden="true">✓</span>}
-        </button>
-        <div className="ts-sep" role="separator" />
-        {THEMES.map((t) => (
-          <button key={t.id} type="button" role="menuitemradio" aria-checked={!isAuto && theme === t.id} autoFocus={!isAuto && theme === t.id}
-            className={`ts-item${!isAuto && theme === t.id ? " active" : ""}`} onClick={() => { apply(t.id); setOpen(false); }}>
-            <span className="ts-dot" style={dot(t)} aria-hidden="true" />{tr(`theme.${t.id}`)}
-            {!isAuto && theme === t.id && <span className="ts-check" aria-hidden="true">✓</span>}
-          </button>
-        ))}
+      {open && <div className="ts-menu" role="group" aria-label={tr("nav.theme")}>
+        <div className="ts-seg" role="radiogroup" aria-label={tr("theme.modes")}>
+          {VIEWS.map((v) => (
+            <button key={v} type="button" role="radio" aria-checked={view === v} autoFocus={view === v} className={`ts-seg-btn${view === v ? " on" : ""}`} onClick={() => choose(v)}>{tr(`theme.seg.${v}`)}</button>
+          ))}
+        </div>
+        {view === "auto" ? (
+          <div className="ts-auto-panel">
+            <p className="ts-now" role="status"><span className="ts-dot" style={dot(cur)} aria-hidden="true" />{autoLabel}</p>
+            <p className="ts-hint">{tr("theme.autoHint")}</p>
+            <p className="ts-sub">{tr("theme.schedule")}</p>
+            <ul className="ts-sched">
+              {DEFAULT_SCHEDULE.map((p, i) => (
+                <li key={p.id} className={p.id === period ? "now" : undefined} aria-current={p.id === period ? "true" : undefined}>
+                  <span className="ts-dot" style={dot(swatch(p.theme))} aria-hidden="true" />
+                  <span className="ts-sched-name">{tr(`theme.period.${p.id}`)}<small>{tr(`theme.${p.theme}`)}</small></span>
+                  <span className="ts-sched-time">{range(i)}</span>
+                  {p.id === period && <span className="ts-badge">{tr("theme.nowBadge")}</span>}
+                </li>
+              ))}
+            </ul>
+          </div>
+        ) : (
+          <div role="radiogroup" aria-label={tr(`theme.seg.${view}`)} className="ts-list">
+            {THEMES.filter((t) => t.tone === view).map((t) => {
+              const on = !isAuto && theme === t.id;
+              return (
+                <button key={t.id} type="button" role="radio" aria-checked={on} className={`ts-item${on ? " active" : ""}`} onClick={() => { setMode(t.id); setOpen(false); }}>
+                  <span className="ts-dot" style={dot(t)} aria-hidden="true" />{tr(`theme.${t.id}`)}
+                  {on && <span className="ts-check" aria-hidden="true">✓</span>}
+                </button>
+              );
+            })}
+          </div>
+        )}
       </div>}
     </div>
   );
