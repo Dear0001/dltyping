@@ -4,14 +4,15 @@ const { seal, open } = await import("@/lib/secure-api");
 const { sealed } = await import("@/lib/secure-route");
 
 test("sealed routes hide request and response bodies and still work", async () => {
-  const envelope = await seal(JSON.stringify({ password: "hunter2" }));
-  assert.ok(!envelope.includes("hunter2"));
+  const marker = `marker-${crypto.randomUUID()}`; // random per run: nothing secret lives in the test
+  const envelope = await seal(JSON.stringify({ field: marker }));
+  assert.ok(!envelope.includes(marker));
   const handler = sealed(async (r: Request) => Response.json({ got: await r.json() }, { status: 201 }));
   const res = await handler(new Request("http://x/api", { method: "POST", headers: { "x-sealed": "1" }, body: envelope }), undefined);
   const text = await res.text();
   assert.equal(res.status, 201);
-  assert.ok(!text.includes("hunter2"));
-  assert.deepEqual(JSON.parse((await open(text))!), { got: { password: "hunter2" } });
+  assert.ok(!text.includes(marker));
+  assert.deepEqual(JSON.parse((await open(text))!), { got: { field: marker } });
 });
 
 test("tampered envelopes are rejected", async () => {

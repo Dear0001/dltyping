@@ -3,7 +3,7 @@
 // Client account store: who is signed in, plus sign-in / sign-up / sign-out actions.
 import { useSyncExternalStore } from "react";
 import { secureFetch } from "@/lib/secure-fetch";
-import { ACCOUNT_HINT_KEY } from "@/lib/prepaint";
+import { ACCOUNT_HINT_ITEM } from "@/lib/prepaint";
 import { clearLocalProgress, getDeviceId, setSyncAccount, syncProgress } from "@/lib/sync";
 
 export type Account = { status: "loading" | "anon" | "user"; email?: string; name?: string | null; /** Granted by the server for this email (see src/lib/perks.ts). */ perks?: { allPets?: boolean } };
@@ -22,7 +22,7 @@ function set(next: Account) {
 function rememberStatus(status: "anon" | "user") {
   if (typeof document === "undefined") return;
   document.documentElement.setAttribute("data-acct", status);
-  try { localStorage.setItem(ACCOUNT_HINT_KEY, status); } catch { /* storage unavailable: only the hint is lost */ }
+  try { localStorage.setItem(ACCOUNT_HINT_ITEM, status); } catch { /* storage unavailable: only the hint is lost */ }
 }
 
 export function useAccount(): Account {

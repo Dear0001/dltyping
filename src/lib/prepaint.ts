@@ -6,11 +6,11 @@
 import { THEME_INIT_SCRIPT } from "@/lib/themes";
 
 export const LOCALE_KEY = "keyflow-locale";
-/** Last known sign-in state ("user" | "anon"). Only a hint for first paint; /api/auth/me stays the source of truth. */
-export const ACCOUNT_HINT_KEY = "dlt-acct";
+/** localStorage item name (not a secret) for the last known sign-in state ("user" | "anon"). Only a hint for first paint; /api/auth/me stays the source of truth. */
+export const ACCOUNT_HINT_ITEM = "dlt-acct";
 
 /** Sets <html lang>, data-locale and data-acct from localStorage. CSS uses them until React has hydrated. */
-const LOCALE_ACCOUNT_SCRIPT = `try{var d=document.documentElement,l=localStorage.getItem(${JSON.stringify(LOCALE_KEY)});if(l==="km"){d.lang="km";d.setAttribute("data-locale","km")}var a=localStorage.getItem(${JSON.stringify(ACCOUNT_HINT_KEY)});if(a==="user"||a==="anon")d.setAttribute("data-acct",a)}catch(e){}`;
+const LOCALE_ACCOUNT_SCRIPT = `try{var d=document.documentElement,l=localStorage.getItem(${JSON.stringify(LOCALE_KEY)});if(l==="km"){d.lang="km";d.setAttribute("data-locale","km")}var a=localStorage.getItem(${JSON.stringify(ACCOUNT_HINT_ITEM)});if(a==="user"||a==="anon")d.setAttribute("data-acct",a)}catch(e){}`;
 
 export const PREPAINT_SCRIPT = THEME_INIT_SCRIPT + LOCALE_ACCOUNT_SCRIPT;
 
